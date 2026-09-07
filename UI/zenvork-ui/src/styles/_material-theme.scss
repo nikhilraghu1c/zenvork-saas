@@ -1,92 +1,61 @@
 @use '@angular/material' as mat;
+@use 'sass:map';
 
 @include mat.core();
 
-$app-primary-palette: (
-  50: #e3f2fd,
-  100: #bbdefb,
-  200: #90caf9,
-  300: #64b5f6,
-  400: #42a5f5,
-  500: #1976d2,
-  600: #1e88e5,
-  700: #1565c0,
-  800: #0d47a1,
-  900: #0b3c8c,
-  A100: #82b1ff,
-  A200: #448aff,
-  A400: #2979ff,
-  A700: #2962ff,
-  contrast: (
-    50: #000,
-    100: #000,
-    200: #000,
-    300: #000,
-    400: #000,
-    500: #fff,
-    600: #fff,
-    700: #fff,
-    800: #fff,
-    900: #fff,
-    A100: #000,
-    A200: #fff,
-    A400: #fff,
-    A700: #fff,
-  ),
-);
-
-$app-accent-palette: (
-  50: #ede7f6,
-  100: #d1c4e9,
-  200: #b39ddb,
-  300: #9575cd,
-  400: #7e57c2,
-  500: #7c4dff,
-  600: #6c3ce9,
-  700: #5e2fdb,
-  800: #4f24c7,
-  900: #3d1aae,
-  A100: #b388ff,
-  A200: #7c4dff,
-  A400: #651fff,
-  A700: #6200ea,
-  contrast: (
-    50: #000,
-    100: #000,
-    200: #000,
-    300: #000,
-    400: #fff,
-    500: #fff,
-    600: #fff,
-    700: #fff,
-    800: #fff,
-    900: #fff,
-    A100: #000,
-    A200: #fff,
-    A400: #fff,
-    A700: #fff,
-  ),
-);
-
-// Angular Material 21 exposes the established palette API under an `m2-` prefix.
-$app-primary-color: mat.m2-define-palette($app-primary-palette, 500);
-$app-accent-color: mat.m2-define-palette($app-accent-palette, 500);
-$app-warn-color: mat.m2-define-palette(mat.$m2-red-palette);
-
-$app-theme: mat.m2-define-dark-theme((
-  color: (
-    primary: $app-primary-color,
-    accent: $app-accent-color,
-    warn: $app-warn-color,
-  ),
-  typography: mat.m2-define-typography-config(
-    $font-family: 'Inter, sans-serif',
-  ),
-  density: 0,
+// Angular Material requires every M3 palette to include secondary, neutral,
+// neutral-variant, and error maps. Violet supplies that required structure;
+// these overrides provide Zenvork's Purple tonal scale. Tone 50 is #7c4dff.
+$app-purple-palette: map.merge(mat.$violet-palette, (
+  0: #000000,
+  10: #21005d,
+  20: #381e72,
+  25: #432583,
+  30: #4f378b,
+  35: #5b4197,
+  40: #6748c7,
+  50: #7c4dff,
+  60: #9475ff,
+  70: #b69cff,
+  80: #d0bcff,
+  90: #e9ddff,
+  95: #f7edff,
+  98: #fef7ff,
+  99: #fffbff,
+  100: #ffffff,
 ));
 
-@include mat.all-component-themes($app-theme);
+// Cyan is the primary role for default Material interactions. Purple is tertiary
+// for intentional highlights and is sourced from the custom palette above.
+$app-theme: mat.define-theme((
+  color: (
+    theme-type: dark,
+    primary: mat.$cyan-palette,
+    tertiary: $app-purple-palette,
+    use-system-variables: true,
+  ),
+  typography: (
+    brand-family: 'Poppins, sans-serif',
+    plain-family: 'Inter, sans-serif',
+    use-system-variables: true,
+  ),
+  density: (
+    scale: 0,
+  ),
+));
 
+html {
+  @include mat.all-component-themes($app-theme);
+  @include mat.system-level-colors($app-theme);
+  @include mat.system-level-typography($app-theme);
+}
+
+// Opt-in M3 tertiary variant for Material buttons.
+.app-tertiary-button {
+  @include mat.button-color($app-theme, tertiary);
+}
+
+// Keep Material's neutral roles on the same dark base as the application.
 .mat-app-background {
   background-color: var(--bg);
 }
@@ -94,7 +63,7 @@ $app-theme: mat.m2-define-dark-theme((
 .btn-gradient {
   border: 0;
   background: var(--gradient-brand);
-  color: #fff;
+  color: var(--text-on-brand);
 
   &:hover {
     filter: brightness(1.08);
