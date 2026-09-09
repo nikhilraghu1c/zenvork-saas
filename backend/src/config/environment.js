@@ -8,6 +8,4 @@ export const environment = {
   NODE_ENV: process.env.NODE_ENV || "development",
   ACCESS_TKN_SECRET: process.env.ACCESS_TKN_SECRET,
   ACCESS_TKN_EXPIRE: process.env.ACCESS_TKN_EXPIRE,
-  //   REFRESH_TKN_SECRET: process.env.REFRESH_TKN_SECRET,
-  //   REFRESH_TKN_EXPIRE: process.env.REFRESH_TKN_EXPIRE,
 };

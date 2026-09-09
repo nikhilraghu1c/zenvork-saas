@@ -7,12 +7,11 @@ The Node.js/Express backend is located in `backend/src` and uses MongoDB through
 ```text
 backend/src/
 ├── config/       # Environment and database configuration
-├── controllers/  # Legacy/auth controllers
+├── controllers/  # Authentication controllers
 ├── middlewares/  # Authentication and authorization middleware
-├── models/       # User models
 ├── modules/      # Domain modules, including business registration
 ├── routes/       # Express route registration
-└── utils/        # Shared validation helpers
+└── server.js      # Application startup
 ```
 
 ## Tenant model

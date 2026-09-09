@@ -69,6 +69,7 @@ Start with the [documentation index](docs/README.md).
 - [Authentication status](docs/architecture/authentication.md)
 - [Design system and Material 3 theming](docs/design-system/theming.md)
 - [Business registration API](docs/api/business-registration.md)
+- [Login API](docs/api/login.md)
 - [Architecture decision records](docs/decisions/README.md)
 
 ## Contribution conventions
