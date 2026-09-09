@@ -1,52 +1,55 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-
-import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
+import { Component } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
+import { AppButtonComponent } from '../../../../shared/button/button.component';
+import { AppCheckboxComponent } from '../../../../shared/checkbox/checkbox.component';
+import { AppInputComponent } from '../../../../shared/input/input.component';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [
+    ReactiveFormsModule,
+    MatIconModule,
+    RouterLink,
+    AppButtonComponent,
+    AppCheckboxComponent,
+    AppInputComponent,
+  ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent implements OnInit {
-  loginForm!: FormGroup;
-  submitted = false;
-  loading = false;
+export class LoginComponent {
+  /** Reactive form ready for the authentication API integration. */
+  protected readonly loginForm;
+  /** Enables validation feedback after the first submit attempt. */
+  protected submitted = false;
 
-  constructor(
-    private formBuilder: FormBuilder, 
-    private authService: AuthService,
-    private router: Router
-  ) {}
-
-  ngOnInit() {
-    this.loginForm = this.formBuilder.group({
+  constructor(private readonly formBuilder: FormBuilder) {
+    this.loginForm = this.formBuilder.nonNullable.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', Validators.required],
+      rememberMe: false,
     });
   }
 
-  get f() {
-    return this.loginForm.controls;
-  }
-
-  onSubmit() {
+  /** Validates credentials locally; API submission will be added with the backend login flow. */
+  protected submit(): void {
     this.submitted = true;
-    if (this.loginForm.invalid) return;
+    this.loginForm.markAllAsTouched();
 
-    this.loading = true;
-    this.authService.login(this.loginForm.value).subscribe({
-      next: (res) => {
-        this.router.navigate(['home']);
-      },
-      error: (err) => {
-        console.error('Login failed', err);
-      },
-      complete: () => {
-        this.loading = false;
-      },
-    });
+    if (this.loginForm.invalid) return;
+  }
+
+  /** Returns the appropriate user-facing validation message for one form control. */
+  protected fieldError(field: 'email' | 'password'): string {
+    const control = this.loginForm.controls[field];
+    if (!control.errors || !(this.submitted || control.touched)) {
+      return '';
+    }
+
+    if (control.hasError('required')) return 'This field is required.';
+    if (control.hasError('email')) return 'Enter a valid email address.';
+    return 'Enter a valid value.';
   }
 }

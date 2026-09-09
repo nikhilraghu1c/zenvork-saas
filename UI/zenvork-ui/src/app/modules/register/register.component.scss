@@ -27,6 +27,24 @@
     margin-bottom: 28px;
     text-align: center;
 
+    .register-icon {
+      display: grid;
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 16px;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--gradient-brand);
+      color: var(--text-on-brand);
+
+      mat-icon {
+        width: 22px;
+        height: 22px;
+        font-size: 22px;
+      }
+    }
+
     .eyebrow {
       margin: 0 0 12px;
       color: var(--cyan);
@@ -199,6 +217,26 @@
     color: var(--text-dim);
     font-size: 13px;
     text-align: center;
+  }
+
+  .login-note {
+    margin: 8px 0 0;
+    color: var(--text-dim);
+    font-size: 13px;
+    text-align: center;
+
+    a {
+      color: var(--cyan);
+      font-weight: 500;
+      text-decoration: none;
+    }
+  }
+
+  @media (min-width: 521px) {
+    .register-header h1 {
+      font-size: 28px;
+      white-space: nowrap;
+    }
   }
 
   @media (max-width: 520px) {

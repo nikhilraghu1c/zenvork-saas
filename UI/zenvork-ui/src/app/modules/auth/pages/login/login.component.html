@@ -1,62 +1,47 @@
-<div class="login-container">
-  <div class="login-box">
-    <h1>Login</h1>
+<div class="login-page">
+  <section class="login-content" aria-labelledby="login-title">
+    <header class="login-header">
+      <span class="login-icon" aria-hidden="true"><mat-icon>lock_person</mat-icon></span>
+      <p class="eyebrow">Secure Business Access</p>
+      <h1 id="login-title">Welcome Back</h1>
+      <p>Log in to manage your business.</p>
+    </header>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <!-- Email Field -->
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input
-          type="email"
-          id="email"
+    <div class="login-card">
+      <form [formGroup]="loginForm" (ngSubmit)="submit()" novalidate>
+        <app-input
           formControlName="email"
-          class="form-control"
-          [class.is-invalid]="submitted && f['email'].errors"
-          placeholder="Enter your email"
-          />
-        @if (submitted && f['email'].errors) {
-          <div class="error-message">
-            @if (f['email'].errors['required']) {
-              <span>Email is required</span>
-            }
-            @if (f['email'].errors['email']) {
-              <span>Please enter a valid email</span>
-            }
-          </div>
-        }
-      </div>
-
-      <!-- Password Field -->
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
+          label="Email"
+          labelPlacement="outside"
+          type="email"
+          placeholder="you@business.com"
+          autocomplete="email"
+          [required]="true"
+          [errorMessage]="fieldError('email')"
+        />
+        <app-input
           formControlName="password"
-          class="form-control"
-          [class.is-invalid]="submitted && f['password'].errors"
-          placeholder="Enter your password"
-          />
-        @if (submitted && f['password'].errors) {
-          <div class="error-message">
-            @if (f['password'].errors['required']) {
-              <span>Password is required</span>
-            }
-            @if (f['password'].errors['minlength']) {
-              <span>Password must be at least 6 characters</span>
-            }
-          </div>
-        }
-      </div>
+          label="Password"
+          labelPlacement="outside"
+          type="password"
+          placeholder="Your password"
+          autocomplete="current-password"
+          [required]="true"
+          [errorMessage]="fieldError('password')"
+        />
 
-      <!-- Submit Button -->
-      <button
-        type="submit"
-        class="btn-submit"
-        [disabled]="loading"
-        >
-        {{ loading ? 'Logging in...' : 'Login' }}
-      </button>
-    </form>
-  </div>
+        <div class="login-options">
+          <app-checkbox formControlName="rememberMe" label="Remember Me" />
+          <span class="forgot-password" aria-disabled="true">Forgot Password?</span>
+        </div>
+
+        <app-button type="submit" [fullWidth]="true">Log In</app-button>
+      </form>
+    </div>
+
+    <p class="access-note">Private workspace <span aria-hidden="true">•</span> Business owners &amp; staff only</p>
+    <p class="register-note">
+      Don't have a business account yet? <a routerLink="/register">Create One Free</a>
+    </p>
+  </section>
 </div>

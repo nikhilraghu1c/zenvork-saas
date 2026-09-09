@@ -17,7 +17,7 @@ src/app/
 Public and authenticated experiences use separate route-level layouts. `PublicLayoutComponent` owns
 public navigation and public routes; `AppLayoutComponent` will own authenticated navigation and
 guarded `/app` routes. Feature pages are lazy-loaded. The current public routes are `/` and
-`/register`.
+`/register` and `/login`.
 
 ## Component conventions
 

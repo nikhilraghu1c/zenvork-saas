@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import {
   BusinessRegistrationRequest,
@@ -21,7 +22,7 @@ interface BusinessTypeOption {
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, MatIconModule, AppButtonComponent, AppInputComponent],
+  imports: [ReactiveFormsModule, MatIconModule, RouterLink, AppButtonComponent, AppInputComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })

@@ -6,6 +6,11 @@ export const routes: Routes = [
       import('./layouts/public-layout/public-layout.component').then((m) => m.PublicLayoutComponent),
     children: [
       {
+        path: 'login',
+        loadComponent: () =>
+          import('./modules/auth/pages/login/login.component').then((m) => m.LoginComponent),
+      },
+      {
         path: 'register',
         loadComponent: () =>
           import('./modules/register/register.component').then((m) => m.RegisterComponent),
