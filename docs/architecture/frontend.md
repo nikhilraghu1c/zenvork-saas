@@ -29,5 +29,8 @@ guarded `/app` routes. Feature pages are lazy-loaded. The current public routes 
 ## API services
 
 `core/services/api.service.ts` owns the default API domain and generic `get`, `query`, `post`,
-`put`, and `delete` methods. Module-owned services define feature endpoints and request/response
-types by composing that client; for example, business registration belongs to `modules/register`.
+`put`, and `delete` methods. Its requests include credentials so the browser can use Zenvork's
+HttpOnly authentication cookie. The local backend domain is `http://localhost:4001`; its CORS
+configuration allows the Angular development origin at `http://localhost:4200`. Module-owned
+services define feature endpoints and request/response types by composing that client; for example,
+business registration belongs to `modules/register`.

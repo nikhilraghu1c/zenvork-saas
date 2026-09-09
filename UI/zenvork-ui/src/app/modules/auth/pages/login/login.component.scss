@@ -88,6 +88,26 @@
     font-weight: 500;
   }
 
+  .server-error,
+  .success-message {
+    margin: 0 0 18px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+  }
+
+  .server-error {
+    border: 1px solid color-mix(in srgb, var(--mat-sys-error) 50%, transparent);
+    background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
+    color: var(--mat-sys-error);
+  }
+
+  .success-message {
+    border: 1px solid var(--green-border);
+    background: var(--green-soft);
+    color: var(--green);
+  }
+
   .register-note {
     margin: 10px 0 0;
     color: var(--text-dim);

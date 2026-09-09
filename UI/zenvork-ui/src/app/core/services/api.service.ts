@@ -12,23 +12,26 @@ export class ApiService {
   constructor(private readonly http: HttpClient) {}
 
   get<TResponse>(path: string): Observable<TResponse> {
-    return this.http.get<TResponse>(this.url(path));
+    return this.http.get<TResponse>(this.url(path), { withCredentials: true });
   }
 
   query<TResponse>(path: string, query: ApiQuery): Observable<TResponse> {
-    return this.http.get<TResponse>(this.url(path), { params: this.params(query) });
+    return this.http.get<TResponse>(this.url(path), {
+      params: this.params(query),
+      withCredentials: true,
+    });
   }
 
   post<TResponse, TBody>(path: string, body: TBody): Observable<TResponse> {
-    return this.http.post<TResponse>(this.url(path), body);
+    return this.http.post<TResponse>(this.url(path), body, { withCredentials: true });
   }
 
   put<TResponse, TBody>(path: string, body: TBody): Observable<TResponse> {
-    return this.http.put<TResponse>(this.url(path), body);
+    return this.http.put<TResponse>(this.url(path), body, { withCredentials: true });
   }
 
   delete<TResponse>(path: string): Observable<TResponse> {
-    return this.http.delete<TResponse>(this.url(path));
+    return this.http.delete<TResponse>(this.url(path), { withCredentials: true });
   }
 
   private url(path: string): string {

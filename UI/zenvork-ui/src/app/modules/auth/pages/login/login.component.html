@@ -9,6 +9,9 @@
 
     <div class="login-card">
       <form [formGroup]="loginForm" (ngSubmit)="submit()" novalidate>
+        @if (successMessage) {
+          <p class="success-message" role="status">{{ successMessage }}</p>
+        }
         <app-input
           formControlName="email"
           label="Email"
@@ -35,7 +38,11 @@
           <span class="forgot-password" aria-disabled="true">Forgot Password?</span>
         </div>
 
-        <app-button type="submit" [fullWidth]="true">Log In</app-button>
+        @if (serverError) {
+          <p class="server-error" role="alert">{{ serverError }}</p>
+        }
+
+        <app-button type="submit" [fullWidth]="true" [loading]="loading">Log In</app-button>
       </form>
     </div>
 
