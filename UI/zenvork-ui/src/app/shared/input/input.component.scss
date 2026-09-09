@@ -1,0 +1,25 @@
+.app-input {
+  display: block;
+
+  .outside-label {
+    display: inline-block;
+    margin: 0 0 6px;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  mat-form-field {
+    width: 100%;
+    --mat-form-field-container-height: 48px;
+    --mat-form-field-container-vertical-padding: 12px;
+    --mat-form-field-outlined-container-shape: var(--radius-md);
+    --mat-form-field-container-text-size: 14px;
+  }
+
+  .input-error {
+    margin: -12px 0 8px;
+    color: var(--mat-sys-error);
+    font-size: 12px;
+  }
+}

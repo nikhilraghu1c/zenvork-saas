@@ -14,7 +14,7 @@ export const validateBusinessRegistration = (data) => {
     throw new RequestValidationError("Invalid request data");
   }
 
-  const { businessName, businessType, ownerName, email, password } = data;
+  const { businessName, businessType, ownerName, email, mobile, password } = data;
   const errors = [];
 
   if (!isNonEmptyString(businessName)) {
@@ -25,6 +25,9 @@ export const validateBusinessRegistration = (data) => {
   }
   if (!isNonEmptyString(email)) {
     errors.push("Email is required");
+  }
+  if (!isNonEmptyString(mobile)) {
+    errors.push("Mobile number is required");
   }
   if (typeof password !== "string" || password.length === 0) {
     errors.push("Password is required");
@@ -47,6 +50,7 @@ export const validateBusinessRegistration = (data) => {
     businessType: normalizedBusinessType,
     ownerName: ownerName.trim(),
     email: email.trim().toLowerCase(),
+    mobile: mobile.trim(),
     password,
   };
 };

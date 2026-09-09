@@ -1,0 +1,15 @@
+.app-button {
+  display: inline-block;
+
+  button {
+    min-height: 44px;
+  }
+
+  &.is-full-width {
+    display: block;
+
+    button {
+      width: 100%;
+    }
+  }
+}

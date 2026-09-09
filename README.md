@@ -57,8 +57,8 @@ npm run dev
 ## Current product direction
 
 - Public landing page is available at `/`.
-- The next frontend milestone is business-owner registration followed by the authenticated dashboard.
-- Business registration currently uses `POST /api/register-business`; see the contract before integrating.
+- Business-owner registration is available at `/register` and uses `POST /api/register-business`.
+- The next frontend milestone is the authenticated dashboard.
 
 ## Documentation
 

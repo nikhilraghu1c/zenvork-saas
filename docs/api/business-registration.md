@@ -16,17 +16,23 @@ Source: `backend/src/routes/auth.routes.js`.
   "businessType": "SALON",
   "ownerName": "Owner Name",
   "email": "owner@example.com",
+  "mobile": "9876543210",
   "password": "password"
 }
 ```
 
 The backend normalizes business type to uppercase. The accepted types are defined by `BUSINESS_TYPES`
-in `backend/src/modules/business/business.model.js`.
+in `backend/src/modules/business/business.model.js`. Mobile must be a unique 10-digit Indian mobile
+number beginning with 6–9.
 
 ## Successful response
 
-The endpoint returns HTTP `201` with a message, the created business, and a safe owner object. It
-does not currently return a JWT.
+The endpoint returns HTTP `201` with a success message only. It does not currently return created
+records or a JWT.
+
+```json
+{ "message": "Business and owner registered successfully" }
+```
 
 ## Error response
 

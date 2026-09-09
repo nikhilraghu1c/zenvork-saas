@@ -1,0 +1,121 @@
+<div class="register-page">
+  <section class="register-content" aria-labelledby="register-title">
+    <header class="register-header">
+      <p class="eyebrow">For Business Owners</p>
+      <h1 id="register-title">Create your business account</h1>
+      <p>Start your 14-day free trial. No card required.</p>
+    </header>
+
+    <div class="register-card">
+      @if (successMessage) {
+        <div class="success-state" role="status">
+          <span aria-hidden="true">✓</span>
+          <h2>Your business is registered</h2>
+          <p>{{ successMessage }}</p>
+          <p>Sign-in will be available once the authentication flow is enabled.</p>
+        </div>
+      } @else {
+        <div class="trial-note">
+          <span aria-hidden="true">✓</span>14 days free, full access - cancel anytime
+        </div>
+
+        <form [formGroup]="registrationForm" (ngSubmit)="submit()" novalidate>
+          <fieldset>
+            <legend>Your business</legend>
+            <app-input
+              formControlName="businessName"
+              label="Business Name"
+              labelPlacement="outside"
+              placeholder="e.g. Glow Salon"
+              autocomplete="organization"
+              [required]="true"
+              [errorMessage]="fieldError('businessName')"
+            />
+
+            <div class="business-type-field" [class.has-error]="fieldError('businessType')">
+              <p class="field-label" id="business-type-label">Business Type</p>
+              <div class="type-options" role="radiogroup" aria-labelledby="business-type-label">
+                @for (businessType of businessTypes; track businessType.value) {
+                  <label
+                    class="type-option"
+                    [class.is-selected]="
+                      registrationForm.controls.businessType.value === businessType.value
+                    "
+                  >
+                    <input
+                      type="radio"
+                      formControlName="businessType"
+                      [value]="businessType.value"
+                    />
+                    <mat-icon class="type-icon" aria-hidden="true">{{
+                      businessType.iconName
+                    }}</mat-icon>
+                    <span>{{ businessType.label }}</span>
+                  </label>
+                }
+              </div>
+              @if (fieldError('businessType')) {
+                <p class="type-error" role="alert">{{ fieldError('businessType') }}</p>
+              }
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Your account</legend>
+            <app-input
+              formControlName="ownerName"
+              label="Your Full Name"
+              labelPlacement="outside"
+              floatLabel="always"
+              placeholder="e.g. John Doe"
+              autocomplete="name"
+              [required]="true"
+              [errorMessage]="fieldError('ownerName')"
+            />
+            <app-input
+              formControlName="email"
+              label="Email"
+              labelPlacement="outside"
+              type="email"
+              placeholder="you@business.com"
+              autocomplete="email"
+              [required]="true"
+              [errorMessage]="fieldError('email')"
+            />
+            <app-input
+              formControlName="mobile"
+              label="Mobile Number"
+              labelPlacement="outside"
+              type="tel"
+              placeholder="e.g. 9876543210"
+              autocomplete="tel-national"
+              [required]="true"
+              [errorMessage]="fieldError('mobile')"
+            />
+            <app-input
+              formControlName="password"
+              label="Password"
+              labelPlacement="outside"
+              type="password"
+              placeholder="At least 8 characters"
+              autocomplete="new-password"
+              hint="You'll use this to log in as the business owner."
+              [required]="true"
+              [errorMessage]="fieldError('password')"
+            />
+          </fieldset>
+
+          @if (serverError) {
+            <p class="server-error" role="alert">{{ serverError }}</p>
+          }
+
+          <app-button type="submit" [fullWidth]="true" [loading]="loading">
+            Create Business Account
+          </app-button>
+        </form>
+      }
+    </div>
+
+    <p class="terms-note">By continuing, you agree to Zenvork's Terms &amp; Privacy Policy.</p>
+  </section>
+</div>

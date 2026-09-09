@@ -8,14 +8,14 @@ import {
 
 const registerBusiness = async (req, res) => {
   try {
-    const { businessName, businessType, ownerName, email, password } =
+    const { businessName, businessType, ownerName, email, mobile, password } =
       validateBusinessRegistration(req.body);
 
-    const existingUser = await User.exists({ email });
+    const existingUser = await User.exists({ $or: [{ email }, { mobile }] });
     if (existingUser) {
       return res
         .status(409)
-        .json({ message: "User with this email already exists" });
+        .json({ message: "Email or mobile number is already registered" });
     }
 
     // Start session for transaction
@@ -32,6 +32,7 @@ const registerBusiness = async (req, res) => {
         newUser = new User({
           name: ownerName,
           email,
+          mobile,
           password,
           role: "OWNER",
           businessId,
@@ -53,13 +54,6 @@ const registerBusiness = async (req, res) => {
 
     return res.status(201).json({
       message: "Business and owner registered successfully",
-      business: newBusiness,
-      owner: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-      },
     });
   } catch (error) {
     if (error instanceof RequestValidationError) {
@@ -69,7 +63,7 @@ const registerBusiness = async (req, res) => {
     if (error?.code === 11000) {
       return res
         .status(409)
-        .json({ message: "User with this email already exists" });
+        .json({ message: "Email or mobile number is already registered" });
     }
 
     if (error instanceof mongoose.Error.ValidationError) {

@@ -13,6 +13,7 @@ commented or legacy code in the current backend route configuration.
 
 ## Frontend implication
 
-Do not assume registration authenticates the owner until the backend contract changes. Before adding
-login, registration redirect, or route-guard behavior, verify the relevant backend route and response
-in `backend/src` and update this document and the API contract in the same change.
+The current registration UI shows its success state in place after a successful API call. Do not assume
+registration authenticates the owner until the backend contract changes. Before adding login,
+registration redirect, or route-guard behavior, verify the relevant backend route and response in
+`backend/src` and update this document and the API contract in the same change.

@@ -1,0 +1,14 @@
+<div class="app-button" [class.is-full-width]="fullWidth">
+  <button
+    matButton="filled"
+    [type]="type"
+    [disabled]="disabled || loading"
+    [class.app-tertiary-button]="variant === 'tertiary'"
+  >
+    @if (loading) {
+      <mat-spinner diameter="18" aria-label="Loading" />
+    } @else {
+      <ng-content />
+    }
+  </button>
+</div>

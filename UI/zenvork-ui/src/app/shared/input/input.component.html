@@ -1,0 +1,30 @@
+<div class="app-input">
+  @if (labelPlacement === 'outside') {
+    <label class="outside-label" [for]="inputId">{{ label }}</label>
+  }
+
+  <mat-form-field appearance="outline" [floatLabel]="floatLabel">
+    @if (labelPlacement === 'floating') {
+      <mat-label>{{ label }}</mat-label>
+    }
+    <input
+      matInput
+      [id]="inputId"
+      [type]="type"
+      [value]="value"
+      [placeholder]="placeholder"
+      [autocomplete]="autocomplete"
+      [required]="required"
+      [disabled]="disabled"
+      (input)="updateValue($event)"
+      (blur)="markTouched()"
+    />
+    @if (hint && !errorMessage) {
+      <mat-hint>{{ hint }}</mat-hint>
+    }
+  </mat-form-field>
+
+  @if (errorMessage) {
+    <p class="input-error" role="alert">{{ errorMessage }}</p>
+  }
+</div>

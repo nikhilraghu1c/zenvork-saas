@@ -14,5 +14,15 @@ Pages should use a shared wrapper when one exists rather than styling raw Materi
 Start each wrapper with only the capabilities needed by its first caller. Extend that same wrapper
 when a real new requirement appears; avoid speculative props and variants.
 
-The first planned wrappers are `AppButtonComponent` and `AppInputComponent`. They will support the
-business registration flow before additional component APIs are introduced.
+Current wrappers are `AppButtonComponent` and `AppInputComponent`. They provide the initial
+business-registration UI while keeping their public APIs intentionally small. Business-type tiles
+are registration-specific native radio inputs, so they remain inside that module rather than being
+treated as a shared component.
+
+The wrappers live directly in `src/app/shared/button` and `src/app/shared/input`; their Angular
+selectors remain `app-button` and `app-input`.
+
+`AppInputComponent` uses Material's floating label by default. Set `floatLabel="always"` to keep
+that label floated, or set `labelPlacement="outside"` for an accessible native label above the
+outlined field. Provide `inputId` when a stable DOM identifier is needed. Its supported native
+input types are `text`, `email`, `password`, and `tel`.

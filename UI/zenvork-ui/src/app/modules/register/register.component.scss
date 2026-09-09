@@ -1,0 +1,214 @@
+:host {
+  display: block;
+}
+
+.register-page {
+  position: relative;
+  min-height: 100%;
+  overflow: hidden;
+
+  &::before {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: var(--gradient-page-glow);
+    content: '';
+    pointer-events: none;
+  }
+
+  .register-content {
+    box-sizing: border-box;
+    max-width: 528px;
+    margin: 0 auto;
+    padding: 48px 24px 60px;
+  }
+
+  .register-header {
+    margin-bottom: 28px;
+    text-align: center;
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--cyan);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(26px, 5vw, 32px);
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
+    p:last-child {
+      margin: 0;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+  }
+
+  .register-card {
+    padding: 32px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    backdrop-filter: blur(14px);
+  }
+
+  .trial-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 22px;
+    padding: 10px 14px;
+    border: 1px solid var(--cyan-border);
+    border-radius: var(--radius-sm);
+    background: var(--cyan-soft);
+    color: var(--text-dim);
+    font-size: 12.5px;
+
+    span {
+      color: var(--cyan);
+      font-weight: 700;
+    }
+  }
+
+  fieldset {
+    min-width: 0;
+    margin: 0 0 26px;
+    padding: 0;
+    border: 0;
+  }
+
+  legend {
+    margin-bottom: 14px;
+    color: var(--text-mute);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .business-type-field {
+    margin-top: 4px;
+  }
+
+  .field-label {
+    margin: 0 0 8px;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .type-options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .type-option {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100px;
+    min-height: 48px;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-subtle);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: border-color 160ms ease, background-color 160ms ease;
+
+    input {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      cursor: pointer;
+      opacity: 0;
+    }
+
+    &:has(input:focus-visible) {
+      outline: 2px solid var(--mat-sys-primary);
+      outline-offset: 2px;
+    }
+
+    &.is-selected {
+      border-color: var(--mat-sys-primary);
+      background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+    }
+  }
+
+  .type-icon {
+    color: var(--cyan);
+    font-size: 20px;
+  }
+
+  .type-error {
+    margin: 6px 0 0;
+    color: var(--mat-sys-error);
+    font-size: 12px;
+  }
+
+  .server-error {
+    margin: 0 0 18px;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--mat-sys-error) 50%, transparent);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
+    color: var(--mat-sys-error);
+    font-size: 13px;
+  }
+
+  .success-state {
+    text-align: center;
+
+    > span {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 14px;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 21px;
+    }
+
+    p {
+      margin: 0 0 8px;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+  }
+
+  .terms-note {
+    margin: 20px 0 0;
+    color: var(--text-dim);
+    font-size: 13px;
+    text-align: center;
+  }
+
+  @media (max-width: 520px) {
+    .register-content {
+      padding-top: 36px;
+    }
+
+    .register-card {
+      padding: 24px 18px;
+    }
+
+  }
+}
