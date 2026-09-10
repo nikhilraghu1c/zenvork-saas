@@ -5,7 +5,6 @@ Documentation is maintained with the code and reviewed in the same change that a
 
 ## Index
 
-- [MVP requirements and user flows (draft)](requirements/mvp.md)
 - [Frontend architecture](architecture/frontend.md)
 - [Backend architecture](architecture/backend.md)
 - [Authentication](architecture/authentication.md)
