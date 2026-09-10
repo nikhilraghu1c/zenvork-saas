@@ -24,5 +24,11 @@ than accepting it from the client. Its `{ businessId, resourceType }` index supp
 resource-type queries. Future business-owned records follow the same rule.
 
 `BusinessType` is platform-managed reference data. A `Business` stores `businessTypeId`, and owner
-registration accepts only an active referenced type. Initial types are created with
+registration accepts only an active referenced type. Resource creation verifies the submitted type
+against the authenticated business's active `BusinessType`; it also verifies any linked user belongs
+to that same business. Initial types are created with
 `npm run seed:business-types`; seed data is not a runtime hardcoded allow-list.
+
+`routes/index.routes.js` is the API composition point. It mounts public authentication routes and
+applies authentication before mounting protected module routes; `app.js` mounts this router at
+`/api`.

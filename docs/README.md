@@ -12,6 +12,7 @@ Documentation is maintained with the code and reviewed in the same change that a
 - [Shared UI components](design-system/shared-components.md)
 - [Business registration API](api/business-registration.md)
 - [Business types API](api/business-types.md)
+- [Resources API](api/resources.md)
 - [Login API](api/login.md)
 - [Architecture decision records](decisions/README.md)
 
