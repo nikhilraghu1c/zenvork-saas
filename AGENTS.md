@@ -5,7 +5,8 @@
 - Zenvork is a B2B multi-tenant booking and management SaaS.
 - Only business owners and staff authenticate. Clients are tenant-owned records and do not log in.
 - Tenant isolation is mandatory for every business-owned record and API operation.
-- Business-type differences must be data/config-driven; do not create separate salon and clinic applications.
+- Current working direction: keep one application with business-type presets/configuration for labels, defaults, and enabled features, and dedicated domain modules when business rules differ. This architecture is provisional; evaluate alternatives and revise the proposal when a better approach is identified.
+- Prefer simple, explicit code over forced generalization. Share behavior when its rules match and reuse reduces complexity; small duplication is acceptable when an abstraction would complicate development or the owner experience. See [ADR 003](docs/decisions/003-simple-modular-business-architecture.md).
 
 ## Frontend conventions
 
