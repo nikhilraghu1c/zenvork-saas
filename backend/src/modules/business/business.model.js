@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
 
-export const BUSINESS_TYPES = ["SALON", "CLINIC"];
-
 const businessSchema = new mongoose.Schema(
   {
     name: {
@@ -11,10 +9,11 @@ const businessSchema = new mongoose.Schema(
       maxlength: [100, "Business name cannot exceed 100 characters"],
       trim: true,
     },
-    type: {
-      type: String,
+    businessTypeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "BusinessType",
       required: true,
-      enum: BUSINESS_TYPES,
+      index: true,
     },
     ownerId: {
       type: mongoose.Schema.Types.ObjectId,

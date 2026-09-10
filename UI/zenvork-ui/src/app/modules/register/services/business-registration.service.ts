@@ -4,7 +4,7 @@ import { ApiService } from '../../../core/services/api.service';
 
 export interface BusinessRegistrationRequest {
   businessName: string;
-  businessType: 'SALON' | 'CLINIC';
+  businessTypeId: string;
   ownerName: string;
   email: string;
   mobile: string;

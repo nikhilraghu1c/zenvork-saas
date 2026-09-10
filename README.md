@@ -51,6 +51,7 @@ Then run:
 ```bash
 cd backend
 npm install
+npm run seed:business-types
 npm run dev
 ```
 
@@ -69,6 +70,7 @@ Start with the [documentation index](docs/README.md).
 - [Authentication status](docs/architecture/authentication.md)
 - [Design system and Material 3 theming](docs/design-system/theming.md)
 - [Business registration API](docs/api/business-registration.md)
+- [Business types API](docs/api/business-types.md)
 - [Login API](docs/api/login.md)
 - [Architecture decision records](docs/decisions/README.md)
 

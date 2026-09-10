@@ -5,3 +5,4 @@ creation order. Accepted ADRs are not rewritten; a new ADR supersedes them when 
 
 - [ADR 001: Use Angular Material 3 for the shared UI foundation](001-material-3-theming.md)
 - [ADR 002: Wrap Angular Material in shared Zenvork UI components](002-shared-ui-wrappers.md)
+- [ADR 003: Use a platform-managed business type catalog](003-platform-managed-business-type-catalog.md)

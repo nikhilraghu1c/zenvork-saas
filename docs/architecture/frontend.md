@@ -33,4 +33,6 @@ guarded `/app` routes. Feature pages are lazy-loaded. The current public routes 
 HttpOnly authentication cookie. The local backend domain is `http://localhost:4001`; its CORS
 configuration allows the Angular development origin at `http://localhost:4200`. Module-owned
 services define feature endpoints and request/response types by composing that client; for example,
-business registration belongs to `modules/register`.
+business registration belongs to `modules/register`. The registration module fetches active business
+types from `GET /api/business-types` and submits the selected `businessTypeId`; it does not hardcode
+the selectable platform types.

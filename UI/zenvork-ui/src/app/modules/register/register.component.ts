@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
@@ -8,17 +8,9 @@ import {
   BusinessRegistrationRequest,
   BusinessRegistrationService,
 } from './services/business-registration.service';
+import { BusinessTypeOption, BusinessTypeService } from './services/business-type.service';
 import { AppButtonComponent } from '../../shared/button/button.component';
 import { AppInputComponent } from '../../shared/input/input.component';
-
-interface BusinessTypeOption {
-  /** Value accepted by the registration API. */
-  value: 'SALON' | 'CLINIC';
-  /** Text displayed in the registration tile. */
-  label: string;
-  /** Angular Material icon displayed in the registration tile. */
-  iconName: string;
-}
 
 @Component({
   selector: 'app-register',
@@ -26,12 +18,9 @@ interface BusinessTypeOption {
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })
-export class RegisterComponent {
-  /** Registration-specific options; these will later be loaded from the backend. */
-  protected readonly businessTypes: BusinessTypeOption[] = [
-    { value: 'SALON', label: 'Salon', iconName: 'content_cut' },
-    { value: 'CLINIC', label: 'Clinic', iconName: 'medical_services' },
-  ];
+export class RegisterComponent implements OnInit {
+  /** Active platform business types loaded for the registration selection. */
+  protected businessTypes: BusinessTypeOption[] = [];
 
   /** Reactive form that mirrors the business-registration API payload. */
   protected readonly registrationForm;
@@ -47,14 +36,26 @@ export class RegisterComponent {
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly businessRegistration: BusinessRegistrationService,
+    private readonly businessTypeService: BusinessTypeService,
   ) {
     this.registrationForm = this.formBuilder.nonNullable.group({
       businessName: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(100)]],
-      businessType: ['SALON' as 'SALON' | 'CLINIC', Validators.required],
+      businessTypeId: ['', Validators.required],
       ownerName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
       mobile: ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
       password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(128)]],
+    });
+  }
+
+  ngOnInit(): void {
+    this.businessTypeService.getActive().subscribe({
+      next: ({ businessTypes }) => {
+        this.businessTypes = businessTypes;
+      },
+      error: (error: HttpErrorResponse) => {
+        this.serverError = error.error?.message ?? 'Unable to load business types.';
+      },
     });
   }
 
@@ -87,7 +88,7 @@ export class RegisterComponent {
 
   /** Returns the appropriate user-facing validation message for one form control. */
   protected fieldError(
-    field: 'businessName' | 'businessType' | 'ownerName' | 'email' | 'mobile' | 'password',
+    field: 'businessName' | 'businessTypeId' | 'ownerName' | 'email' | 'mobile' | 'password',
   ): string {
     const control = this.registrationForm.controls[field];
     if (!control.errors || !(this.submitted || control.touched)) {

@@ -13,7 +13,7 @@ Source: `backend/src/routes/auth.routes.js`.
 ```json
 {
   "businessName": "Example Studio",
-  "businessType": "SALON",
+  "businessTypeId": "<active-business-type-id>",
   "ownerName": "Owner Name",
   "email": "owner@example.com",
   "mobile": "9876543210",
@@ -21,8 +21,8 @@ Source: `backend/src/routes/auth.routes.js`.
 }
 ```
 
-The backend normalizes business type to uppercase. The accepted types are defined by `BUSINESS_TYPES`
-in `backend/src/modules/business/business.model.js`. Mobile must be a unique 10-digit Indian mobile
+Fetch active business types from `GET /api/business-types` and submit the selected `id`. The backend
+validates that the selected type exists and is active. Mobile must be a unique 10-digit Indian mobile
 number beginning with 6–9.
 
 ## Successful response
@@ -43,3 +43,10 @@ Validation and known failures return one user-facing message:
 ```
 
 The frontend must show this message rather than replacing it with a generic error.
+
+When a submitted email or mobile value is already registered, the endpoint returns HTTP `409` with
+the generic message below. It deliberately does not reveal which identifier matched an account.
+
+```json
+{ "message": "Unable to create business account" }
+```

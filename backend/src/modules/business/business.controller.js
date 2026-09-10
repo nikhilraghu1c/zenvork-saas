@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Business from "./business.model.js";
 import User from "../users/user.model.js";
+import BusinessType from "./business-type.model.js";
 import {
   RequestValidationError,
   validateBusinessRegistration,
@@ -8,14 +9,12 @@ import {
 
 const registerBusiness = async (req, res) => {
   try {
-    const { businessName, businessType, ownerName, email, mobile, password } =
+    const { businessName, businessTypeId, ownerName, email, mobile, password } =
       validateBusinessRegistration(req.body);
 
     const existingUser = await User.exists({ $or: [{ email }, { mobile }] });
     if (existingUser) {
-      return res
-        .status(409)
-        .json({ message: "Email or mobile number is already registered" });
+      return res.status(409).json({ message: "Unable to create business account" });
     }
 
     // Start session for transaction
@@ -28,6 +27,14 @@ const registerBusiness = async (req, res) => {
         // Pre-generating this ID resolves the Business <-> User reference cycle
         // while retaining required fields on both schemas.
         const businessId = new mongoose.Types.ObjectId();
+        const businessType = await BusinessType.findOne({
+          _id: businessTypeId,
+          isActive: true,
+        }).session(session);
+
+        if (!businessType) {
+          throw new RequestValidationError("Invalid business type");
+        }
 
         newUser = new User({
           name: ownerName,
@@ -41,7 +48,7 @@ const registerBusiness = async (req, res) => {
         newBusiness = new Business({
           _id: businessId,
           name: businessName,
-          type: businessType,
+          businessTypeId: businessType._id,
           ownerId: newUser._id,
         });
 
@@ -61,9 +68,7 @@ const registerBusiness = async (req, res) => {
     }
 
     if (error?.code === 11000) {
-      return res
-        .status(409)
-        .json({ message: "Email or mobile number is already registered" });
+      return res.status(409).json({ message: "Unable to create business account" });
     }
 
     if (error instanceof mongoose.Error.ValidationError) {

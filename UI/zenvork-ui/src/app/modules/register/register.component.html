@@ -33,30 +33,30 @@
               [errorMessage]="fieldError('businessName')"
             />
 
-            <div class="business-type-field" [class.has-error]="fieldError('businessType')">
+            <div class="business-type-field" [class.has-error]="fieldError('businessTypeId')">
               <p class="field-label" id="business-type-label">Business Type</p>
               <div class="type-options" role="radiogroup" aria-labelledby="business-type-label">
-                @for (businessType of businessTypes; track businessType.value) {
+                @for (businessType of businessTypes; track businessType.id) {
                   <label
                     class="type-option"
                     [class.is-selected]="
-                      registrationForm.controls.businessType.value === businessType.value
+                      registrationForm.controls.businessTypeId.value === businessType.id
                     "
                   >
                     <input
                       type="radio"
-                      formControlName="businessType"
-                      [value]="businessType.value"
+                      formControlName="businessTypeId"
+                      [value]="businessType.id"
                     />
                     <mat-icon class="type-icon" aria-hidden="true">{{
                       businessType.iconName
                     }}</mat-icon>
-                    <span>{{ businessType.label }}</span>
+                    <span>{{ businessType.name }}</span>
                   </label>
                 }
               </div>
-              @if (fieldError('businessType')) {
-                <p class="type-error" role="alert">{{ fieldError('businessType') }}</p>
+              @if (fieldError('businessTypeId')) {
+                <p class="type-error" role="alert">{{ fieldError('businessTypeId') }}</p>
               }
             </div>
           </fieldset>

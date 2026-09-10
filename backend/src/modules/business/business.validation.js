@@ -1,4 +1,4 @@
-import { BUSINESS_TYPES } from "./business.model.js";
+import mongoose from "mongoose";
 
 export class RequestValidationError extends Error {
   constructor(message) {
@@ -14,7 +14,7 @@ export const validateBusinessRegistration = (data) => {
     throw new RequestValidationError("Invalid request data");
   }
 
-  const { businessName, businessType, ownerName, email, mobile, password } = data;
+  const { businessName, businessTypeId, ownerName, email, mobile, password } = data;
   const errors = [];
 
   if (!isNonEmptyString(businessName)) {
@@ -32,7 +32,7 @@ export const validateBusinessRegistration = (data) => {
   if (typeof password !== "string" || password.length === 0) {
     errors.push("Password is required");
   }
-  if (!isNonEmptyString(businessType)) {
+  if (!isNonEmptyString(businessTypeId)) {
     errors.push("Business type is required");
   }
 
@@ -40,14 +40,14 @@ export const validateBusinessRegistration = (data) => {
     throw new RequestValidationError(errors[0]);
   }
 
-  const normalizedBusinessType = businessType.trim().toUpperCase();
-  if (!BUSINESS_TYPES.includes(normalizedBusinessType)) {
+  const normalizedBusinessTypeId = businessTypeId.trim();
+  if (!mongoose.isObjectIdOrHexString(normalizedBusinessTypeId)) {
     throw new RequestValidationError("Invalid business type");
   }
 
   return {
     businessName: businessName.trim(),
-    businessType: normalizedBusinessType,
+    businessTypeId: normalizedBusinessTypeId,
     ownerName: ownerName.trim(),
     email: email.trim().toLowerCase(),
     mobile: mobile.trim(),
