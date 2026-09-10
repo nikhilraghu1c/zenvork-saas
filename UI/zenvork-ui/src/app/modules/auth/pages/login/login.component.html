@@ -13,14 +13,14 @@
           <p class="success-message" role="status">{{ successMessage }}</p>
         }
         <app-input
-          formControlName="email"
-          label="Email"
+          formControlName="identifier"
+          label="Email or mobile number"
           labelPlacement="outside"
-          type="email"
-          placeholder="you@business.com"
-          autocomplete="email"
+          type="text"
+          placeholder="you@business.com or 9876543210"
+          autocomplete="username"
           [required]="true"
-          [errorMessage]="fieldError('email')"
+          [errorMessage]="fieldError('identifier')"
         />
         <app-input
           formControlName="password"

@@ -32,3 +32,6 @@ to that same business. Initial types are created with
 `routes/index.routes.js` is the API composition point. It mounts public authentication routes and
 applies authentication before mounting protected module routes; `app.js` mounts this router at
 `/api`.
+
+Owners manage staff through the tenant-scoped users module. Its create endpoint accepts no client
+role or `businessId`: it always creates a `STAFF` user for the authenticated owner's business.

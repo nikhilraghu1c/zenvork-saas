@@ -3,14 +3,15 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 
 export interface LoginRequest {
-  email: string;
+  identifier: string;
   password: string;
 }
 
 export interface AuthenticatedUser {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
+  mobile: string;
   role: 'OWNER' | 'STAFF';
   businessId: string;
 }

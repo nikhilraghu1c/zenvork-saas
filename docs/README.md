@@ -13,6 +13,7 @@ Documentation is maintained with the code and reviewed in the same change that a
 - [Business registration API](api/business-registration.md)
 - [Business types API](api/business-types.md)
 - [Resources API](api/resources.md)
+- [Users API](api/users.md)
 - [Login API](api/login.md)
 - [Architecture decision records](decisions/README.md)
 

@@ -24,7 +24,7 @@ describe('AuthService', () => {
   });
 
   it('should retain safe user metadata after login and clear it after logout', () => {
-    service.login({ email: 'owner@example.com', password: 'password' }).subscribe();
+    service.login({ identifier: 'owner@example.com', password: 'password' }).subscribe();
 
     const loginRequest = httpTesting.expectOne('http://localhost:4001/api/login');
     expect(loginRequest.request.withCredentials).toBeTrue();
@@ -34,6 +34,7 @@ describe('AuthService', () => {
         id: 'user-1',
         name: 'Owner',
         email: 'owner@example.com',
+        mobile: '9876543210',
         role: 'OWNER',
         businessId: 'business-1',
       },

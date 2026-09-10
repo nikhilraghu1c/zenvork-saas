@@ -39,7 +39,7 @@ export class LoginComponent {
     private readonly auth: AuthService,
   ) {
     this.loginForm = this.formBuilder.nonNullable.group({
-      email: ['', [Validators.required, Validators.email]],
+      identifier: ['', [Validators.required, Validators.pattern(/^(?:[^\s@]+@[^\s@]+\.[^\s@]+|[6-9]\d{9})$/)]],
       password: ['', Validators.required],
       rememberMe: false,
     });
@@ -55,8 +55,8 @@ export class LoginComponent {
     if (this.loginForm.invalid) return;
 
     this.loading = true;
-    const { email, password } = this.loginForm.getRawValue();
-    const credentials: LoginRequest = { email, password };
+    const { identifier, password } = this.loginForm.getRawValue();
+    const credentials: LoginRequest = { identifier, password };
 
     this.auth
       .login(credentials)
@@ -73,14 +73,14 @@ export class LoginComponent {
   }
 
   /** Returns the appropriate user-facing validation message for one form control. */
-  protected fieldError(field: 'email' | 'password'): string {
+  protected fieldError(field: 'identifier' | 'password'): string {
     const control = this.loginForm.controls[field];
     if (!control.errors || !(this.submitted || control.touched)) {
       return '';
     }
 
     if (control.hasError('required')) return 'This field is required.';
-    if (control.hasError('email')) return 'Enter a valid email address.';
+    if (control.hasError('pattern')) return 'Enter a valid email address or 10-digit mobile number.';
     return 'Enter a valid value.';
   }
 }

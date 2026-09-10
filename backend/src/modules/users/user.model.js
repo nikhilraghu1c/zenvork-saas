@@ -15,17 +15,21 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Business",
       required: true,
-      index: true
+      index: true,
     },
     email: {
       type: String,
-      required: true,
+      // Owners require email; staff can use their unique mobile number to log in instead.
+      required: function () {
+        return this.role === "OWNER";
+      },
       unique: true,
+      sparse: true,
       maxlength: 100,
       trim: true,
       lowercase: true,
       validate: {
-        validator: (value) => validator.isEmail(value),
+        validator: (value) => value === undefined || validator.isEmail(value),
         message: "Please provide a valid email address",
       },
     },
@@ -47,10 +51,10 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
     role: {
-        type: String,
-        enum: ["OWNER", "STAFF"],
-        default: "STAFF",
-    }
+      type: String,
+      enum: ["OWNER", "STAFF"],
+      default: "STAFF",
+    },
   },
   {
     timestamps: true,

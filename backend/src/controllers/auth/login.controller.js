@@ -6,24 +6,26 @@ import User from "../../modules/users/user.model.js";
 const { ACCESS_TKN_SECRET, ACCESS_TKN_EXPIRE, NODE_ENV } = environment;
 
 const invalidCredentials = (res) =>
-  res.status(401).json({ message: "Invalid email or password" });
+  res.status(401).json({ message: "Invalid credentials" });
 
 const login = async (req, res) => {
   try {
     // Validate credentials and create a tenant-scoped authenticated session.
-    const { email, password } = req.body;
+    const { identifier, password } = req.body;
 
     if (
-      typeof email !== "string" ||
+      typeof identifier !== "string" ||
       typeof password !== "string" ||
-      !validator.isEmail(email.trim())
+      (!validator.isEmail(identifier.trim()) && !/^[6-9]\d{9}$/.test(identifier.trim()))
     ) {
       return invalidCredentials(res);
     }
 
-    const user = await User.findOne({
-      email: email.trim().toLowerCase(),
-    }).select("+password");
+    const normalizedIdentifier = identifier.trim();
+    const userLookup = validator.isEmail(normalizedIdentifier)
+      ? { email: normalizedIdentifier.toLowerCase() }
+      : { mobile: normalizedIdentifier };
+    const user = await User.findOne(userLookup).select("+password");
 
     if (!user) {
       return invalidCredentials(res);
@@ -55,7 +57,8 @@ const login = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email,
+        email: user.email ?? null,
+        mobile: user.mobile,
         role: user.role,
         businessId: user.businessId,
       },
