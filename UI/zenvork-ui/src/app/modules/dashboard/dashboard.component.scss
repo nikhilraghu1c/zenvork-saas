@@ -1,0 +1,140 @@
+:host {
+  display: block;
+}
+
+.dashboard-page {
+  box-sizing: border-box;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 32px;
+
+  .dashboard-header {
+    margin-bottom: 28px;
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--cyan);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(26px, 4vw, 34px);
+      font-weight: 600;
+    }
+
+    > p:last-child {
+      margin: 0;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .summary-card,
+  .getting-started {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    backdrop-filter: blur(12px);
+  }
+
+  .summary-card {
+    display: flex;
+    min-height: 168px;
+    flex-direction: column;
+    padding: 22px;
+
+    &.is-planned {
+      opacity: 0.72;
+    }
+  }
+
+  .card-icon {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 18px;
+    place-items: center;
+    border: 1px solid var(--cyan-border);
+    border-radius: var(--radius-sm);
+    background: var(--cyan-soft);
+    color: var(--cyan);
+  }
+
+  .card-label,
+  small {
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  strong {
+    margin: 3px 0 auto;
+    color: var(--text);
+    font-size: 30px;
+    font-weight: 600;
+  }
+
+  .getting-started {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-top: 24px;
+    padding: 28px;
+    background: var(--gradient-callout);
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    p:last-child {
+      max-width: 620px;
+      margin: 0;
+      color: var(--text-dim);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    > mat-icon {
+      width: 40px;
+      height: 40px;
+      color: var(--purple);
+      font-size: 40px;
+    }
+  }
+
+  @media (max-width: 860px) {
+    padding: 24px;
+  }
+
+  @media (max-width: 700px) {
+    .summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 520px) {
+    padding: 20px 16px;
+
+    .getting-started {
+      align-items: flex-start;
+      padding: 22px;
+    }
+  }
+}

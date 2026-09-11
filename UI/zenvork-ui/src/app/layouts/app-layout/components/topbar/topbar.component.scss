@@ -1,0 +1,24 @@
+.app-topbar {
+  --mat-toolbar-standard-height: 60px;
+  --mat-toolbar-mobile-height: 60px;
+  --mat-toolbar-title-text-font: var(--font-body);
+  --mat-toolbar-title-text-size: 15px;
+  --mat-toolbar-title-text-line-height: 20px;
+  --mat-toolbar-title-text-weight: 600;
+
+  min-height: 60px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-nav);
+  color: var(--text-dim);
+  backdrop-filter: blur(12px);
+
+  button {
+    margin-right: 8px;
+    color: var(--text);
+  }
+
+  @media (max-width: 860px) {
+    padding: 0 16px;
+  }
+}

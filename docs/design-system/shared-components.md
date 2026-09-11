@@ -21,7 +21,8 @@ rather than being treated as a shared component.
 
 The wrappers live directly in `src/app/shared/button` and `src/app/shared/input`; their Angular
 selectors remain `app-button` and `app-input`. `AppCheckboxComponent` lives in
-`src/app/shared/checkbox` and uses the `app-checkbox` selector.
+`src/app/shared/checkbox` and uses the `app-checkbox` selector. The authenticated sidebar and
+topbar remain layout-owned components because they are specific to `AppLayoutComponent`.
 
 `AppInputComponent` uses Material's floating label by default. Set `floatLabel="always"` to keep
 that label floated, or set `labelPlacement="outside"` for an accessible native label above the

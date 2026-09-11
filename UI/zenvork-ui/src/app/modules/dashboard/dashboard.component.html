@@ -1,0 +1,44 @@
+<section class="dashboard-page" aria-labelledby="dashboard-title">
+  <header class="dashboard-header">
+    <p class="eyebrow">Workspace Overview</p>
+    <h1 id="dashboard-title">Welcome Back, {{ firstName }}</h1>
+    <p>Here is a quick view of your business workspace.</p>
+  </header>
+
+  <div class="summary-grid">
+    <article class="summary-card">
+      <span class="card-icon"><mat-icon>inventory_2</mat-icon></span>
+      <span class="card-label">Resources</span>
+      @if (resourceError) {
+        <strong>—</strong><small>Unavailable right now</small>
+      } @else {
+        <strong>{{ resourceCount ?? '…' }}</strong><small>Tenant-scoped resources</small>
+      }
+    </article>
+
+    <article class="summary-card">
+      <span class="card-icon"><mat-icon>group</mat-icon></span>
+      <span class="card-label">Staff</span>
+      @if (staffError) {
+        <strong>—</strong><small>Unavailable right now</small>
+      } @else {
+        <strong>{{ staffCount ?? '…' }}</strong><small>Owner-visible accounts</small>
+      }
+    </article>
+
+    <article class="summary-card is-planned">
+      <span class="card-icon"><mat-icon>calendar_month</mat-icon></span>
+      <span class="card-label">Today's Bookings</span>
+      <strong>—</strong><small>Booking module coming soon</small>
+    </article>
+  </div>
+
+  <section class="getting-started" aria-labelledby="next-steps-title">
+    <div>
+      <p class="eyebrow">Getting Started</p>
+      <h2 id="next-steps-title">Your workspace is ready to grow.</h2>
+      <p>Resources and staff are connected to live tenant-scoped APIs. Other workspace modules will appear here as they are added.</p>
+    </div>
+    <mat-icon aria-hidden="true">auto_awesome</mat-icon>
+  </section>
+</section>

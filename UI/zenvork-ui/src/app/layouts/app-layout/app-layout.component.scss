@@ -1,0 +1,39 @@
+:host {
+  display: block;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.app-layout {
+  height: 100dvh;
+  background: var(--bg);
+
+  mat-sidenav-container {
+    height: 100dvh;
+    background: transparent;
+  }
+
+  .app-drawer {
+    width: 240px;
+    height: 100dvh;
+    border-right: 1px solid var(--border);
+    background: var(--surface-subtle);
+  }
+
+  mat-sidenav-content {
+    height: 100dvh;
+    background: transparent;
+    overflow: auto;
+  }
+
+  .app-content {
+    min-height: calc(100dvh - 60px);
+  }
+
+  @media (max-width: 860px) {
+    .app-drawer {
+      background: var(--bg);
+      box-shadow: 12px 0 32px rgba(0, 0, 0, 0.36);
+    }
+  }
+}

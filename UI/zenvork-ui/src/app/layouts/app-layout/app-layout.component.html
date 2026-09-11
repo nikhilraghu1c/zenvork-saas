@@ -1,0 +1,22 @@
+<div class="app-layout">
+  <mat-sidenav-container [hasBackdrop]="isMobile">
+    <mat-sidenav
+      class="app-drawer"
+      [mode]="isMobile ? 'over' : 'side'"
+      [opened]="isMobile ? drawerOpened : true"
+      [disableClose]="!isMobile"
+      (closedStart)="closeDrawer()"
+    >
+      <app-sidebar (navigationSelected)="closeDrawer()" />
+    </mat-sidenav>
+
+    <mat-sidenav-content>
+      <app-topbar
+        [title]="pageTitle"
+        [showMenuButton]="isMobile"
+        (menuToggle)="toggleDrawer()"
+      />
+      <main class="app-content"><router-outlet /></main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppCheckboxComponent } from '../../../../shared/checkbox/checkbox.component';
@@ -37,6 +37,7 @@ export class LoginComponent {
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly auth: AuthService,
+    private readonly router: Router,
   ) {
     this.loginForm = this.formBuilder.nonNullable.group({
       identifier: ['', [Validators.required, Validators.pattern(/^(?:[^\s@]+@[^\s@]+\.[^\s@]+|[6-9]\d{9})$/)]],
@@ -65,6 +66,7 @@ export class LoginComponent {
         next: (response) => {
           this.successMessage = response.message;
           this.loginForm.disable();
+          this.router.navigateByUrl('/app/dashboard');
         },
         error: (error: HttpErrorResponse) => {
           this.serverError = error.error?.message ?? 'Unable to log in. Please try again.';
