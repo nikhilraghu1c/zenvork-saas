@@ -1,9 +1,11 @@
 <div class="app-button" [class.is-full-width]="fullWidth">
   <button
-    matButton="filled"
+    [matButton]="variant === 'secondary' ? 'outlined' : 'filled'"
     [type]="type"
     [disabled]="disabled || loading"
+    [class.app-secondary-button]="variant === 'secondary'"
     [class.app-tertiary-button]="variant === 'tertiary'"
+    (click)="clicked.emit($event)"
   >
     @if (loading) {
       <mat-spinner diameter="18" aria-label="Loading" />

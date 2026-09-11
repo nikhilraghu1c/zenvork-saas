@@ -10,10 +10,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
   styleUrl: './topbar.component.scss',
 })
 export class TopbarComponent {
-  /** Current page title displayed in the minimal toolbar. */
+  /** Title of the active authenticated page. */
   @Input() title = '';
-  /** Controls whether the mobile drawer button is visible. */
-  @Input() showMenuButton = false;
   /** Requests that the app layout opens or closes the mobile drawer. */
   @Output() menuToggle = new EventEmitter<void>();
 }

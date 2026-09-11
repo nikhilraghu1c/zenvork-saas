@@ -10,6 +10,7 @@ interface NavigationItem {
   label: string;
   icon: string;
   route: string;
+  requiresOwner?: boolean;
 }
 
 interface NavigationGroup {
@@ -38,7 +39,8 @@ export class SidebarComponent {
       items: [
         { label: 'Booking', icon: 'calendar_month', route: '/app/booking' },
         { label: 'Clients', icon: 'groups', route: '/app/clients' },
-        { label: 'Staff & Resources', icon: 'badge', route: '/app/staff-resources' },
+        { label: 'Staff', icon: 'badge', route: '/app/staff', requiresOwner: true },
+        { label: 'Resources', icon: 'inventory_2', route: '/app/resources', requiresOwner: true },
         { label: 'Reminders', icon: 'notifications', route: '/app/reminders' },
         { label: 'Chat', icon: 'chat', route: '/app/chat' },
         { label: 'AI Assistant', icon: 'auto_awesome', route: '/app/ai-assistant' },
@@ -76,6 +78,11 @@ export class SidebarComponent {
   /** Returns the signed-in user's name, with a safe fallback during startup. */
   protected get userName(): string {
     return this.auth.getCurrentUser()?.name ?? 'Business User';
+  }
+
+  /** Hides owner-only workspaces from staff navigation. */
+  protected canView(item: NavigationItem): boolean {
+    return !item.requiresOwner || this.auth.getCurrentUser()?.role === 'OWNER';
   }
 
   /** Ends the cookie session, then returns the user to the public login page. */

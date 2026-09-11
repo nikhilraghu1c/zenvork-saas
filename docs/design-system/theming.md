@@ -3,7 +3,8 @@
 ## Two styling layers
 
 `UI/zenvork-ui/src/styles/_tokens.scss` contains exact Zenvork CSS custom properties for custom UI:
-backgrounds, glass surfaces, text, gradients, status colors, typography, and radii.
+backgrounds, glass surfaces, shared data-grid surfaces, text, gradients, status colors, typography,
+and radii.
 
 `UI/zenvork-ui/src/styles/_material-theme.scss` defines the Angular Material 3 dark theme and emits
 Material system variables.

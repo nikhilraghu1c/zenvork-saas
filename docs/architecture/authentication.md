@@ -28,6 +28,9 @@ provides reactive updates.
 boundary for protected API requests. A future authenticated session-check endpoint is required to
 validate the cookie after browser reload or expiry before relying on the client route state.
 
+Owner-management routes use `ownerGuard` as an additional UI-routing check, and owner-only sidebar
+items are hidden from staff users. Backend role authorization remains mandatory for every API.
+
 After a successful login, the frontend navigates to `/app/dashboard`. The sidebar logout action
 calls `POST /api/logout`, clears safe client metadata only after a successful response, and returns
 the user to `/login`.

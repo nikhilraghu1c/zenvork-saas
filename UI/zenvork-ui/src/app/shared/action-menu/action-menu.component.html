@@ -1,0 +1,14 @@
+<div class="app-action-menu">
+  <button mat-icon-button type="button" [matMenuTriggerFor]="menu" [attr.aria-label]="ariaLabel">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+
+  <mat-menu #menu="matMenu" xPosition="before" class="app-action-menu-panel">
+    @for (item of items; track item.id) {
+      <button mat-menu-item type="button" [disabled]="item.disabled" (click)="actionSelected.emit(item.id)">
+        <mat-icon>{{ item.icon }}</mat-icon>
+        <span>{{ item.label }}</span>
+      </button>
+    }
+  </mat-menu>
+</div>

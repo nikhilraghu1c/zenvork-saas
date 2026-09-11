@@ -9,6 +9,11 @@
     font-weight: 500;
   }
 
+  .required-marker {
+    margin-left: 3px;
+    color: var(--mat-sys-error);
+  }
+
   mat-form-field {
     width: 100%;
     --mat-form-field-container-height: 48px;

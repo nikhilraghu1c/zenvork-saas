@@ -6,6 +6,8 @@
   --mat-toolbar-title-text-line-height: 20px;
   --mat-toolbar-title-text-weight: 600;
 
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
   min-height: 60px;
   padding: 0 24px;
   border-bottom: 1px solid var(--border);
@@ -14,8 +16,19 @@
   backdrop-filter: blur(12px);
 
   button {
-    margin-right: 8px;
     color: var(--text);
+  }
+
+  &__title {
+    overflow: hidden;
+    padding-left: 8px;
+    color: var(--text);
+    font-family: var(--font-heading);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   @media (max-width: 860px) {

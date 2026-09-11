@@ -1,0 +1,55 @@
+.app-action-menu {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+
+  button {
+    --mat-icon-button-icon-color: var(--text-dim);
+    --mat-icon-button-state-layer-color: var(--text);
+    --mat-icon-button-ripple-color: var(--surface-raised);
+
+    color: var(--text);
+  }
+}
+
+// This class is attached to the CDK overlay by MatMenu's panelClass input.
+.app-action-menu-panel.mat-mdc-menu-panel {
+  min-width: 176px;
+  max-width: 176px;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: #171d27;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+
+  .mat-mdc-menu-content {
+    padding: 4px;
+  }
+
+  .mat-mdc-menu-item {
+    min-height: 40px;
+    padding: 0 10px;
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+
+    mat-icon {
+      margin-right: 10px;
+      color: var(--text-dim);
+    }
+
+    &:not([disabled]):hover {
+      background: var(--cyan-soft);
+
+      mat-icon {
+        color: var(--cyan);
+      }
+    }
+
+    &[disabled] {
+      opacity: 0.48;
+    }
+  }
+}

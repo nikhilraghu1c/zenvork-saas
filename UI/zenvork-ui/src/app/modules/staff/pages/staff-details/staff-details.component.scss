@@ -1,0 +1,121 @@
+.staff-details-page {
+  box-sizing: border-box;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 32px;
+
+  &__header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      color: var(--text);
+      font-size: clamp(26px, 4vw, 34px);
+      font-weight: 600;
+    }
+
+    p:last-child {
+      margin: 0;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+  }
+
+  .staff-details-card,
+  .page-state {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    backdrop-filter: blur(12px);
+  }
+
+  .staff-details-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 28px;
+    padding: 28px;
+  }
+
+  .avatar {
+    display: grid;
+    width: 68px;
+    height: 68px;
+    place-items: center;
+    border: 1px solid var(--purple-border);
+    border-radius: 50%;
+    background: var(--purple-soft);
+    color: var(--mat-sys-tertiary);
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin: 0;
+  }
+
+  dt {
+    margin-bottom: 6px;
+    color: var(--text-mute);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--text);
+    font-size: 14px;
+  }
+
+  .page-state {
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+    padding: 32px;
+    color: var(--text-dim);
+    text-align: center;
+
+    p {
+      margin: 0;
+    }
+
+    &.is-error mat-icon {
+      color: var(--mat-sys-error);
+    }
+  }
+
+  @media (max-width: 600px) {
+    padding: 20px 16px;
+
+    &__header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .staff-details-card {
+      grid-template-columns: 1fr;
+    }
+
+    dl {
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+  }
+}

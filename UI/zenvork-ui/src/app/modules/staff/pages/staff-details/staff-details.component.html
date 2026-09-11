@@ -1,0 +1,30 @@
+<section class="staff-details-page" aria-labelledby="staff-details-title">
+  @if (loading) {
+    <p class="page-state" role="status">Loading staff details…</p>
+  } @else if (staffMember) {
+    <header class="staff-details-page__header">
+      <div>
+        <p class="eyebrow">Business Team</p>
+        <h1 id="staff-details-title">{{ staffMember.name }}</h1>
+        <p>Staff account details.</p>
+      </div>
+      <app-button variant="tertiary" (clicked)="returnToList()">Back To Staff</app-button>
+    </header>
+
+    <article class="staff-details-card">
+      <span class="avatar" aria-hidden="true">{{ staffMember.name.slice(0, 2).toUpperCase() }}</span>
+      <dl>
+        <div><dt>Account Role</dt><dd>Staff</dd></div>
+        <div><dt>Mobile Number</dt><dd>{{ staffMember.mobile }}</dd></div>
+        <div><dt>Email Address</dt><dd>{{ staffMember.email ?? 'Not Provided' }}</dd></div>
+        <div><dt>Added On</dt><dd>{{ staffMember.createdAt | date: 'mediumDate' }}</dd></div>
+      </dl>
+    </article>
+  } @else {
+    <div class="page-state is-error" role="alert">
+      <mat-icon aria-hidden="true">person_off</mat-icon>
+      <p>{{ errorMessage }}</p>
+      <app-button variant="tertiary" (clicked)="returnToList()">Back To Staff</app-button>
+    </div>
+  }
+</section>

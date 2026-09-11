@@ -11,12 +11,10 @@
     </mat-sidenav>
 
     <mat-sidenav-content>
-      <app-topbar
-        [title]="pageTitle"
-        [showMenuButton]="isMobile"
-        (menuToggle)="toggleDrawer()"
-      />
-      <main class="app-content"><router-outlet /></main>
+      @if (isMobile) {
+        <app-topbar [title]="mobilePageTitle" (menuToggle)="toggleDrawer()" />
+      }
+      <main class="app-content" [class.has-mobile-topbar]="isMobile"><router-outlet /></main>
     </mat-sidenav-content>
   </mat-sidenav-container>
 </div>

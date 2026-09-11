@@ -16,9 +16,12 @@ src/app/
 
 Public and authenticated experiences use separate route-level layouts. `PublicLayoutComponent` owns
 public navigation and public routes. `AppLayoutComponent` owns authenticated navigation and guarded
-`/app` routes. Its dashboard route is implemented; the remaining visible app navigation routes use a
-temporary shared preview page until their workspaces are implemented. Feature pages are lazy-loaded.
-The current public routes are `/`, `/register`, and `/login`.
+`/app` routes. Dashboard and Staff are implemented; the remaining visible app navigation routes use
+a temporary shared preview page until their workspaces are implemented. Feature pages are lazy-loaded.
+The Staff module owns `/app/staff`, `/app/staff/new`, and `/app/staff/:id`. The current public routes
+are `/`, `/register`, and `/login`.
+Desktop app pages present their own primary headings. The app toolbar is shown only on mobile, where
+it provides the navigation-drawer control without repeating the page title.
 
 ## Component conventions
 
@@ -26,6 +29,8 @@ The current public routes are `/`, `/register`, and `/login`.
 - Every component has `.ts`, `.html`, `.scss`, and `.spec.ts` files.
 - Component SCSS is parent-scoped and responsive.
 - Pages compose shared Zenvork UI wrappers instead of directly depending on Angular Material when a wrapper exists.
+- Dense desktop data uses `AppDataGridComponent` (AG Grid Community); features own their column
+  definitions and a mobile card presentation when appropriate.
 
 ## API services
 

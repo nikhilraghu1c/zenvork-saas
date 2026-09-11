@@ -1,7 +1,8 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { Component } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRouteSnapshot, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { TopbarComponent } from './components/topbar/topbar.component';
@@ -13,24 +14,29 @@ import { TopbarComponent } from './components/topbar/topbar.component';
   styleUrl: './app-layout.component.scss',
 })
 export class AppLayoutComponent {
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   protected isMobile = false;
   protected drawerOpened = true;
-  protected pageTitle = 'Dashboard';
+  protected mobilePageTitle = '';
 
-  constructor(
-    private readonly breakpointObserver: BreakpointObserver,
-    private readonly router: Router,
-  ) {
+  constructor(private readonly breakpointObserver: BreakpointObserver) {
     // The same navigation becomes an overlay drawer when space is limited.
-    this.breakpointObserver.observe('(max-width: 860px)').subscribe((result) => {
-      this.isMobile = result.matches;
-      this.drawerOpened = !result.matches;
-    });
+    this.breakpointObserver
+      .observe('(max-width: 860px)')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        this.isMobile = result.matches;
+        this.drawerOpened = !result.matches;
+      });
 
-    // Reads the active child route so the mobile toolbar reflects its workspace.
-    this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd)).subscribe(() => {
-      this.updatePageDetails();
-    });
+    this.updateMobilePageTitle();
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.updateMobilePageTitle());
   }
 
   /** Opens or closes the mobile navigation drawer. */
@@ -43,11 +49,14 @@ export class AppLayoutComponent {
     if (this.isMobile) this.drawerOpened = false;
   }
 
-  /** Updates the toolbar label from the deepest active app route. */
-  private updatePageDetails(): void {
-    let activeRoute = this.router.routerState.snapshot.root;
-    while (activeRoute.firstChild) activeRoute = activeRoute.firstChild;
+  /** Reads the deepest active route title for the mobile app bar. */
+  private updateMobilePageTitle(): void {
+    let route: ActivatedRouteSnapshot = this.router.routerState.snapshot.root;
 
-    this.pageTitle = (activeRoute.data['title'] as string) ?? 'Dashboard';
+    while (route.firstChild) {
+      route = route.firstChild;
+    }
+
+    this.mobilePageTitle = (route.data['title'] as string | undefined) ?? '';
   }
 }

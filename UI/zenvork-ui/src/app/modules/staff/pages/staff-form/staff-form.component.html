@@ -1,0 +1,58 @@
+<section class="staff-form-page" aria-labelledby="staff-form-title">
+  <header class="staff-form-page__header">
+    <p class="eyebrow">Business Team</p>
+    <h1 id="staff-form-title">Add Staff</h1>
+    <p>Create an account for a team member. They can sign in using their mobile number or email.</p>
+  </header>
+
+  <form class="staff-form" [formGroup]="staffForm" (ngSubmit)="submit()" novalidate>
+    <app-input
+      formControlName="name"
+      label="Full Name"
+      labelPlacement="outside"
+      placeholder="e.g. Priya Sharma"
+      autocomplete="name"
+      [required]="true"
+      [errorMessage]="fieldError('name')"
+    />
+    <app-input
+      formControlName="email"
+      label="Email Address"
+      labelPlacement="outside"
+      type="email"
+      placeholder="priya@business.com"
+      autocomplete="email"
+      [errorMessage]="fieldError('email')"
+    />
+    <app-input
+      formControlName="mobile"
+      label="Mobile Number"
+      labelPlacement="outside"
+      type="tel"
+      placeholder="e.g. 9876543210"
+      autocomplete="tel-national"
+      [required]="true"
+      [errorMessage]="fieldError('mobile')"
+    />
+    <app-input
+      formControlName="password"
+      label="Temporary Password"
+      labelPlacement="outside"
+      type="password"
+      placeholder="At least 8 characters"
+      autocomplete="new-password"
+      hint="The staff member can use this password to sign in."
+      [required]="true"
+      [errorMessage]="fieldError('password')"
+    />
+
+    @if (serverError) {
+      <p class="server-error" role="alert">{{ serverError }}</p>
+    }
+
+    <div class="staff-form__actions">
+      <app-button type="button" variant="secondary" (clicked)="cancel()">Cancel</app-button>
+      <app-button type="submit" [loading]="loading">Create Staff Account</app-button>
+    </div>
+  </form>
+</section>

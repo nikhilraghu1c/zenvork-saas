@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth-guard';
+import { ownerGuard } from './core/guards/owner-guard';
 export const routes: Routes = [
   {
     path: 'app',
@@ -26,8 +27,29 @@ export const routes: Routes = [
           import('./modules/coming-soon/coming-soon.component').then((m) => m.ComingSoonComponent),
       },
       {
-        path: 'staff-resources',
-        data: { title: 'Staff & Resources' },
+        path: 'staff/new',
+        canActivate: [ownerGuard],
+        data: { title: 'Add Staff' },
+        loadComponent: () =>
+          import('./modules/staff/pages/staff-form/staff-form.component').then((m) => m.StaffFormComponent),
+      },
+      {
+        path: 'staff/:id',
+        canActivate: [ownerGuard],
+        data: { title: 'Staff Details' },
+        loadComponent: () =>
+          import('./modules/staff/pages/staff-details/staff-details.component').then((m) => m.StaffDetailsComponent),
+      },
+      {
+        path: 'staff',
+        canActivate: [ownerGuard],
+        data: { title: 'Staff' },
+        loadComponent: () =>
+          import('./modules/staff/pages/staff-list/staff-list.component').then((m) => m.StaffListComponent),
+      },
+      {
+        path: 'resources',
+        data: { title: 'Resources' },
         loadComponent: () =>
           import('./modules/coming-soon/coming-soon.component').then((m) => m.ComingSoonComponent),
       },

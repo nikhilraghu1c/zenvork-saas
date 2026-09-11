@@ -27,7 +27,11 @@
   }
 
   .app-content {
-    min-height: calc(100dvh - 60px);
+    min-height: 100dvh;
+
+    &.has-mobile-topbar {
+      min-height: calc(100dvh - 60px);
+    }
   }
 
   @media (max-width: 860px) {

@@ -25,6 +25,8 @@ export class AppInputComponent implements ControlValueAccessor {
   @Input() labelPlacement: 'floating' | 'outside' = 'floating';
   /** Controls Material's floating-label behavior. */
   @Input() floatLabel: 'auto' | 'always' = 'auto';
+  /** Controls whether Material reserves hint and error space below the field. */
+  @Input() subscriptSizing: 'fixed' | 'dynamic' = 'fixed';
   /** Optional stable ID used to associate an outside label with its input. */
   @Input() inputId = `app-input-${nextInputId++}`;
   /** Native input type used for appropriate browser behavior and keyboards. */

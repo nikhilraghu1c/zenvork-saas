@@ -1,0 +1,45 @@
+<section class="staff-list-page" aria-labelledby="staff-title">
+  <header class="staff-list-page__header">
+    <div>
+      <p class="eyebrow">Business Team</p>
+      <div class="staff-title-row">
+        <h1 id="staff-title">Staff</h1>
+        <span class="staff-count"
+          >{{ staff.length }} {{ staff.length === 1 ? 'Staff Member' : 'Staff Members' }}</span
+        >
+      </div>
+      <p class="staff-description">Manage the people who can access and work in your business.</p>
+    </div>
+  </header>
+
+  <div class="staff-list-page__search">
+    <app-input
+      [formControl]="searchControl"
+      label="Search Staff"
+      labelPlacement="floating"
+      subscriptSizing="dynamic"
+      placeholder="Search by name, email, or mobile"
+      autocomplete="off"
+    />
+    <app-button class="add-button" (clicked)="addStaff()">
+      <span class="add-button-content"><mat-icon>person_add</mat-icon><span>Add</span></span>
+    </app-button>
+  </div>
+
+  @if (loading) {
+    <p class="page-state" role="status">Loading staff…</p>
+  } @else if (errorMessage) {
+    <p class="page-state is-error" role="alert">{{ errorMessage }}</p>
+  } @else if (!staff.length) {
+    <div class="empty-state">
+      <mat-icon aria-hidden="true">group</mat-icon>
+      <h2>No Staff Yet</h2>
+      <p>Add your first staff account to give a team member access to your business workspace.</p>
+      <app-button class="add-button" (clicked)="addStaff()">
+        <span class="add-button-content"><mat-icon>person_add</mat-icon><span>Add</span></span>
+      </app-button>
+    </div>
+  } @else {
+    <app-data-grid class="staff-grid" [rowData]="filteredStaff" [columnDefs]="columnDefs" />
+  }
+</section>

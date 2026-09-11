@@ -1,11 +1,13 @@
 <div class="app-input">
   @if (labelPlacement === 'outside') {
-    <label class="outside-label" [for]="inputId">{{ label }}</label>
+    <label class="outside-label" [for]="inputId">
+      {{ label }}@if (required) { <span class="required-marker" aria-hidden="true">*</span> }
+    </label>
   }
 
-  <mat-form-field appearance="outline" [floatLabel]="floatLabel">
+  <mat-form-field appearance="outline" [floatLabel]="floatLabel" [subscriptSizing]="subscriptSizing">
     @if (labelPlacement === 'floating') {
-      <mat-label>{{ label }}</mat-label>
+      <mat-label>{{ label }}@if (required) { <span class="required-marker" aria-hidden="true">*</span> }</mat-label>
     }
     <input
       matInput
