@@ -49,9 +49,10 @@
   .staff-form__actions {
     display: flex;
     width: 100%;
+    flex-wrap: wrap;
     justify-content: flex-end;
     gap: 16px;
-    margin-top: 4px;
+    margin-top: 24px;
 
     app-button {
       flex: 0 0 auto;

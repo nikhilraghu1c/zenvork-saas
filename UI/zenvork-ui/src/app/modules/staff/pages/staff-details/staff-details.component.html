@@ -1,25 +1,72 @@
-<section class="staff-details-page" aria-labelledby="staff-details-title">
+<section class="staff-details-page" aria-label="Staff account details">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a routerLink="/app/staff">Staff</a>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">Account details</span>
+  </nav>
+
   @if (loading) {
     <p class="page-state" role="status">Loading staff details…</p>
   } @else if (staffMember) {
-    <header class="staff-details-page__header">
-      <div>
-        <p class="eyebrow">Business Team</p>
-        <h1 id="staff-details-title">{{ staffMember.name }}</h1>
-        <p>Staff account details.</p>
+    <header class="profile-header">
+      <span class="avatar" aria-hidden="true">{{ initials }}</span>
+      <div class="profile-info">
+        <h1>{{ staffMember.name }}</h1>
+        <p class="profile-mobile">{{ staffMember.mobile }}</p>
+        <div class="profile-tags">
+          <span class="role-tag">Staff</span>
+          <span class="status-tag"><span aria-hidden="true">●</span> Active</span>
+        </div>
       </div>
-      <app-button variant="tertiary" (clicked)="returnToList()">Back To Staff</app-button>
+      <div class="profile-actions">
+        <app-button variant="secondary" [disabled]="true">Reset password</app-button>
+        <app-button [disabled]="true">Edit account</app-button>
+      </div>
     </header>
 
-    <article class="staff-details-card">
-      <span class="avatar" aria-hidden="true">{{ staffMember.name.slice(0, 2).toUpperCase() }}</span>
-      <dl>
-        <div><dt>Account Role</dt><dd>Staff</dd></div>
-        <div><dt>Mobile Number</dt><dd>{{ staffMember.mobile }}</dd></div>
-        <div><dt>Email Address</dt><dd>{{ staffMember.email ?? 'Not Provided' }}</dd></div>
-        <div><dt>Added On</dt><dd>{{ staffMember.createdAt | date: 'mediumDate' }}</dd></div>
-      </dl>
-    </article>
+    <div class="details-grid">
+      <section class="detail-section" aria-labelledby="account-title">
+        <h2 id="account-title">Account details</h2>
+        <dl class="card info-grid">
+          <div><dt>Email address</dt><dd>{{ staffMember.email || 'Not provided' }}</dd></div>
+          <div><dt>Mobile number</dt><dd>{{ staffMember.mobile }}</dd></div>
+          <div><dt>Role</dt><dd>Staff</dd></div>
+          <div><dt>Joined</dt><dd>{{ staffMember.createdAt | date: 'mediumDate' }}</dd></div>
+          <div><dt>Last login</dt><dd class="unavailable">Not available yet</dd></div>
+          <div><dt>Linked resource</dt><dd class="unavailable">Not available yet</dd></div>
+        </dl>
+      </section>
+
+      <section class="detail-section" aria-labelledby="permissions-title">
+        <div class="section-heading">
+          <h2 id="permissions-title">Permissions</h2>
+          <span class="coming-soon">Coming soon</span>
+        </div>
+        <div class="card permissions-card">
+          @for (permission of permissions; track permission.name) {
+            <div class="permission-row">
+              <div>
+                <h3>{{ permission.name }}</h3>
+                <p>{{ permission.description }}</p>
+              </div>
+              <mat-slide-toggle [disabled]="true" [aria-label]="permission.name + ' — not available yet'" />
+            </div>
+          }
+        </div>
+      </section>
+
+    </div>
+
+    <section class="detail-section" aria-labelledby="danger-title">
+      <h2 id="danger-title">Danger zone</h2>
+      <div class="card danger-card">
+        <div>
+          <h3>Remove staff account</h3>
+          <p>Account removal is not available yet.</p>
+        </div>
+        <app-button variant="secondary" [disabled]="true">Remove</app-button>
+      </div>
+    </section>
   } @else {
     <div class="page-state is-error" role="alert">
       <mat-icon aria-hidden="true">person_off</mat-icon>

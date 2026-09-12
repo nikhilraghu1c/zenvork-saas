@@ -8,7 +8,7 @@
 
   &::before {
     position: absolute;
-    inset: 0 -120px auto;
+    inset: 0 0 auto;
     z-index: -1;
     height: 360px;
     background: var(--gradient-page-glow);
