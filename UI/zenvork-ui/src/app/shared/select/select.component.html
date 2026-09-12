@@ -1,0 +1,40 @@
+<div class="app-select">
+  @if (labelPlacement === 'outside') {
+    <label class="outside-label" [id]="selectId + '-label'" [for]="selectId">
+      {{ label }}
+      @if (required) {
+        <span class="required-marker" aria-hidden="true">*</span>
+      }
+    </label>
+  }
+  <mat-form-field appearance="outline" [subscriptSizing]="subscriptSizing">
+    @if (labelPlacement === 'floating') {
+      <mat-label>{{ label }}</mat-label>
+    }
+    <mat-select
+      [id]="selectId"
+      [aria-labelledby]="labelPlacement === 'outside' ? selectId + '-label' : ''"
+      [value]="value"
+      [placeholder]="placeholder"
+      [required]="required"
+      [disabled]="disabled"
+      [errorStateMatcher]="errorStateMatcher"
+      panelClass="app-select-panel"
+      (selectionChange)="updateValue($event.value)"
+      (blur)="markTouched()"
+      (closed)="markTouched()"
+    >
+      @for (option of options; track option.value) {
+        <mat-option [value]="option.value" [disabled]="option.disabled ?? false">{{
+          option.label
+        }}</mat-option>
+      }
+    </mat-select>
+    @if (hint && !errorMessage) {
+      <mat-hint>{{ hint }}</mat-hint>
+    }
+    @if (errorMessage) {
+      <mat-error>{{ errorMessage }}</mat-error>
+    }
+  </mat-form-field>
+</div>

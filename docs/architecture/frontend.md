@@ -16,7 +16,7 @@ src/app/
 
 Public and authenticated experiences use separate route-level layouts. `PublicLayoutComponent` owns
 public navigation and public routes. `AppLayoutComponent` owns authenticated navigation and guarded
-`/app` routes. Dashboard and Staff are implemented; the remaining visible app navigation routes use
+`/app` routes. Dashboard, Staff, and Resources are implemented; the remaining visible app navigation routes use
 a temporary shared preview page until their workspaces are implemented. Feature pages are lazy-loaded.
 The Staff module owns `/app/staff`, `/app/staff/new`, and `/app/staff/:id`. The current public routes
 are `/`, `/register`, and `/login`.
@@ -61,3 +61,18 @@ later for genuinely cross-feature workflows, WebSocket events, or optimistic upd
 - Add an HTTP interceptor that clears local auth metadata and redirects to `/login` after an
   authenticated API request returns `401`.
 - Use Angular's `takeUntilDestroyed()` for `AppLayoutComponent` breakpoint and router subscriptions.
+
+## Resource workspace
+
+Resources use lazy routes `/app/resources`, `/app/resources/new`, and `/app/resources/:id`.
+Owners can create resources; both owners and staff can list and inspect tenant-owned resources.
+The add form loads tenant-specific types from `GET /api/resources/options` and offers an optional
+link to the owner or an existing staff account. Desktop lists use the shared grid; smaller screens
+use resource cards. Detail pages resolve records from the tenant-scoped list, display actual active
+status and timestamps, and leave unsupported management, service, and booking controls disabled.
+
+## Shared display pipes
+
+Pure standalone display pipes live in `core/pipes`. `InitialsPipe` (`name | initials`) is shared by
+staff, resource, and sidebar avatars. It uses the first and last words, returns one uppercase initial
+for a single-word name, normalizes whitespace, and returns an empty string for missing names.

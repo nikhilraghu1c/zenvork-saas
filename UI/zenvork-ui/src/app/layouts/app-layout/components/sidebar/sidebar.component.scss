@@ -105,21 +105,21 @@
       min-width: 0;
     }
 
-    p,
-    span {
+    div p,
+    div span {
       overflow: hidden;
       margin: 0;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    p {
+    div p {
       color: var(--text);
       font-size: 13px;
       font-weight: 500;
     }
 
-    span {
+    div span {
       display: block;
       color: var(--text-mute);
       font-size: 11.5px;

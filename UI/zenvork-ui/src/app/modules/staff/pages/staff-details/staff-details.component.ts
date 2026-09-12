@@ -1,3 +1,4 @@
+import { InitialsPipe } from '../../../../core/pipes/initials.pipe';
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
@@ -9,7 +10,14 @@ import { StaffService, StaffUser } from '../../services/staff.service';
 
 @Component({
   selector: 'app-staff-details',
-  imports: [DatePipe, MatIconModule, MatSlideToggleModule, AppButtonComponent, RouterLink],
+  imports: [
+    InitialsPipe,
+    DatePipe,
+    MatIconModule,
+    MatSlideToggleModule,
+    AppButtonComponent,
+    RouterLink,
+  ],
   templateUrl: './staff-details.component.html',
   styleUrl: './staff-details.component.scss',
 })
@@ -23,13 +31,6 @@ export class StaffDetailsComponent implements OnInit {
     { name: 'View analytics', description: 'See revenue and business reports' },
     { name: 'Manage staff', description: 'Add or remove other staff accounts' },
   ];
-
-  protected get initials(): string {
-    const parts = this.staffMember?.name.trim().split(/\s+/).filter(Boolean) ?? [];
-    return [parts[0]?.[0], parts.length > 1 ? parts[parts.length - 1][0] : '']
-      .join('').toUpperCase();
-  }
-
 
   constructor(
     private readonly route: ActivatedRoute,

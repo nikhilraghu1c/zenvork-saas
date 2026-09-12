@@ -1,0 +1,101 @@
+<section class="resource-details-page" aria-label="Resource details">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a routerLink="/app/resources">Resources</a><span aria-hidden="true">/</span
+    ><span aria-current="page">Resource details</span>
+  </nav>
+  @if (loading) {
+    <p class="page-state" role="status">Loading resource details…</p>
+  } @else if (resource) {
+    <header class="profile-header">
+      <span class="avatar" aria-hidden="true">{{ resource.name | initials }}</span>
+      <div class="profile-info">
+        <h1>{{ resource.name }}</h1>
+        <div class="profile-tags">
+          <span class="role-tag">{{ resource.resourceType }}</span>
+          <span [class.status-tag]="resource.isActive" [class.coming-soon]="!resource.isActive"
+            ><span aria-hidden="true">●</span> {{ resource.isActive ? 'Active' : 'Inactive' }}</span
+          >
+          @if (resource.isPerson) {
+            <span class="coming-soon">{{ resource.linkedUserId ? 'Login linked' : 'No login linked' }}</span>
+          }
+        </div>
+      </div>
+      @if (isOwner) {
+        <div class="profile-actions">
+          <app-button variant="secondary" [disabled]="true">{{
+            resource.isActive ? 'Deactivate' : 'Activate'
+          }}</app-button
+          ><app-button [disabled]="true">Edit resource</app-button>
+        </div>
+      }
+    </header>
+    <div class="details-grid">
+      <section class="detail-section" aria-labelledby="resource-info-title">
+        <h2 id="resource-info-title">Resource details</h2>
+        <dl class="card info-grid">
+          <div>
+            <dt>Type</dt>
+            <dd>{{ resource.resourceType }}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{{ resource.isActive ? 'Active' : 'Inactive' }}</dd>
+          </div>
+          @if (resource.isPerson) {
+            <div>
+              <dt>Login account</dt>
+              <dd>{{ resource.linkedUserId ? 'Linked' : 'Not linked' }}</dd>
+            </div>
+          }
+          <div>
+            <dt>Added on</dt>
+            <dd>{{ resource.createdAt | date: 'mediumDate' }}</dd>
+          </div>
+          <div>
+            <dt>Last updated</dt>
+            <dd>{{ resource.updatedAt | date: 'mediumDate' }}</dd>
+          </div>
+        </dl>
+      </section>
+      <section class="detail-section" aria-labelledby="services-title">
+        <div class="section-heading">
+          <h2 id="services-title">Services offered</h2>
+          <span class="coming-soon">Coming soon</span>
+        </div>
+        <div class="card unavailable-card">
+          <mat-icon aria-hidden="true">design_services</mat-icon>
+          <h3>Services will appear here</h3>
+          <p>Service assignments are not available yet.</p>
+          <app-button variant="secondary" [disabled]="true">Manage services</app-button>
+        </div>
+      </section>
+    </div>
+    <section class="detail-section" aria-label="Resource bookings">
+      <div class="queue-tabs">
+        <app-button variant="tertiary" [disabled]="true">Today's queue</app-button
+        ><app-button variant="tertiary" [disabled]="true">Upcoming</app-button
+        ><span class="coming-soon">Coming soon</span>
+      </div>
+      <div class="card unavailable-card">
+        <p>Booking activity will be available here in a future update.</p>
+      </div>
+    </section>
+    @if (isOwner) {
+      <section class="detail-section" aria-labelledby="danger-title">
+        <h2 id="danger-title">Danger zone</h2>
+        <div class="card danger-card">
+          <div>
+            <h3>Remove this resource</h3>
+            <p>Resource removal is not available yet.</p>
+          </div>
+          <app-button variant="secondary" [disabled]="true">Remove</app-button>
+        </div>
+      </section>
+    }
+  } @else {
+    <div class="page-state is-error" role="alert">
+      <p>{{ errorMessage }}</p>
+      <app-button variant="tertiary" routerLink="/app/resources">Back to Resources</app-button>
+    </div>
+  }
+</section>

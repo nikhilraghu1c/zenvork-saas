@@ -1,0 +1,59 @@
+<section class="resource-form-page" aria-labelledby="resource-form-title">
+  <header class="resource-form-page__header">
+    <p class="eyebrow">Business Resources</p>
+    <h1 id="resource-form-title">Add Resource</h1>
+    <p>Create a bookable resource and optionally link it to an existing login account.</p>
+  </header>
+  @if (optionsLoading) {
+    <p role="status">Loading resource options…</p>
+  } @else if (optionsError) {
+    <p class="server-error" role="alert">{{ optionsError }}</p>
+    <app-button (clicked)="loadOptions()">Retry</app-button>
+  } @else if (!types.length) {
+    <p role="status">
+      No active resource types are configured for your business. Contact your administrator.
+    </p>
+    <app-button variant="secondary" (clicked)="cancel()">Back to Resources</app-button>
+  } @else {
+    <form class="resource-form" [formGroup]="resourceForm" (ngSubmit)="submit()" novalidate>
+      <app-input
+        formControlName="name"
+        label="Resource Name"
+        labelPlacement="outside"
+        placeholder="Enter resource name"
+        [required]="true"
+        [errorMessage]="nameError()"
+      />
+      <app-select
+        formControlName="resourceType"
+        label="Resource Type"
+        labelPlacement="outside"
+        placeholder="Choose a resource type"
+        [options]="typeOptions"
+        [required]="true"
+        [errorMessage]="
+          resourceForm.controls.resourceType.touched &&
+          resourceForm.controls.resourceType.hasError('required')
+            ? 'Choose a resource type.'
+            : ''
+        "
+      />
+      @if (isPersonResource) {
+        <app-select
+          formControlName="linkedUserId"
+          label="Linked Login Account"
+          labelPlacement="outside"
+          [options]="accountOptions"
+          hint="Optional. A resource does not need a login account."
+        />
+      }
+      @if (serverError) {
+        <p class="server-error" role="alert">{{ serverError }}</p>
+      }
+      <div class="resource-form__actions">
+        <app-button variant="secondary" [disabled]="loading" (clicked)="cancel()">Cancel</app-button
+        ><app-button type="submit" [loading]="loading">Create Resource</app-button>
+      </div>
+    </form>
+  }
+</section>

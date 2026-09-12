@@ -14,7 +14,8 @@ const getActiveBusinessTypes = async (req, res) => {
         code: businessType.code,
         name: businessType.name,
         iconName: businessType.iconName,
-        resourceTypes: businessType.resourceTypes.filter((resourceType) => resourceType.isActive),
+        resourceTypes: businessType.resourceTypes.filter((resourceType) => resourceType.isActive)
+          .map((resourceType) => ({ ...resourceType, isPerson: resourceType.isPerson === true })),
       })),
     });
   } catch (error) {

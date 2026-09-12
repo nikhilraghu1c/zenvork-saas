@@ -15,6 +15,11 @@ const resourceTypeSchema = new mongoose.Schema(
       trim: true,
       maxlength: [50, "Resource type name cannot exceed 50 characters"],
     },
+    // Person resources can be linked to a business login account.
+    isPerson: {
+      type: Boolean,
+      default: false,
+    },
     isActive: {
       type: Boolean,
       default: true,

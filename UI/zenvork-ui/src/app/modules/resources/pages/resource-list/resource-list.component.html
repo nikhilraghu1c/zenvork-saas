@@ -1,0 +1,82 @@
+<section class="resource-list-page" aria-labelledby="resources-title">
+  <header class="resource-list-page__header">
+    <div>
+      <p class="eyebrow">Business Resources</p>
+      <div class="resource-title-row">
+        <h1 id="resources-title">Resources</h1>
+        <span class="resource-count">{{ resources.length }} Resources</span>
+      </div>
+      <p class="resource-description">Manage the people and spaces available for bookings.</p>
+    </div>
+  </header>
+  <div class="resource-list-page__search">
+    <app-input
+      [formControl]="searchControl"
+      label="Search Resources"
+      labelPlacement="floating"
+      subscriptSizing="dynamic"
+      placeholder="Search by name, type, or status"
+    />
+    @if (isOwner) {
+      <app-button class="add-button" routerLink="/app/resources/new"
+        ><span class="add-button-content"
+          ><mat-icon>add</mat-icon><span>Add</span></span
+        ></app-button
+      >
+    }
+  </div>
+  @if (loading) {
+    <p class="page-state" role="status">Loading resources…</p>
+  } @else if (errorMessage) {
+    <p class="page-state is-error" role="alert">{{ errorMessage }}</p>
+  } @else if (!resources.length) {
+    <div class="empty-state">
+      <mat-icon aria-hidden="true">category</mat-icon>
+      <h2>No Resources Yet</h2>
+      <p>Your business resources will appear here.</p>
+      @if (isOwner) {
+        <app-button routerLink="/app/resources/new">Add Resource</app-button>
+      }
+    </div>
+  } @else if (!filteredResources.length) {
+    <p class="page-state" role="status">No resources match your search.</p>
+  } @else {
+    <app-data-grid
+      class="resource-grid desktop-grid"
+      [rowData]="filteredResources"
+      [columnDefs]="columnDefs"
+    />
+    <div class="mobile-resources">
+      @for (resource of filteredResources; track resource._id) {
+        <a class="resource-card" [routerLink]="['/app/resources', resource._id]">
+          <div class="resource-card__header">
+            <span class="resource-card__icon" aria-hidden="true"
+              ><mat-icon>category</mat-icon></span
+            >
+            <div class="resource-card__identity">
+              <h2>{{ resource.name }}</h2>
+              <p class="resource-card__type">{{ resource.resourceType }}</p>
+            </div>
+            <span class="resource-card__status" [class.is-active]="resource.isActive">
+              <span aria-hidden="true">●</span> {{ resource.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+          <div class="resource-card__footer">
+            <div class="resource-card__metadata">
+              @if (resource.isPerson) {
+                <span class="resource-card__account">
+                  <mat-icon aria-hidden="true">{{ resource.linkedUserId ? 'link' : 'link_off' }}</mat-icon>
+                  {{ resource.linkedUserId ? 'Login linked' : 'No login linked' }}
+                </span>
+              }
+              <span class="resource-card__date"
+                >Added {{ resource.createdAt | date: 'mediumDate' }}</span
+              >
+            </div>
+            <mat-icon class="resource-card__arrow" aria-hidden="true">chevron_right</mat-icon>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</section>

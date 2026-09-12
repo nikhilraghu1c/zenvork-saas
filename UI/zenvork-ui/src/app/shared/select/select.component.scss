@@ -1,0 +1,73 @@
+.app-select {
+  display: block;
+
+  .outside-label {
+    display: inline-block;
+    margin: 0 0 6px;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .required-marker {
+    margin-left: 3px;
+    color: var(--mat-sys-error);
+  }
+
+  mat-form-field {
+    width: 100%;
+    --mat-form-field-container-height: 48px;
+    --mat-form-field-container-vertical-padding: 12px;
+    --mat-form-field-outlined-container-shape: var(--radius-md);
+    --mat-form-field-container-text-size: 14px;
+    --mat-select-trigger-text-size: 14px;
+    --mat-select-trigger-text-font: var(--font-body);
+    --mat-select-enabled-arrow-color: var(--text-dim);
+    --mat-select-focused-arrow-color: var(--cyan);
+  }
+}
+
+// Material renders the listbox in the CDK overlay, like the shared action menu.
+.app-select-panel.mat-mdc-select-panel {
+  box-sizing: border-box;
+  padding: 4px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-grid);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+
+  .mat-mdc-option {
+    min-height: 40px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 20px;
+    overflow-wrap: anywhere;
+
+    & + .mat-mdc-option {
+      margin-top: 4px;
+    }
+
+    &:not(.mdc-list-item--disabled):not(.mdc-list-item--selected):hover,
+    &.mat-mdc-option-active:not(.mdc-list-item--disabled):not(.mdc-list-item--selected) {
+      background: var(--surface-raised);
+      color: var(--text);
+      box-shadow: inset 0 0 0 1px var(--border-strong);
+    }
+
+    &.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+      background: var(--cyan-soft);
+      color: var(--cyan);
+    }
+
+    .mdc-list-item__primary-text {
+      color: inherit;
+    }
+
+    &.mdc-list-item--disabled {
+      opacity: 0.48;
+    }
+  }
+}

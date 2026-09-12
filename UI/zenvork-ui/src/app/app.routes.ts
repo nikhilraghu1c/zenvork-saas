@@ -48,10 +48,20 @@ export const routes: Routes = [
           import('./modules/staff/pages/staff-list/staff-list.component').then((m) => m.StaffListComponent),
       },
       {
+        path: 'resources/new',
+        canActivate: [ownerGuard],
+        data: { title: 'Add Resource' },
+        loadComponent: () => import('./modules/resources/pages/resource-form/resource-form.component').then(m => m.ResourceFormComponent),
+      },
+      {
+        path: 'resources/:id',
+        data: { title: 'Resource Details' },
+        loadComponent: () => import('./modules/resources/pages/resource-details/resource-details.component').then(m => m.ResourceDetailsComponent),
+      },
+      {
         path: 'resources',
         data: { title: 'Resources' },
-        loadComponent: () =>
-          import('./modules/coming-soon/coming-soon.component').then((m) => m.ComingSoonComponent),
+        loadComponent: () => import('./modules/resources/pages/resource-list/resource-list.component').then(m => m.ResourceListComponent),
       },
       {
         path: 'reminders',

@@ -7,14 +7,17 @@ const initialBusinessTypes = [
     code: "SALON",
     name: "Salon",
     iconName: "content_cut",
-    resourceTypes: [{ code: "STYLIST", name: "Stylist", isActive: true }],
+    resourceTypes: [
+      { code: "STYLIST", name: "Stylist", isPerson: true, isActive: true },
+      { code: "CHAIR", name: "Chair", isPerson: false, isActive: true },
+    ],
     isActive: true,
   },
   {
     code: "CLINIC",
     name: "Clinic",
     iconName: "medical_services",
-    resourceTypes: [{ code: "DOCTOR", name: "Doctor", isActive: true }],
+    resourceTypes: [{ code: "DOCTOR", name: "Doctor", isPerson: true, isActive: true }],
     isActive: true,
   },
 ];

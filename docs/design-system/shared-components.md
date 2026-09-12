@@ -15,7 +15,7 @@ Start each wrapper with only the capabilities needed by its first caller. Extend
 when a real new requirement appears; avoid speculative props and variants.
 
 Current wrappers are `AppButtonComponent`, `AppCheckboxComponent`, `AppInputComponent`,
-`AppDataGridComponent`, and `AppActionMenuComponent`. They provide the initial public-form,
+`AppSelectComponent`, `AppDataGridComponent`, and `AppActionMenuComponent`. They provide the initial public-form,
 action-menu, and desktop data-grid UI while keeping their public APIs intentionally small.
 Business-type tiles are registration-specific native radio inputs, so they remain inside that module
 rather than being treated as a shared component.
@@ -46,3 +46,12 @@ and column definitions; the wrapper owns the shared dark grid theme, default sor
 columns, accessible cell focus behavior, and auto-height layout. Pair it with a feature-owned card
 view only when a compact grid is not practical. Grids intended for mobile should pin their action
 column so it remains visible while the remaining columns scroll horizontally.
+
+`AppSelectComponent` (`shared/select`, `app-select`) wraps Material's single-select listbox and
+implements ControlValueAccessor for reactive forms. Pass `options` with string `value`, `label`,
+and optional `disabled` fields. An empty string is a selectable value for optional choices.
+It supports `label`, `labelPlacement` (`floating` or `outside`), `placeholder`, `required`, `hint`,
+`errorMessage`, `subscriptSizing`, and a stable `selectId`. Disabled state comes from the form control.
+Callers supply validation messages when touched/submitted. Fields match the shared input geometry;
+the scoped overlay uses compact menu-like rows and cyan hover/selection while retaining Material's
+keyboard navigation and listbox semantics. Feature pages use this wrapper rather than raw selects.

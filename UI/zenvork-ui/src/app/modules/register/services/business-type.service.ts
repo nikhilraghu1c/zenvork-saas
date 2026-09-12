@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 
 export interface ResourceTypeOption {
+  isPerson: boolean;
   code: string;
   name: string;
 }

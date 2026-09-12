@@ -1,3 +1,4 @@
+import { InitialsPipe } from '../../../../core/pipes/initials.pipe';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,7 +21,14 @@ interface NavigationGroup {
 
 @Component({
   selector: 'app-sidebar',
-  imports: [MatButtonModule, MatIconModule, MatListModule, RouterLink, RouterLinkActive],
+  imports: [
+    InitialsPipe,
+    MatButtonModule,
+    MatIconModule,
+    MatListModule,
+    RouterLink,
+    RouterLinkActive,
+  ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
 })
@@ -63,17 +71,6 @@ export class SidebarComponent {
     private readonly auth: AuthService,
     private readonly router: Router,
   ) {}
-
-  /** Returns the signed-in user initials for the sidebar avatar. */
-  protected get initials(): string {
-    const name = this.auth.getCurrentUser()?.name ?? 'User';
-    return name
-      .split(' ')
-      .map((part) => part[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase();
-  }
 
   /** Returns the signed-in user's name, with a safe fallback during startup. */
   protected get userName(): string {

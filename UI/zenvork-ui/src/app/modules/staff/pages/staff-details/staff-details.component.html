@@ -9,7 +9,7 @@
     <p class="page-state" role="status">Loading staff details…</p>
   } @else if (staffMember) {
     <header class="profile-header">
-      <span class="avatar" aria-hidden="true">{{ initials }}</span>
+      <span class="avatar" aria-hidden="true">{{ staffMember.name | initials }}</span>
       <div class="profile-info">
         <h1>{{ staffMember.name }}</h1>
         <p class="profile-mobile">{{ staffMember.mobile }}</p>
