@@ -20,6 +20,12 @@
 - Verify the live contract in `backend/src` before implementing a frontend API call.
 - Display API error messages returned as `{ "message": "..." }` to the user where appropriate.
 
+## Backend code conventions
+
+- Add a concise one-line comment before non-obvious controller, model, and validation logic,
+  especially tenant scoping, lifecycle rules, query filters, and business constraints. Do not comment
+  code whose meaning is already obvious from its name.
+
 ## Documentation maintenance
 
 For every implementation change, assess whether it changes architecture, routing, authentication,

@@ -12,16 +12,30 @@ backend/src/
 ├── modules/      # Domain modules, including business type and registration
 ├── routes/       # Express route registration
 ├── scripts/      # Explicit platform-data seed scripts
+├── utils/         # Shared backend helpers, including tenant scoping
 └── server.js      # Application startup
 ```
 
 ## Tenant model
 
 A business is the tenant boundary. Registration creates a `Business` and its `OWNER` user in one
-MongoDB transaction. `Resource` is the first operational tenant-owned model; it has a required
-`businessId`, and future resource APIs must derive that value from the authenticated user rather
-than accepting it from the client. Its `{ businessId, resourceType }` index supports tenant-scoped
-resource-type queries. Future business-owned records follow the same rule.
+MongoDB transaction. `Resource`, `Client`, and `Booking` are tenant-owned models with a required
+`businessId`; their APIs derive that value from the authenticated user rather than accepting it from
+the client. The Resource `{ businessId, resourceType }`, Client `{ businessId, mobile }`, and Booking
+calendar/resource indexes support their tenant-scoped queries. Future business-owned records follow
+the same rule.
+
+Bookings may be `PENDING` without scheduled times, or become `SCHEDULED` when both planned times are
+provided. Booking creation verifies that its client and resources belong to the authenticated tenant,
+and rejects overlap with an active scheduled booking for any assigned resource. Actual service times
+are deferred to check-in and completion operations. A booking may select an existing client or create
+a new tenant-owned client in the same MongoDB transaction; token and queue functionality remains
+deferred.
+
+`utils/tenant-scope.js` centralizes this policy for controllers: `tenantFilter()` adds the verified
+tenant to database queries, `tenantData()` adds it to new documents, and `tenantId()` supplies it
+for direct tenant lookups. Each helper sets `businessId` after caller-provided data, so request data
+cannot override the authenticated tenant.
 
 `BusinessType` is platform-managed reference data. A `Business` stores `businessTypeId`, and owner
 registration accepts only an active referenced type. Resource creation verifies the submitted type

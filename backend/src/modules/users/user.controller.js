@@ -1,4 +1,5 @@
 import User from "./user.model.js";
+import { tenantData, tenantFilter } from "../../utils/tenant-scope.js";
 import {
   UserValidationError,
   validateStaffCreation,
@@ -7,10 +8,11 @@ import {
 const getStaffUsers = async (req, res) => {
   try {
     // Every staff list is constrained to the authenticated owner's business.
-    const users = await User.find({
-      businessId: req.user.businessId,
-      role: "STAFF",
-    })
+    const users = await User.find(
+      tenantFilter(req, {
+        role: "STAFF",
+      }),
+    )
       .select("name email mobile role createdAt updatedAt")
       .sort({ name: 1 })
       .lean();
@@ -39,14 +41,15 @@ const createStaffUser = async (req, res) => {
         .json({ message: "Unable to create staff account" });
     }
 
-    await User.create({
-      businessId: req.user.businessId,
-      name,
-      email,
-      mobile,
-      password,
-      role: "STAFF",
-    });
+    await User.create(
+      tenantData(req, {
+        name,
+        email,
+        mobile,
+        password,
+        role: "STAFF",
+      }),
+    );
 
     return res.status(201).json({ message: "Staff user created successfully" });
   } catch (error) {

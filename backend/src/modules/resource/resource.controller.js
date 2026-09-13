@@ -3,6 +3,11 @@ import BusinessType from "../business/business-type.model.js";
 import User from "../users/user.model.js";
 import Resource from "./resource.model.js";
 import {
+  tenantData,
+  tenantFilter,
+  tenantId,
+} from "../../utils/tenant-scope.js";
+import {
   ResourceValidationError,
   validateResourceCreation,
 } from "./resource.validation.js";
@@ -10,21 +15,31 @@ import {
 const getResources = async (req, res) => {
   try {
     // Every resource list is limited to the authenticated user's business.
-    const resources = await Resource.find({ businessId: req.user.businessId })
+    const resources = await Resource.find(tenantFilter(req))
       .select("name resourceType isActive linkedUserId createdAt updatedAt")
       .sort({ name: 1 })
       .lean();
 
-    const business = await Business.findById(req.user.businessId).select("businessTypeId").lean();
+    const business = await Business.findById(tenantId(req))
+      .select("businessTypeId")
+      .lean();
     const businessType = business
-      ? await BusinessType.findById(business.businessTypeId).select("resourceTypes").lean()
+      ? await BusinessType.findById(business.businessTypeId)
+          .select("resourceTypes")
+          .lean()
       : null;
-    const personTypes = new Set((businessType?.resourceTypes ?? [])
-      .filter((type) => type.isPerson === true).map((type) => type.code));
+    const personTypes = new Set(
+      (businessType?.resourceTypes ?? [])
+        .filter((type) => type.isPerson === true)
+        .map((type) => type.code),
+    );
 
-    return res.status(200).json({ resources: resources.map((resource) => ({
-      ...resource, isPerson: personTypes.has(resource.resourceType),
-    })) });
+    return res.status(200).json({
+      resources: resources.map((resource) => ({
+        ...resource,
+        isPerson: personTypes.has(resource.resourceType),
+      })),
+    });
   } catch (error) {
     console.error("Failed to load resources:", error);
     return res.status(500).json({ message: "Unable to load resources" });
@@ -33,9 +48,13 @@ const getResources = async (req, res) => {
 
 const createResource = async (req, res) => {
   try {
-    const { name, resourceType, linkedUserId } = validateResourceCreation(req.body);
+    const { name, resourceType, linkedUserId } = validateResourceCreation(
+      req.body,
+    );
     // Select only the needed field and return a lightweight read-only object with .lean().
-    const business = await Business.findById(req.user.businessId).select("businessTypeId").lean();
+    const business = await Business.findById(tenantId(req))
+      .select("businessTypeId")
+      .lean();
 
     if (!business) {
       return res.status(401).json({ message: "Unauthorized: Please login" });
@@ -46,7 +65,9 @@ const createResource = async (req, res) => {
       _id: business.businessTypeId,
       isActive: true,
       resourceTypes: { $elemMatch: { code: resourceType, isActive: true } },
-    }).select("resourceTypes").lean();
+    })
+      .select("resourceTypes")
+      .lean();
     const allowedResourceType = businessType?.resourceTypes.find(
       (type) => type.code === resourceType && type.isActive,
     );
@@ -56,14 +77,17 @@ const createResource = async (req, res) => {
     }
 
     if (linkedUserId && !allowedResourceType.isPerson) {
-      return res.status(400).json({ message: "Only person resources can have a linked login account" });
+      return res.status(400).json({
+        message: "Only person resources can have a linked login account",
+      });
     }
 
     if (linkedUserId) {
-      const linkedUser = await User.exists({
-        _id: linkedUserId,
-        businessId: req.user.businessId,
-      });
+      const linkedUser = await User.exists(
+        tenantFilter(req, {
+          _id: linkedUserId,
+        }),
+      );
 
       if (!linkedUser) {
         return res.status(400).json({ message: "Invalid linked user" });
@@ -71,12 +95,13 @@ const createResource = async (req, res) => {
     }
 
     // The API, not the client, assigns the tenant identity.
-    const resource = await Resource.create({
-      businessId: req.user.businessId,
-      name,
-      resourceType,
-      linkedUserId,
-    });
+    const resource = await Resource.create(
+      tenantData(req, {
+        name,
+        resourceType,
+        linkedUserId,
+      }),
+    );
 
     return res.status(201).json({
       message: "Resource created successfully",
@@ -94,13 +119,25 @@ const createResource = async (req, res) => {
 // Resolve options from the authenticated tenant, never a client-supplied business ID.
 const getResourceOptions = async (req, res) => {
   try {
-    const business = await Business.findById(req.user.businessId).select("businessTypeId").lean();
-    if (!business) return res.status(401).json({ message: "Unauthorized: Please login" });
-    const businessType = await BusinessType.findOne({ _id: business.businessTypeId, isActive: true })
-      .select("resourceTypes").lean();
+    const business = await Business.findById(tenantId(req))
+      .select("businessTypeId")
+      .lean();
+    if (!business) {
+      return res.status(401).json({ message: "Unauthorized: Please login" });
+    }
+    const businessType = await BusinessType.findOne({
+      _id: business.businessTypeId,
+      isActive: true,
+    })
+      .select("resourceTypes")
+      .lean();
     const resourceTypes = (businessType?.resourceTypes ?? [])
       .filter((type) => type.isActive)
-      .map(({ code, name, isPerson }) => ({ code, name, isPerson: isPerson === true }));
+      .map(({ code, name, isPerson }) => ({
+        code,
+        name,
+        isPerson: isPerson === true,
+      }));
     return res.status(200).json({ resourceTypes });
   } catch (error) {
     console.error("Failed to load resource options:", error);
