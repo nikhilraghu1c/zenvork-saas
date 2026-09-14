@@ -1,0 +1,123 @@
+<section class="booking-list-page" aria-labelledby="bookings-title">
+  <header class="booking-list-page__header">
+    <div>
+      <p class="eyebrow">Booking workspace</p>
+      <div class="booking-title-row">
+        <h1 id="bookings-title">Bookings</h1>
+        @if (!loading && !errorMessage) {
+          <span class="booking-count"
+            >{{ totalBookings }} {{ totalBookings === 1 ? 'booking' : 'bookings' }}</span
+          >
+        }
+      </div>
+      <p class="booking-description">
+        Keep the day moving by assigning and tracking every appointment.
+      </p>
+    </div>
+  </header>
+
+  <div class="booking-list-page__filters" aria-label="Booking filters">
+    <label class="date-filter">
+      <span>Schedule date</span>
+      <input type="date" [formControl]="dateControl" />
+    </label>
+    <app-select
+      class="resource-filter"
+      [formControl]="resourceControl"
+      label="Resource"
+      labelPlacement="outside"
+      subscriptSizing="dynamic"
+      [options]="resourceOptions"
+    />
+    <app-select
+      class="assignment-filter"
+      [formControl]="assignmentControl"
+      label="Assignment"
+      labelPlacement="outside"
+      subscriptSizing="dynamic"
+      [options]="assignmentOptions"
+    />
+    <div class="status-filters" aria-label="Booking status">
+      <span class="status-filters__label">Status</span>
+      <div class="status-filters__chips" role="group">
+        @for (status of statusFilters; track status.value) {
+          <button
+            type="button"
+            class="status-chip"
+            [class.is-selected]="selectedStatus === status.value"
+            (click)="selectStatus(status.value)"
+          >
+            {{ status.label }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (loading) {
+    <p class="page-state" role="status">Loading bookings…</p>
+  } @else if (errorMessage) {
+    <p class="page-state is-error" role="alert">{{ errorMessage }}</p>
+  } @else if (!bookings.length) {
+    <div class="empty-state">
+      <mat-icon aria-hidden="true">event_busy</mat-icon>
+      <h2>No bookings found</h2>
+      <p>Try another day or adjust the booking filters.</p>
+    </div>
+  } @else {
+    <app-data-grid
+      class="booking-grid desktop-grid"
+      [rowData]="bookings"
+      [columnDefs]="columnDefs"
+    />
+    <div class="mobile-bookings">
+      @for (booking of bookings; track booking._id) {
+        <article class="booking-card" [class.is-muted]="booking.status === 'CANCELLED'">
+          <div class="booking-card__header">
+            <span class="booking-card__avatar" aria-hidden="true">{{
+              clientInitial(booking)
+            }}</span>
+            <div class="booking-card__identity">
+              <h2>{{ booking.client?.name ?? 'Client unavailable' }}</h2>
+              <p>{{ booking.client?.mobile ?? 'No mobile number' }}</p>
+            </div>
+            <span [class]="'status-pill is-' + booking.status.toLowerCase()">
+              <span aria-hidden="true">●</span>{{ statusLabel(booking.status) }}
+            </span>
+          </div>
+          <div class="booking-card__footer">
+            <div class="booking-card__metadata">
+              <div class="booking-card__schedule">
+                <span
+                  ><mat-icon aria-hidden="true">calendar_today</mat-icon
+                  >{{ formatDate(booking.scheduledStartAt) }}</span
+                >
+                <span
+                  ><mat-icon aria-hidden="true">schedule</mat-icon
+                  >{{ timeSlotLabel(booking) }}</span
+                >
+              </div>
+              <div
+                class="booking-card__resources"
+                [class.is-unassigned]="!booking.resources.length"
+              >
+                @if (booking.resources.length) {
+                  <span class="resource-names">
+                    @for (resource of booking.resources; track resource._id) {
+                      <span class="resource-item">
+                        <mat-icon aria-hidden="true">{{ resourceIcon(resource._id) }}</mat-icon
+                        >{{ resource.name }}
+                      </span>
+                    }
+                  </span>
+                } @else {
+                  <span><mat-icon aria-hidden="true">person_search</mat-icon>Unassigned</span>
+                }
+              </div>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

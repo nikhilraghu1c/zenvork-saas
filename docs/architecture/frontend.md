@@ -16,8 +16,9 @@ src/app/
 
 Public and authenticated experiences use separate route-level layouts. `PublicLayoutComponent` owns
 public navigation and public routes. `AppLayoutComponent` owns authenticated navigation and guarded
-`/app` routes. Dashboard, Staff, and Resources are implemented; the remaining visible app navigation routes use
-a temporary shared preview page until their workspaces are implemented. Feature pages are lazy-loaded.
+`/app` routes. Dashboard, Booking, Staff, and Resources are implemented; the remaining visible app
+navigation routes use a temporary shared preview page until their workspaces are implemented. Feature
+pages are lazy-loaded.
 The Staff module owns `/app/staff`, `/app/staff/new`, and `/app/staff/:id`. The current public routes
 are `/`, `/register`, and `/login`.
 Desktop app pages present their own primary headings. The app toolbar is shown only on mobile, where
@@ -70,6 +71,14 @@ The add form loads tenant-specific types from `GET /api/resources/options` and o
 link to the owner or an existing staff account. Desktop lists use the shared grid; smaller screens
 use resource cards. Detail pages resolve records from the tenant-scoped list, display actual active
 status and timestamps, and leave unsupported management, service, and booking controls disabled.
+
+## Booking workspace
+
+`/app/booking` is a lazy-loaded operational list. It initially loads `GET /api/bookings` without
+query parameters, then applies an optional Asia/Kolkata business-day range, resource/assignment
+filters, and a lifecycle status filter. Pending-only results are sorted oldest first; scheduled views
+are chronological. The desktop list uses a compact booking-row layout and becomes accessible cards
+on small screens. New-booking and booking-detail routes remain separate implementation phases.
 
 ## Shared display pipes
 

@@ -18,7 +18,9 @@ export const routes: Routes = [
         path: 'booking',
         data: { title: 'Booking' },
         loadComponent: () =>
-          import('./modules/coming-soon/coming-soon.component').then((m) => m.ComingSoonComponent),
+          import('./modules/booking/pages/booking-list/booking-list.component').then(
+            (m) => m.BookingListComponent,
+          ),
       },
       {
         path: 'clients',

@@ -22,12 +22,14 @@
 
   mat-sidenav-content {
     height: 100dvh;
+    min-width: 0;
     background: transparent;
     overflow: auto;
   }
 
   .app-content {
     min-height: 100dvh;
+    min-width: 0;
 
     &.has-mobile-topbar {
       min-height: calc(100dvh - 60px);
@@ -35,6 +37,24 @@
   }
 
   @media (max-width: 860px) {
+    mat-sidenav-container,
+    mat-sidenav-content {
+      width: 100%;
+      min-width: 0;
+    }
+
+    // A side-drawer margin can persist while Material changes the drawer into an overlay.
+    mat-sidenav-content {
+      margin-right: 0 !important;
+      margin-left: 0 !important;
+    }
+
+    .app-content {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
     .app-drawer {
       background: var(--bg);
       box-shadow: 12px 0 32px rgba(0, 0, 0, 0.36);

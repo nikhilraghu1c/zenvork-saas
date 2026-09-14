@@ -1,0 +1,52 @@
+:host {
+  display: flex;
+  height: 100%;
+  align-items: center;
+}
+
+.booking-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  max-height: 24px;
+  box-sizing: border-box;
+  padding: 3px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-subtle);
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+
+  &.is-pending {
+    background: rgba(138, 143, 163, 0.12);
+    color: var(--text-dim);
+  }
+
+  &.is-scheduled {
+    background: var(--cyan-soft);
+    color: var(--cyan);
+  }
+
+  &.is-checked_in {
+    background: rgba(255, 176, 32, 0.12);
+    color: var(--amber);
+  }
+
+  &.is-completed {
+    background: var(--green-soft);
+    color: var(--green);
+  }
+
+  &.is-cancelled {
+    color: var(--text-mute);
+    text-decoration: line-through;
+  }
+
+  &.is-no_show {
+    background: rgba(255, 92, 122, 0.12);
+    color: #ff5c7a;
+  }
+}

@@ -21,6 +21,10 @@ export class AppLayoutComponent {
   protected mobilePageTitle = '';
 
   constructor(private readonly breakpointObserver: BreakpointObserver) {
+    // Resolve the initial viewport before the observer emits to avoid a desktop drawer on phones.
+    this.isMobile = this.breakpointObserver.isMatched('(max-width: 860px)');
+    this.drawerOpened = !this.isMobile;
+
     // The same navigation becomes an overlay drawer when space is limited.
     this.breakpointObserver
       .observe('(max-width: 860px)')
