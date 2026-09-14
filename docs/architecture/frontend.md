@@ -77,8 +77,11 @@ status and timestamps, and leave unsupported management, service, and booking co
 `/app/booking` is a lazy-loaded operational list. It initially loads `GET /api/bookings` without
 query parameters, then applies an optional Asia/Kolkata business-day range, resource/assignment
 filters, and a lifecycle status filter. Pending-only results are sorted oldest first; scheduled views
-are chronological. The desktop list uses a compact booking-row layout and becomes accessible cards
-on small screens. New-booking and booking-detail routes remain separate implementation phases.
+are chronological. The desktop list uses the shared grid and becomes accessible cards on smaller
+screens. Both card and client-cell navigation lead to lazy-loaded `/app/booking/:id`, which loads
+the tenant-owned booking detail workspace directly. The detail page presents only supported booking
+data: client contact details, resources, planned/actual schedule, notes, lifecycle timestamps, and
+booking metadata. New-booking remains a separate implementation phase.
 
 ## Shared display pipes
 

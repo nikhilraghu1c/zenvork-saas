@@ -57,6 +57,35 @@ const getAllBookings = async (req, res) => {
   }
 };
 
+const getBookingById = async (req, res) => {
+  try {
+    if (!mongoose.isObjectIdOrHexString(req.params.id)) {
+      return res.status(400).json({ message: "Invalid booking" });
+    }
+
+    // Load one tenant-owned booking with the same public summaries used by the list endpoint.
+    const booking = await Booking.findOne(tenantFilter(req, { _id: req.params.id }))
+      .select(
+        "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt status notes createdAt updatedAt",
+      )
+      .populate("clientId", "name mobile email")
+      .populate("resourceIds", "name resourceType")
+      .lean();
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    const { clientId, resourceIds, ...bookingFields } = booking;
+    return res.status(200).json({
+      booking: { ...bookingFields, client: clientId, resources: resourceIds },
+    });
+  } catch (error) {
+    console.error("Failed to retrieve booking details:", error);
+    return res.status(500).json({ message: "Unable to retrieve booking details" });
+  }
+};
+
 const createBooking = async (req, res) => {
   try {
     const bookingData = validateBookingCreation(req.body);
@@ -158,4 +187,4 @@ const createBooking = async (req, res) => {
   }
 };
 
-export { getAllBookings, createBooking };
+export { getAllBookings, getBookingById, createBooking };

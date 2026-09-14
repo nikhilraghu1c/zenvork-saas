@@ -30,4 +30,5 @@ export class BookingClientGridCellComponent implements ICellRendererAngularComp 
     this.mobile = booking?.client?.mobile ?? 'No mobile number';
     this.initial = this.name.trim().charAt(0).toUpperCase() || '?';
   }
+
 }

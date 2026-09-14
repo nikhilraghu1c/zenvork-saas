@@ -20,6 +20,17 @@ Optional query parameters are `from` and `to` (ISO date-times with a timezone), 
 `sortBy=scheduledStartAt|createdAt|updatedAt`, and `order=asc|desc`. The default is chronological
 scheduled time ascending; a `status=PENDING` queue defaults to oldest created first.
 
+## Get a booking
+
+```http
+GET /api/bookings/:id
+```
+
+Returns `{ booking: {...} }` for a booking owned by the authenticated business. The response includes
+the same public booking fields as the list endpoint, with a populated `client` (`name`, `mobile`,
+`email`) and populated `resources` (`name`, `resourceType`). Returns `404` when the booking is not
+in the authenticated business.
+
 ## Create a booking
 
 ```http

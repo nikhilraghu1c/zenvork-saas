@@ -72,7 +72,7 @@
     />
     <div class="mobile-bookings">
       @for (booking of bookings; track booking._id) {
-        <article class="booking-card" [class.is-muted]="booking.status === 'CANCELLED'">
+        <a class="booking-card" [routerLink]="['/app/booking', booking._id]" [class.is-muted]="booking.status === 'CANCELLED'">
           <div class="booking-card__header">
             <span class="booking-card__avatar" aria-hidden="true">{{
               clientInitial(booking)
@@ -115,8 +115,9 @@
                 }
               </div>
             </div>
+            <mat-icon class="booking-card__arrow" aria-hidden="true">chevron_right</mat-icon>
           </div>
-        </article>
+        </a>
       }
     </div>
   }

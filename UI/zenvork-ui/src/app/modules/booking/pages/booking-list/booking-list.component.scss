@@ -2,10 +2,9 @@
   position: relative;
   box-sizing: border-box;
   width: 100%;
-  max-width: 1240px;
   min-width: 0;
   min-height: calc(100dvh - 60px);
-  margin: 0 auto;
+  margin: 0;
   padding: 32px;
   isolation: isolate;
 
@@ -231,10 +230,23 @@
     }
 
     .booking-card {
+      display: block;
       padding: 16px;
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       background: var(--surface);
+      color: var(--text);
+      text-decoration: none;
+
+      &:hover {
+        border-color: var(--cyan-border);
+        background: var(--surface-raised);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--cyan);
+        outline-offset: 3px;
+      }
 
       &.is-muted {
         opacity: 0.58;
@@ -287,12 +299,17 @@
       }
 
       &__footer {
+        display: flex;
+        align-items: center;
+        gap: 12px;
         margin-top: 14px;
         padding-top: 12px;
         border-top: 1px solid var(--border);
       }
 
       &__metadata {
+        min-width: 0;
+        flex: 1;
         display: grid;
         gap: 12px;
         color: var(--text-dim);
@@ -362,6 +379,14 @@
             color: var(--text-mute);
           }
         }
+      }
+
+      &__arrow {
+        width: 20px;
+        height: 20px;
+        flex: 0 0 auto;
+        color: var(--cyan);
+        font-size: 20px;
       }
     }
   }

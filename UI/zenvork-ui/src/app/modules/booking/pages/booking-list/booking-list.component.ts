@@ -2,10 +2,12 @@ import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 import { ColDef } from 'ag-grid-community';
 import { AppDataGridComponent } from '../../../../shared/data-grid/data-grid.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
 import { BookingClientGridCellComponent } from '../../components/booking-client-grid-cell/booking-client-grid-cell.component';
+import { BookingGridActionsComponent } from '../../components/booking-grid-actions/booking-grid-actions.component';
 import { BookingStatusGridCellComponent } from '../../components/booking-status-grid-cell/booking-status-grid-cell.component';
 import { ResourceRecord, ResourceService } from '../../../resources/services/resource.service';
 import {
@@ -25,7 +27,7 @@ interface StatusFilterOption {
 
 @Component({
   selector: 'app-booking-list',
-  imports: [ReactiveFormsModule, MatIconModule, AppDataGridComponent, AppSelectComponent],
+  imports: [ReactiveFormsModule, RouterLink, MatIconModule, AppDataGridComponent, AppSelectComponent],
   templateUrl: './booking-list.component.html',
   styleUrl: './booking-list.component.scss',
 })
@@ -102,6 +104,16 @@ export class BookingListComponent implements OnInit {
         color: data?.resources.length ? 'var(--text-dim)' : 'var(--text-mute)',
         fontStyle: data?.resources.length ? 'normal' : 'italic',
       }),
+    },
+    {
+      headerName: 'Actions',
+      cellRenderer: BookingGridActionsComponent,
+      sortable: false,
+      resizable: false,
+      pinned: 'right',
+      lockPinned: true,
+      minWidth: 96,
+      maxWidth: 96,
     },
   ];
 

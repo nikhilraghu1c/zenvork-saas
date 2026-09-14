@@ -1,0 +1,84 @@
+<section class="booking-details-page" aria-label="Booking details">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a routerLink="/app/booking">Bookings</a><span aria-hidden="true">/</span><span aria-current="page">Booking details</span>
+  </nav>
+
+  @if (loading) {
+    <p class="page-state" role="status">Loading booking details…</p>
+  } @else if (booking) {
+    <header class="booking-header">
+      <span class="avatar" aria-hidden="true">{{ booking.client?.name | initials }}</span>
+      <div class="booking-header__identity">
+        <h1>{{ booking.client?.name ?? 'Client unavailable' }}</h1>
+        <p>Booking #{{ booking._id.slice(-6).toUpperCase() }} · Created {{ formatDateTime(booking.createdAt) }}</p>
+      </div>
+      <span [class]="'status-pill is-' + booking.status.toLowerCase()">
+        <span aria-hidden="true">●</span>{{ statusLabel(booking.status) }}
+      </span>
+    </header>
+
+    <div class="details-grid">
+      <div class="details-grid__primary">
+        <section class="detail-section" aria-labelledby="client-title">
+          <h2 id="client-title">Client</h2>
+          <dl class="card info-grid">
+            <div><dt>Name</dt><dd>{{ booking.client?.name ?? 'Not available' }}</dd></div>
+            <div><dt>Mobile</dt><dd>{{ booking.client?.mobile ?? 'Not available' }}</dd></div>
+            <div><dt>Email</dt><dd [class.muted]="!booking.client?.email">{{ booking.client?.email ?? 'Not provided' }}</dd></div>
+          </dl>
+        </section>
+
+        <section class="detail-section" aria-labelledby="resources-title">
+          <h2 id="resources-title">Resources assigned</h2>
+          <div class="card resource-list">
+            @if (booking.resources.length) {
+              @for (resource of booking.resources; track resource._id) {
+                <div class="resource-item"><mat-icon aria-hidden="true">category</mat-icon><div><strong>{{ resource.name }}</strong><span>{{ resource.resourceType }}</span></div></div>
+              }
+            } @else {
+              <p class="muted">No resources are assigned yet.</p>
+            }
+          </div>
+        </section>
+
+        <section class="detail-section" aria-labelledby="schedule-title">
+          <h2 id="schedule-title">Schedule</h2>
+          <dl class="card info-grid">
+            <div><dt>Scheduled slot</dt><dd [class.muted]="!booking.scheduledStartAt">{{ scheduleLabel(booking) }}</dd></div>
+            <div><dt>Actual start</dt><dd [class.muted]="!booking.actualStartAt">{{ formatDateTime(booking.actualStartAt) }}</dd></div>
+            <div><dt>Actual end</dt><dd [class.muted]="!booking.actualEndAt">{{ formatDateTime(booking.actualEndAt) }}</dd></div>
+          </dl>
+        </section>
+
+        <section class="detail-section" aria-labelledby="notes-title">
+          <h2 id="notes-title">Notes</h2>
+          <div class="card notes"><p [class.muted]="!booking.notes">{{ booking.notes || 'No notes added.' }}</p></div>
+        </section>
+      </div>
+
+      <aside class="details-grid__secondary">
+        <section class="detail-section" aria-labelledby="timeline-title">
+          <h2 id="timeline-title">Status timeline</h2>
+          <div class="card timeline">
+            @for (step of timeline(booking); track step.label) {
+              <div class="timeline__step" [class.is-done]="step.state === 'done'" [class.is-current]="step.state === 'current'">
+                <span class="timeline__dot" aria-hidden="true"></span><div><strong>{{ step.label }}</strong><span>{{ formatDateTime(step.timestamp) }}</span></div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section class="detail-section" aria-labelledby="metadata-title">
+          <h2 id="metadata-title">Details</h2>
+          <dl class="card metadata">
+            <div><dt>Booking ID</dt><dd>#{{ booking._id.slice(-6).toUpperCase() }}</dd></div>
+            <div><dt>Created on</dt><dd>{{ formatDateTime(booking.createdAt) }}</dd></div>
+            <div><dt>Last updated</dt><dd>{{ formatDateTime(booking.updatedAt) }}</dd></div>
+          </dl>
+        </section>
+      </aside>
+    </div>
+  } @else {
+    <div class="page-state is-error" role="alert"><p>{{ errorMessage }}</p><app-button variant="tertiary" routerLink="/app/booking">Back to Bookings</app-button></div>
+  }
+</section>

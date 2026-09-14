@@ -14,6 +14,7 @@ export interface BookingClientSummary {
   _id: string;
   name: string;
   mobile: string;
+  email?: string;
 }
 
 export interface BookingResourceSummary {
@@ -55,6 +56,10 @@ export interface BookingListResponse {
   };
 }
 
+export interface BookingDetailResponse {
+  booking: BookingRecord;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BookingService {
   constructor(private readonly api: ApiService) {}
@@ -69,5 +74,10 @@ export class BookingService {
     return Object.keys(activeQuery).length
       ? this.api.query<BookingListResponse>('bookings', activeQuery)
       : this.api.get<BookingListResponse>('bookings');
+  }
+
+  /** Loads one tenant-owned booking for its staff-facing detail workspace. */
+  getBooking(id: string): Observable<BookingDetailResponse> {
+    return this.api.get<BookingDetailResponse>(`bookings/${id}`);
   }
 }
