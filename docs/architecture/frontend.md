@@ -81,7 +81,9 @@ are chronological. The desktop list uses the shared grid and becomes accessible 
 screens. Both card and client-cell navigation lead to lazy-loaded `/app/booking/:id`, which loads
 the tenant-owned booking detail workspace directly. The detail page presents only supported booking
 data: client contact details, resources, planned/actual schedule, notes, lifecycle timestamps, and
-booking metadata. New-booking remains a separate implementation phase.
+booking metadata. `/app/booking/new` is a lazy-loaded operational form that selects an existing
+tenant client or creates one inline, assigns only configured resource types, and creates a pending
+booking unless staff provide the complete India-local date/start/end schedule.
 
 ## Shared display pipes
 

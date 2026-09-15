@@ -1,0 +1,176 @@
+<section class="booking-form-page" aria-label="New booking">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a routerLink="/app/booking">Bookings</a><span aria-hidden="true">/</span
+    ><span aria-current="page">New booking</span>
+  </nav>
+  <header class="page-header">
+    <p class="eyebrow">Booking workspace</p>
+    <h1>New booking</h1>
+    <p>Create an appointment now, or leave its schedule and resources for staff to assign later.</p>
+  </header>
+
+  @if (loading) {
+    <p class="page-state" role="status">Loading booking form…</p>
+  } @else if (errorMessage && !clients.length && !resourceTypes.length) {
+    <p class="page-state is-error" role="alert">{{ errorMessage }}</p>
+  } @else {
+    <form class="booking-layout" (ngSubmit)="submit()">
+      <div class="booking-form">
+        <section class="form-section" aria-labelledby="client-title">
+          <h2 id="client-title">Client</h2>
+          <div class="card">
+            @if (selectedClient) {
+              <div class="selected-client">
+                <span class="avatar" aria-hidden="true">{{ selectedClient.name.charAt(0) }}</span>
+                <div>
+                  <strong>{{ selectedClient.name }}</strong
+                  ><span>{{ selectedClient.mobile }}</span>
+                </div>
+                <button type="button" (click)="changeClient()">Change</button>
+              </div>
+            } @else {
+              <app-input
+                [formControl]="clientSearchControl"
+                label="Find client"
+                labelPlacement="outside"
+                subscriptSizing="dynamic"
+                placeholder="Search by name, mobile, or email"
+              />
+              <p class="field-hint">
+                Select an existing client, or add them while creating this booking.
+              </p>
+              <div class="client-results">
+                @for (client of matchingClients(); track client._id) {
+                  <button type="button" class="client-option" (click)="selectClient(client)">
+                    <span class="avatar" aria-hidden="true">{{ client.name.charAt(0) }}</span
+                    ><span
+                      ><strong>{{ client.name }}</strong
+                      ><small>{{ client.mobile }}</small></span
+                    >
+                  </button>
+                }
+                <button type="button" class="add-client" (click)="addNewClient()">
+                  <mat-icon aria-hidden="true">add</mat-icon>Add new client
+                </button>
+              </div>
+            }
+
+            @if (showNewClientForm) {
+              <div class="new-client-form">
+                <div class="two-fields">
+                  <app-input
+                    [formControl]="newClientNameControl"
+                    label="Full name"
+                    labelPlacement="outside"
+                    subscriptSizing="dynamic"
+                    placeholder="Client name"
+                    [required]="true"
+                  /><app-input
+                    [formControl]="newClientMobileControl"
+                    type="tel"
+                    label="Mobile"
+                    labelPlacement="outside"
+                    subscriptSizing="dynamic"
+                    placeholder="10-digit mobile"
+                    [required]="true"
+                  />
+                </div>
+                <app-input
+                  [formControl]="newClientEmailControl"
+                  type="email"
+                  label="Email"
+                  labelPlacement="outside"
+                  subscriptSizing="dynamic"
+                  placeholder="client@example.com"
+                />
+              </div>
+            }
+          </div>
+        </section>
+
+        <section class="form-section" aria-labelledby="resources-title">
+          <h2 id="resources-title">Assign resources</h2>
+          <div class="card resource-fields">
+            @for (type of resourceTypes; track type.code) {
+              <app-select
+                [formControl]="resourceControl(type.code)"
+                [label]="type.name"
+                labelPlacement="outside"
+                subscriptSizing="dynamic"
+                [options]="resourceOptions(type)"
+              />
+            } @empty {
+              <p class="field-hint">No resource types are configured for this business.</p>
+            }
+          </div>
+        </section>
+
+        <section class="form-section" aria-labelledby="schedule-title">
+          <h2 id="schedule-title">Schedule <span>optional</span></h2>
+          <div class="card schedule-fields">
+            <label class="native-field"
+              ><span>Date</span><input type="date" [formControl]="dateControl"
+            /></label>
+            <label class="native-field"
+              ><span>Start time</span><input type="time" [formControl]="startTimeControl"
+            /></label>
+            <label class="native-field"
+              ><span>End time</span><input type="time" [formControl]="endTimeControl"
+            /></label>
+          </div>
+        </section>
+
+        <section class="form-section" aria-labelledby="notes-title">
+          <h2 id="notes-title">Booking notes <span>optional</span></h2>
+          <div class="card">
+            <label class="native-field"
+              ><span>Notes</span
+              ><textarea
+                [formControl]="notesControl"
+                placeholder="Any special requests or details…"
+              ></textarea>
+            </label>
+          </div>
+        </section>
+      </div>
+
+      <aside class="summary" aria-label="Booking summary">
+        <h2>Booking summary</h2>
+        <div class="summary-row">
+          <span>Client</span
+          ><strong [class.empty]="summaryClient() === 'Not selected'">{{ summaryClient() }}</strong>
+        </div>
+        @for (type of resourceTypes; track type.code) {
+          <div class="summary-row">
+            <span>{{ type.name }}</span
+            ><strong [class.empty]="summaryResource(type) === 'Not assigned'">{{
+              summaryResource(type)
+            }}</strong>
+          </div>
+        }
+        <div class="summary-row">
+          <span>Date</span
+          ><strong [class.empty]="!dateControl.value">{{ dateControl.value || 'Not set' }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Time</span
+          ><strong [class.empty]="!startTimeControl.value">{{
+            startTimeControl.value && endTimeControl.value
+              ? startTimeControl.value + ' – ' + endTimeControl.value
+              : 'Not set'
+          }}</strong>
+        </div>
+        @if (errorMessage) {
+          <p class="form-error" role="alert">{{ errorMessage }}</p>
+        }
+        <app-button
+          [loading]="submitting"
+          [disabled]="submitting"
+          [fullWidth]="true"
+          (clicked)="submit()"
+          >Confirm booking</app-button
+        >
+      </aside>
+    </form>
+  }
+</section>

@@ -4,6 +4,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { ColDef } from 'ag-grid-community';
+import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppDataGridComponent } from '../../../../shared/data-grid/data-grid.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
 import { BookingClientGridCellComponent } from '../../components/booking-client-grid-cell/booking-client-grid-cell.component';
@@ -27,7 +28,7 @@ interface StatusFilterOption {
 
 @Component({
   selector: 'app-booking-list',
-  imports: [ReactiveFormsModule, RouterLink, MatIconModule, AppDataGridComponent, AppSelectComponent],
+  imports: [ReactiveFormsModule, RouterLink, MatIconModule, AppButtonComponent, AppDataGridComponent, AppSelectComponent],
   templateUrl: './booking-list.component.html',
   styleUrl: './booking-list.component.scss',
 })

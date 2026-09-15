@@ -61,3 +61,5 @@ overlapping `SCHEDULED` or `CHECKED_IN` booking.
 
 The request cannot provide status, actual times, `businessId`, or `createdBy`. Actual service times
 will be set by future check-in and completion endpoints.
+
+Successful creation returns `{ "message": "Booking created successfully", "bookingId": "..." }`.

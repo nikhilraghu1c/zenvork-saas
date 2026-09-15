@@ -60,6 +60,20 @@ export interface BookingDetailResponse {
   booking: BookingRecord;
 }
 
+export interface CreateBookingRequest {
+  clientId?: string;
+  client?: { name: string; mobile: string; email?: string };
+  resourceIds: string[];
+  scheduledStartAt?: string;
+  scheduledEndAt?: string;
+  notes?: string;
+}
+
+export interface CreateBookingResponse {
+  message: string;
+  bookingId: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BookingService {
   constructor(private readonly api: ApiService) {}
@@ -79,5 +93,10 @@ export class BookingService {
   /** Loads one tenant-owned booking for its staff-facing detail workspace. */
   getBooking(id: string): Observable<BookingDetailResponse> {
     return this.api.get<BookingDetailResponse>(`bookings/${id}`);
+  }
+
+  /** Creates either a pending or scheduled booking for the authenticated business. */
+  createBooking(payload: CreateBookingRequest): Observable<CreateBookingResponse> {
+    return this.api.post<CreateBookingResponse, CreateBookingRequest>('bookings', payload);
   }
 }

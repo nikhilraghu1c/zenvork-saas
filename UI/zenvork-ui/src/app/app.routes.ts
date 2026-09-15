@@ -15,6 +15,14 @@ export const routes: Routes = [
           import('./modules/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
       {
+        path: 'booking/new',
+        data: { title: 'New Booking' },
+        loadComponent: () =>
+          import('./modules/booking/pages/booking-form/booking-form.component').then(
+            (m) => m.BookingFormComponent,
+          ),
+      },
+      {
         path: 'booking/:id',
         data: { title: 'Booking Details' },
         loadComponent: () =>

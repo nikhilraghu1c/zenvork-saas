@@ -94,6 +94,7 @@ const createBooking = async (req, res) => {
       clientId: existingClientId,
       ...bookingFields
     } = bookingData;
+    let createdBooking;
 
     if (existingClientId) {
       // A booking cannot reference a client from another tenant.
@@ -151,7 +152,7 @@ const createBooking = async (req, res) => {
           const client = new Client(tenantData(req, newClientData));
           await client.save({ session });
 
-          await Booking.create(
+          [createdBooking] = await Booking.create(
             [
               tenantData(req, {
                 ...bookingFields,
@@ -167,7 +168,7 @@ const createBooking = async (req, res) => {
       }
     } else {
       // Tenant identity and creator are always derived from the authenticated user.
-      await Booking.create(
+      createdBooking = await Booking.create(
         tenantData(req, {
           ...bookingFields,
           clientId: existingClientId,
@@ -176,7 +177,10 @@ const createBooking = async (req, res) => {
       );
     }
 
-    return res.status(201).json({ message: "Booking created successfully" });
+    return res.status(201).json({
+      message: "Booking created successfully",
+      bookingId: createdBooking._id,
+    });
   } catch (error) {
     if (error instanceof BookingValidationError) {
       return res.status(400).json({ message: error.message });
