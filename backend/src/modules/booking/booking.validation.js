@@ -171,6 +171,106 @@ export const validateBookingCreation = (data) => {
   };
 };
 
+export const validateBookingStatusUpdate = (data) => {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    throw new BookingValidationError("Invalid request data");
+  }
+
+  // Status updates must not accept client-controlled timestamps or tenant identity.
+  if (Object.keys(data).length !== 1 || !("status" in data)) {
+    throw new BookingValidationError("Only status can be updated");
+  }
+  if (typeof data.status !== "string" || !BOOKING_STATUSES.includes(data.status)) {
+    throw new BookingValidationError("Invalid booking status");
+  }
+
+  return data.status;
+};
+
+export const validateBookingUpdate = (data) => {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    throw new BookingValidationError("Invalid request data");
+  }
+
+  const allowedFields = [
+    "clientId",
+    "resourceIds",
+    "scheduledStartAt",
+    "scheduledEndAt",
+    "notes",
+  ];
+  // Lifecycle fields and actual times are always controlled by their dedicated server flows.
+  if (
+    Object.keys(data).length === 0 ||
+    Object.keys(data).some((field) => !allowedFields.includes(field))
+  ) {
+    throw new BookingValidationError("Invalid booking update fields");
+  }
+
+  const hasClientId = Object.hasOwn(data, "clientId");
+  const hasResourceIds = Object.hasOwn(data, "resourceIds");
+  const hasScheduledStart = Object.hasOwn(data, "scheduledStartAt");
+  const hasScheduledEnd = Object.hasOwn(data, "scheduledEndAt");
+  const hasNotes = Object.hasOwn(data, "notes");
+
+  // A time range is only valid when both ends are intentionally updated together.
+  if (hasScheduledStart !== hasScheduledEnd) {
+    throw new BookingValidationError(
+      "Scheduled start and end times must both be provided",
+    );
+  }
+  if (hasClientId && !isValidObjectId(data.clientId)) {
+    throw new BookingValidationError("Invalid client");
+  }
+  if (
+    hasResourceIds &&
+    (!Array.isArray(data.resourceIds) ||
+      data.resourceIds.some((resourceId) => !isValidObjectId(resourceId)))
+  ) {
+    throw new BookingValidationError("Invalid resources");
+  }
+  if (
+    hasResourceIds &&
+    new Set(data.resourceIds).size !== data.resourceIds.length
+  ) {
+    throw new BookingValidationError(
+      "Resources cannot be selected more than once",
+    );
+  }
+  if (
+    hasNotes &&
+    (typeof data.notes !== "string" || data.notes.trim().length > 1000)
+  ) {
+    throw new BookingValidationError(
+      "Notes must be text and cannot exceed 1000 characters",
+    );
+  }
+
+  const scheduledStartAt = hasScheduledStart
+    ? parseDateTime(data.scheduledStartAt, "scheduled start time")
+    : null;
+  const scheduledEndAt = hasScheduledEnd
+    ? parseDateTime(data.scheduledEndAt, "scheduled end time")
+    : null;
+  if (scheduledStartAt && scheduledEndAt && scheduledEndAt <= scheduledStartAt) {
+    throw new BookingValidationError(
+      "Scheduled end time must be after the start time",
+    );
+  }
+
+  return {
+    hasClientId,
+    clientId: hasClientId ? data.clientId : null,
+    hasResourceIds,
+    resourceIds: hasResourceIds ? data.resourceIds : null,
+    hasSchedule: hasScheduledStart,
+    scheduledStartAt,
+    scheduledEndAt,
+    hasNotes,
+    notes: hasNotes ? data.notes.trim() : null,
+  };
+};
+
 export const validateBookingListQuery = (query) => {
   if (!query || typeof query !== "object" || Array.isArray(query)) {
     throw new BookingValidationError("Invalid query parameters");

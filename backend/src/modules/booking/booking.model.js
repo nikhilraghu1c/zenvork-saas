@@ -1,5 +1,35 @@
 import mongoose from "mongoose";
 
+const BOOKING_STATUSES = [
+  "PENDING",
+  "SCHEDULED",
+  "CHECKED_IN",
+  "COMPLETED",
+  "CANCELLED",
+  "NO_SHOW",
+];
+
+const statusHistorySchema = new mongoose.Schema(
+  {
+    status: {
+      type: String,
+      enum: BOOKING_STATUSES,
+      required: true,
+    },
+    changedAt: {
+      type: Date,
+      required: true,
+      default: Date.now,
+    },
+    changedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+  },
+  { _id: false },
+);
+
 const bookingSchema = new mongoose.Schema(
   {
     businessId: {
@@ -40,15 +70,12 @@ const bookingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: [
-        "PENDING",
-        "SCHEDULED",
-        "CHECKED_IN",
-        "COMPLETED",
-        "CANCELLED",
-        "NO_SHOW",
-      ],
+      enum: BOOKING_STATUSES,
       default: "PENDING",
+    },
+    statusHistory: {
+      type: [statusHistorySchema],
+      default: [],
     },
     notes: {
       type: String,
@@ -66,8 +93,17 @@ const bookingSchema = new mongoose.Schema(
 );
 
 bookingSchema.pre("validate", function () {
-  // Only scheduled and in-progress lifecycle states require a planned time slot.
-  const statusesRequiringSchedule = ["SCHEDULED", "CHECKED_IN", "COMPLETED"];
+  // Walk-ins can progress without a planned slot; only scheduled bookings require one.
+  const statusesRequiringSchedule = ["SCHEDULED"];
+
+  // Preserve the initial lifecycle state for the staff-visible audit timeline.
+  if (this.isNew && this.statusHistory.length === 0 && this.createdBy) {
+    this.statusHistory.push({
+      status: this.status,
+      changedAt: new Date(),
+      changedBy: this.createdBy,
+    });
+  }
 
   if (Boolean(this.scheduledStartAt) !== Boolean(this.scheduledEndAt)) {
     this.invalidate(

@@ -49,7 +49,7 @@ export class BookingFormService {
   /** Filters locally loaded tenant clients so typing does not issue repeated HTTP requests. */
   matchingClients(clients: ClientRecord[], query: string): ClientRecord[] {
     const term = query.trim().toLowerCase();
-    if (!term) return clients.slice(0, 5);
+    if (!term) return clients.slice(0, 3);
     return clients
       .filter((client) =>
         [client.name, client.mobile, client.email ?? ''].some((value) =>

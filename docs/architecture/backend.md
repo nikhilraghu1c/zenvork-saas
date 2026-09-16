@@ -27,11 +27,14 @@ the same rule.
 
 Bookings may be `PENDING` without scheduled times, or become `SCHEDULED` when both planned times are
 provided. Booking creation verifies that its client and resources belong to the authenticated tenant,
-and rejects overlap with an active scheduled booking for any assigned resource. Actual service times
-are deferred to check-in and completion operations. A booking may select an existing client or create
-a new tenant-owned client in the same MongoDB transaction. `GET /api/bookings/:id` applies the same
-tenant filter as the list endpoint and returns populated client/resource summaries for the detail
-workspace; token and queue functionality remains deferred.
+and rejects overlap with an active scheduled booking for any assigned resource. `PATCH /api/bookings/:id`
+edits client, resources, schedule, or notes only while allowed by the current lifecycle state; adding a
+valid schedule to a pending booking makes it scheduled. `PATCH /api/bookings/:id/status` accepts only a
+permitted next status, sets actual service timestamps on check-in/completion server-side, and records the
+authenticated user and time in `statusHistory`. A booking may select an existing client or create a new
+tenant-owned client in the same MongoDB transaction. `GET /api/bookings/:id` applies the same tenant filter
+as the list endpoint and returns populated client/resource summaries for the detail workspace; token and
+queue functionality remains deferred.
 
 `utils/tenant-scope.js` centralizes this policy for controllers: `tenantFilter()` adds the verified
 tenant to database queries, `tenantData()` adds it to new documents, and `tenantId()` supplies it
