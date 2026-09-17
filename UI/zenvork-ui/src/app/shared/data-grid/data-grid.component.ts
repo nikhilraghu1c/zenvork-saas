@@ -13,6 +13,8 @@ export class AppDataGridComponent {
   @Input({ required: true }) rowData: unknown[] = [];
   /** Column configuration supplied by the feature that owns the data. */
   @Input({ required: true }) columnDefs: ColDef<any>[] = [];
+  /** Feature-owned callbacks and data used by interactive cell renderers. */
+  @Input() context: Record<string, unknown> = {};
 
   /** Registers the free AG Grid Community features used by Zenvork. */
   protected readonly modules = [AllCommunityModule];

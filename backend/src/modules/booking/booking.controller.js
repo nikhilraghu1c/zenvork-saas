@@ -115,7 +115,7 @@ const getBookingById = async (req, res) => {
   } catch (error) {
     console.error("Failed to retrieve booking details:", error);
     return res.status(500).json({ message: "Unable to retrieve booking details" });
-  }
+  } 
 };
 
 const updateBooking = async (req, res) => {
@@ -247,7 +247,8 @@ const updateBookingStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid booking" });
     }
 
-    const nextStatus = validateBookingStatusUpdate(req.body);
+    const statusUpdate = validateBookingStatusUpdate(req.body);
+    const { status: nextStatus, resourceIds } = statusUpdate;
     // Tenant scope prevents staff from transitioning a booking owned by another business.
     const booking = await Booking.findOne(tenantFilter(req, { _id: req.params.id }));
     if (!booking) {
@@ -258,6 +259,55 @@ const updateBookingStatus = async (req, res) => {
       return res.status(409).json({
         message: `Cannot change ${booking.status} booking to ${nextStatus}`,
       });
+    }
+
+    if (nextStatus === "CHECKED_IN") {
+      // Check-in assigns only active resources from the authenticated business.
+      const resourceCount = await Resource.countDocuments(
+        tenantFilter(req, {
+          _id: { $in: resourceIds },
+          isActive: true,
+        }),
+      );
+      if (resourceCount !== resourceIds.length) {
+        return res
+          .status(400)
+          .json({ message: "One or more resources are invalid or inactive" });
+      }
+
+      // A resource cannot begin two services simultaneously, including unscheduled walk-ins.
+      const activeResourceBooking = await Booking.exists(
+        tenantFilter(req, {
+          _id: { $ne: booking._id },
+          resourceIds: { $in: resourceIds },
+          status: "CHECKED_IN",
+        }),
+      );
+      if (activeResourceBooking) {
+        return res.status(409).json({
+          message: "One or more selected resources are currently serving another booking",
+        });
+      }
+
+      if (booking.scheduledStartAt && booking.scheduledEndAt) {
+        // A scheduled check-in must also preserve the resource's planned-slot availability.
+        const scheduledConflict = await Booking.exists(
+          tenantFilter(req, {
+            _id: { $ne: booking._id },
+            resourceIds: { $in: resourceIds },
+            status: { $in: ["SCHEDULED", "CHECKED_IN"] },
+            scheduledStartAt: { $lt: booking.scheduledEndAt },
+            scheduledEndAt: { $gt: booking.scheduledStartAt },
+          }),
+        );
+        if (scheduledConflict) {
+          return res.status(409).json({
+            message: "One or more selected resources are unavailable at this time",
+          });
+        }
+      }
+
+      booking.resourceIds = resourceIds;
     }
 
     const changedAt = new Date();

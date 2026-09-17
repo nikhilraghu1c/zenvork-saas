@@ -31,7 +31,8 @@ and rejects overlap with an active scheduled booking for any assigned resource. 
 edits client, resources, schedule, or notes only while allowed by the current lifecycle state; adding a
 valid schedule to a pending booking makes it scheduled. `PATCH /api/bookings/:id/status` accepts only a
 permitted next status, sets actual service timestamps on check-in/completion server-side, and records the
-authenticated user and time in `statusHistory`. A booking may select an existing client or create a new
+authenticated user and time in `statusHistory`. Check-in requires active tenant resources, assigns them in
+the same operation, and prevents a resource from serving two checked-in bookings at once. A booking may select an existing client or create a new
 tenant-owned client in the same MongoDB transaction. `GET /api/bookings/:id` applies the same tenant filter
 as the list endpoint and returns populated client/resource summaries for the detail workspace; token and
 queue functionality remains deferred.

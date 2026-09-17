@@ -68,13 +68,17 @@ PATCH /api/bookings/:id/status
 
 ```json
 {
-  "status": "CHECKED_IN"
+  "status": "CHECKED_IN",
+  "resourceIds": ["65f123456789012345678902"]
 }
 ```
 
-Only the `status` field is accepted. The server records UTC lifecycle times and the authenticated
-staff member in `statusHistory`; clients cannot provide `actualStartAt`, `actualEndAt`, `changedBy`,
-or tenant fields.
+For `CHECKED_IN`, `resourceIds` is required and replaces the booking's assignment as part of the
+same operation. The resources must be active, tenant-owned, and available; a resource already
+`CHECKED_IN` on another booking cannot be selected. `COMPLETED`, `CANCELLED`, and `NO_SHOW` accept
+only the `status` field. The server records UTC lifecycle times and the authenticated staff member
+in `statusHistory`; clients cannot provide `actualStartAt`, `actualEndAt`, `changedBy`, or tenant
+fields.
 
 Allowed transitions are:
 
@@ -82,8 +86,9 @@ Allowed transitions are:
 - `SCHEDULED` → `CHECKED_IN`, `CANCELLED`, or `NO_SHOW`
 - `CHECKED_IN` → `COMPLETED`
 
-`CHECKED_IN` sets `actualStartAt` and `COMPLETED` sets `actualEndAt`. `COMPLETED`, `CANCELLED`, and
-`NO_SHOW` are terminal states. Invalid transitions return `409`.
+`CHECKED_IN` assigns selected resources and sets `actualStartAt`; `COMPLETED` sets `actualEndAt`.
+`COMPLETED`, `CANCELLED`, and `NO_SHOW` are terminal states. Invalid transitions or unavailable
+resources return `409`.
 
 ## Create a booking
 

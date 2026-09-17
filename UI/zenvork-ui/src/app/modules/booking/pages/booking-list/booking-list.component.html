@@ -72,23 +72,31 @@
       class="booking-grid desktop-grid"
       [rowData]="bookings"
       [columnDefs]="columnDefs"
+      [context]="gridContext"
     />
     <div class="mobile-bookings">
       @for (booking of bookings; track booking._id) {
-        <a class="booking-card" [routerLink]="['/app/booking', booking._id]" [class.is-muted]="booking.status === 'CANCELLED'">
+        <article class="booking-card" [class.is-muted]="booking.status === 'CANCELLED'">
           <div class="booking-card__header">
-            <span class="booking-card__avatar" aria-hidden="true">{{
-              clientInitial(booking)
-            }}</span>
-            <div class="booking-card__identity">
-              <h2>{{ booking.client?.name ?? 'Client unavailable' }}</h2>
-              <p>{{ booking.client?.mobile ?? 'No mobile number' }}</p>
-            </div>
+            <a class="booking-card__open" [routerLink]="['/app/booking', booking._id]">
+              <span class="booking-card__avatar" aria-hidden="true">{{ clientInitial(booking) }}</span>
+              <div class="booking-card__identity">
+                <h2>{{ booking.client?.name ?? 'Client unavailable' }}</h2>
+                <p>{{ booking.client?.mobile ?? 'No mobile number' }}</p>
+              </div>
+            </a>
             <span [class]="'status-pill is-' + booking.status.toLowerCase()">
               <span aria-hidden="true">●</span>{{ statusLabel(booking.status) }}
             </span>
+            @if (statusActions(booking.status).length) {
+              <app-action-menu
+                ariaLabel="Booking status actions"
+                [items]="statusActions(booking.status)"
+                (actionSelected)="requestStatusUpdate(booking, $any($event))"
+              />
+            }
           </div>
-          <div class="booking-card__footer">
+          <a class="booking-card__footer" [routerLink]="['/app/booking', booking._id]">
             <div class="booking-card__metadata">
               <div class="booking-card__schedule">
                 <span
@@ -119,9 +127,16 @@
               </div>
             </div>
             <mat-icon class="booking-card__arrow" aria-hidden="true">chevron_right</mat-icon>
-          </div>
-        </a>
+          </a>
+        </article>
       }
     </div>
+    @if (checkInBooking) {
+      <app-booking-check-in-dialog
+        [booking]="checkInBooking"
+        (closed)="closeCheckIn()"
+        (checkedIn)="handleCheckedIn()"
+      />
+    }
   }
 </section>

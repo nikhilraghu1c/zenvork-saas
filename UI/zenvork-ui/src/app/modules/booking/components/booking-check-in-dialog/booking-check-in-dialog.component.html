@@ -1,0 +1,45 @@
+<div class="check-in-dialog" role="dialog" aria-modal="true" aria-labelledby="check-in-title">
+  <div class="check-in-dialog__backdrop" aria-hidden="true" (click)="close()"></div>
+  <section class="check-in-dialog__panel">
+    <header>
+      <div>
+        <p>Start service</p>
+        <h2 id="check-in-title">Check in {{ booking.client?.name ?? 'client' }}</h2>
+        <span>Choose the staff and other resources needed for this service.</span>
+      </div>
+      <button type="button" class="close-button" aria-label="Close check-in" [disabled]="submitting" (click)="close()">
+        <mat-icon aria-hidden="true">close</mat-icon>
+      </button>
+    </header>
+
+    @if (loading) {
+      <p class="state" role="status">Loading resources…</p>
+    } @else if (errorMessage && !resources.length) {
+      <p class="state is-error" role="alert">{{ errorMessage }}</p>
+    } @else {
+      <div class="resource-fields" aria-label="Resources for this service">
+        @for (type of resourceTypes; track type.code) {
+          <app-select
+            [formControl]="resourceControl(type.code)"
+            [label]="type.name"
+            labelPlacement="outside"
+            subscriptSizing="dynamic"
+            [options]="resourceOptions(type)"
+          />
+        } @empty {
+          <p class="state">No active resources are available. Add a resource before checking in.</p>
+        }
+      </div>
+      @if (errorMessage) {
+        <p class="form-error" role="alert">{{ errorMessage }}</p>
+      }
+    }
+
+    <footer>
+      <app-button variant="tertiary" [disabled]="submitting" (clicked)="close()">Cancel</app-button>
+      <app-button [loading]="submitting" [disabled]="loading || selectedResourceIds().length === 0" (clicked)="confirm()">
+        Check in
+      </app-button>
+    </footer>
+  </section>
+</div>

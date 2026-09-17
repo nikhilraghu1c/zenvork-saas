@@ -36,7 +36,7 @@ it provides the navigation-drawer control without repeating the page title.
 ## API services
 
 `core/services/api.service.ts` owns the default API domain and generic `get`, `query`, `post`,
-`put`, and `delete` methods. Its requests include credentials so the browser can use Zenvork's
+`put`, `patch`, and `delete` methods. Its requests include credentials so the browser can use Zenvork's
 HttpOnly authentication cookie. The local backend domain is `http://localhost:4001`; its CORS
 configuration allows the Angular development origin at `http://localhost:4200`. Module-owned
 services define feature endpoints and request/response types by composing that client; for example,
@@ -74,16 +74,23 @@ status and timestamps, and leave unsupported management, service, and booking co
 
 ## Booking workspace
 
-`/app/booking` is a lazy-loaded operational list. It initially loads `GET /api/bookings` without
-query parameters, then applies an optional Asia/Kolkata business-day range, resource/assignment
-filters, and a lifecycle status filter. Pending-only results are sorted oldest first; scheduled views
-are chronological. The desktop list uses the shared grid and becomes accessible cards on smaller
+`/app/booking` is a lazy-loaded operational list. It initially applies the current Asia/Kolkata
+business-day range, then allows resource/assignment filters and a lifecycle status filter. Pending-only
+results are sorted oldest first; scheduled views are chronological. The desktop list uses the shared grid and becomes accessible cards on smaller
 screens. Both card and client-cell navigation lead to lazy-loaded `/app/booking/:id`, which loads
 the tenant-owned booking detail workspace directly. The detail page presents only supported booking
 data: client contact details, resources, planned/actual schedule, notes, lifecycle timestamps, and
 booking metadata. `/app/booking/new` is a lazy-loaded operational form that selects an existing
 tenant client or creates one inline, assigns only configured resource types, and creates a pending
 booking unless staff provide the complete India-local date/start/end schedule.
+`BookingService` also provides typed PATCH calls for booking detail edits (including scheduling and
+rescheduling) and lifecycle status transitions; the detail-page controls will use those calls as the
+editing workflow is added. The booking list action menu and detail header expose only valid next
+lifecycle actions, then refresh their tenant-scoped booking data after a successful update. Check-in
+opens the same resource-selection dialog from desktop and mobile entry points; it submits resource
+assignment and the check-in transition together. The dialog separates resources by configured type
+and provides one type-filtered dropdown per type, avoiding an unmanageable mixed list for larger
+businesses.
 
 ## Shared display pipes
 

@@ -23,6 +23,11 @@ export interface BookingResourceSummary {
   resourceType: string;
 }
 
+export interface BookingStatusHistoryEntry {
+  status: BookingStatus;
+  changedAt: string;
+}
+
 export interface BookingRecord {
   _id: string;
   client: BookingClientSummary | null;
@@ -35,6 +40,7 @@ export interface BookingRecord {
   notes: string;
   createdAt: string;
   updatedAt: string;
+  statusHistory?: BookingStatusHistoryEntry[];
 }
 
 export interface BookingListQuery extends ApiQuery {
@@ -74,6 +80,25 @@ export interface CreateBookingResponse {
   bookingId: string;
 }
 
+export interface UpdateBookingRequest {
+  clientId?: string;
+  resourceIds?: string[];
+  scheduledStartAt?: string;
+  scheduledEndAt?: string;
+  notes?: string;
+}
+
+export interface UpdateBookingStatusRequest {
+  status: BookingStatus;
+  /** Required by the backend for CHECKED_IN and rejected for other status transitions. */
+  resourceIds?: string[];
+}
+
+export interface BookingUpdateResponse {
+  message: string;
+  booking: BookingRecord;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BookingService {
   constructor(private readonly api: ApiService) {}
@@ -98,5 +123,21 @@ export class BookingService {
   /** Creates either a pending or scheduled booking for the authenticated business. */
   createBooking(payload: CreateBookingRequest): Observable<CreateBookingResponse> {
     return this.api.post<CreateBookingResponse, CreateBookingRequest>('bookings', payload);
+  }
+
+  /** Edits permitted booking details, including first scheduling and later rescheduling. */
+  updateBooking(id: string, payload: UpdateBookingRequest): Observable<BookingUpdateResponse> {
+    return this.api.patch<BookingUpdateResponse, UpdateBookingRequest>(`bookings/${id}`, payload);
+  }
+
+  /** Applies a lifecycle transition while the backend records the actual UTC service timestamps. */
+  updateBookingStatus(
+    id: string,
+    payload: UpdateBookingStatusRequest,
+  ): Observable<BookingUpdateResponse> {
+    return this.api.patch<BookingUpdateResponse, UpdateBookingStatusRequest>(
+      `bookings/${id}/status`,
+      payload,
+    );
   }
 }

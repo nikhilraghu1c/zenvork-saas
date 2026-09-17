@@ -1,0 +1,129 @@
+:host {
+  display: contents;
+}
+
+.check-in-dialog {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+
+  &__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(3, 7, 16, 0.74);
+    backdrop-filter: blur(5px);
+  }
+
+  &__panel {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    width: min(100%, 560px);
+    max-height: min(720px, calc(100dvh - 48px));
+    overflow: auto;
+    padding: 24px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface-raised);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.48);
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+
+    p,
+    h2,
+    span {
+      margin: 0;
+    }
+    p {
+      margin-bottom: 6px;
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    h2 {
+      color: var(--text);
+      font-size: 22px;
+      font-weight: 600;
+    }
+    span {
+      display: block;
+      margin-top: 6px;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+  }
+
+  .close-button {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: var(--surface-subtle);
+      color: var(--text);
+    }
+  }
+
+  .resource-fields {
+    display: grid;
+    gap: 14px;
+  }
+
+  .state,
+  .form-error {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+  .is-error,
+  .form-error {
+    color: var(--mat-sys-error);
+  }
+
+  footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  @media (max-width: 600px) {
+    align-items: end;
+    padding: 0;
+
+    &__panel {
+      width: 100%;
+      max-height: min(82dvh, 720px);
+      border-right: 0;
+      border-bottom: 0;
+      border-left: 0;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+
+    footer {
+      position: sticky;
+      bottom: -24px;
+      margin: 24px -24px -24px;
+      padding: 14px 24px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-raised);
+    }
+  }
+}

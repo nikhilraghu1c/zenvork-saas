@@ -9,13 +9,36 @@
     <header class="booking-header">
       <span class="avatar" aria-hidden="true">{{ booking.client?.name | initials }}</span>
       <div class="booking-header__identity">
-        <h1>{{ booking.client?.name ?? 'Client unavailable' }}</h1>
-        <p>Booking #{{ booking._id.slice(-6).toUpperCase() }} · Created {{ formatDateTime(booking.createdAt) }}</p>
+        <div class="booking-header__title-row">
+          <h1>{{ booking.client?.name ?? 'Client unavailable' }}</h1>
+        </div>
+        <div class="booking-header__meta">
+          <span [class]="'status-pill is-' + booking.status.toLowerCase()">
+            <span aria-hidden="true">●</span>{{ statusLabel(booking.status) }}
+          </span>
+          <p>Created {{ formatDateTime(booking.createdAt) }}</p>
+        </div>
       </div>
-      <span [class]="'status-pill is-' + booking.status.toLowerCase()">
-        <span aria-hidden="true">●</span>{{ statusLabel(booking.status) }}
-      </span>
+      @if (statusActions(booking.status).length) {
+        <div class="booking-header__actions">
+          <app-action-menu
+            ariaLabel="Booking status actions"
+            [items]="statusActions(booking.status)"
+            (actionSelected)="requestStatusUpdate($any($event))"
+          />
+        </div>
+      }
     </header>
+    @if (statusError) {
+      <p class="status-error" role="alert">{{ statusError }}</p>
+    }
+    @if (checkInBooking) {
+      <app-booking-check-in-dialog
+        [booking]="checkInBooking"
+        (closed)="closeCheckIn()"
+        (checkedIn)="handleCheckedIn($event)"
+      />
+    }
 
     <div class="details-grid">
       <div class="details-grid__primary">

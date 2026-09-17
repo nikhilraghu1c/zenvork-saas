@@ -176,15 +176,43 @@ export const validateBookingStatusUpdate = (data) => {
     throw new BookingValidationError("Invalid request data");
   }
 
-  // Status updates must not accept client-controlled timestamps or tenant identity.
-  if (Object.keys(data).length !== 1 || !("status" in data)) {
-    throw new BookingValidationError("Only status can be updated");
+  const allowedFields = ["status", "resourceIds"];
+  // Check-in may atomically assign resources; all other lifecycle changes accept only status.
+  if (
+    !("status" in data) ||
+    Object.keys(data).some((field) => !allowedFields.includes(field))
+  ) {
+    throw new BookingValidationError("Invalid status update fields");
   }
   if (typeof data.status !== "string" || !BOOKING_STATUSES.includes(data.status)) {
     throw new BookingValidationError("Invalid booking status");
   }
 
-  return data.status;
+  const hasResourceIds = Object.hasOwn(data, "resourceIds");
+  if (data.status !== "CHECKED_IN" && hasResourceIds) {
+    throw new BookingValidationError("Resources can only be assigned while checking in");
+  }
+  if (data.status === "CHECKED_IN" && !hasResourceIds) {
+    throw new BookingValidationError("Assign at least one resource before checking in");
+  }
+  if (
+    hasResourceIds &&
+    (!Array.isArray(data.resourceIds) ||
+      data.resourceIds.length === 0 ||
+      data.resourceIds.some((resourceId) => !isValidObjectId(resourceId)))
+  ) {
+    throw new BookingValidationError("Select at least one valid resource");
+  }
+  if (hasResourceIds && new Set(data.resourceIds).size !== data.resourceIds.length) {
+    throw new BookingValidationError(
+      "Resources cannot be selected more than once",
+    );
+  }
+
+  return {
+    status: data.status,
+    resourceIds: hasResourceIds ? data.resourceIds : [],
+  };
 };
 
 export const validateBookingUpdate = (data) => {

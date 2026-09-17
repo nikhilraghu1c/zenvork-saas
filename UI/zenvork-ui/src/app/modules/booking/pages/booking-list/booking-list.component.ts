@@ -5,9 +5,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { ColDef } from 'ag-grid-community';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
+import { AppActionMenuComponent, AppActionMenuItem } from '../../../../shared/action-menu/action-menu.component';
 import { AppDataGridComponent } from '../../../../shared/data-grid/data-grid.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
 import { BookingClientGridCellComponent } from '../../components/booking-client-grid-cell/booking-client-grid-cell.component';
+import { BookingCheckInDialogComponent } from '../../components/booking-check-in-dialog/booking-check-in-dialog.component';
 import { BookingGridActionsComponent } from '../../components/booking-grid-actions/booking-grid-actions.component';
 import { BookingStatusGridCellComponent } from '../../components/booking-status-grid-cell/booking-status-grid-cell.component';
 import { ResourceRecord, ResourceService } from '../../../resources/services/resource.service';
@@ -26,9 +28,30 @@ interface StatusFilterOption {
   label: string;
 }
 
+const indiaTodayInputValue = (): string => {
+  const parts = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const valueFor = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? '';
+  return `${valueFor('year')}-${valueFor('month')}-${valueFor('day')}`;
+};
+
 @Component({
   selector: 'app-booking-list',
-  imports: [ReactiveFormsModule, RouterLink, MatIconModule, AppButtonComponent, AppDataGridComponent, AppSelectComponent],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    MatIconModule,
+    AppActionMenuComponent,
+    AppButtonComponent,
+    AppDataGridComponent,
+    AppSelectComponent,
+    BookingCheckInDialogComponent,
+  ],
   templateUrl: './booking-list.component.html',
   styleUrl: './booking-list.component.scss',
 })
@@ -37,8 +60,8 @@ export class BookingListComponent implements OnInit {
   private readonly resourceService = inject(ResourceService);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** An empty date initially shows all bookings; selecting one narrows the view to an India business day. */
-  protected readonly dateControl = new FormControl('', { nonNullable: true });
+  /** Starts with today's India business day so staff see the operational schedule first. */
+  protected readonly dateControl = new FormControl(indiaTodayInputValue(), { nonNullable: true });
   protected readonly resourceControl = new FormControl('', { nonNullable: true });
   protected readonly assignmentControl = new FormControl<AssignmentFilter>('ALL', {
     nonNullable: true,
@@ -65,6 +88,13 @@ export class BookingListComponent implements OnInit {
   protected totalBookings = 0;
   protected loading = true;
   protected errorMessage = '';
+  protected checkInBooking: BookingRecord | null = null;
+  /** Lets the grid's action renderer refresh this feature-owned tenant list after an action. */
+  protected readonly gridContext = {
+    updateBookingStatus: (bookingId: string, status: BookingStatus) =>
+      this.updateBookingStatus(bookingId, status),
+    openCheckIn: (booking: BookingRecord) => (this.checkInBooking = booking),
+  };
   /** Defines the staff-oriented desktop grid, separating a booking date from its time slot. */
   protected readonly columnDefs: ColDef<BookingRecord>[] = [
     {
@@ -201,6 +231,54 @@ export class BookingListComponent implements OnInit {
       .replace('_', ' ')
       .toLowerCase()
       .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
+
+  /** Mirrors desktop lifecycle options in the mobile card menu. */
+  protected statusActions(status: BookingStatus): AppActionMenuItem[] {
+    if (status === 'CHECKED_IN') {
+      return [{ id: 'COMPLETED', label: 'Mark completed', icon: 'task_alt' }];
+    }
+    if (status === 'PENDING' || status === 'SCHEDULED') {
+      return [
+        { id: 'CHECKED_IN', label: 'Check in', icon: 'login' },
+        { id: 'NO_SHOW', label: 'Mark no-show', icon: 'person_off' },
+        { id: 'CANCELLED', label: 'Cancel booking', icon: 'cancel' },
+      ];
+    }
+    return [];
+  }
+
+  /** Opens resource assignment before check-in; other status changes submit immediately. */
+  protected requestStatusUpdate(booking: BookingRecord, status: BookingStatus): void {
+    if (status === 'CHECKED_IN') {
+      this.checkInBooking = booking;
+      return;
+    }
+    this.updateBookingStatus(booking._id, status);
+  }
+
+  protected closeCheckIn(): void {
+    this.checkInBooking = null;
+  }
+
+  protected handleCheckedIn(): void {
+    this.checkInBooking = null;
+    this.loadBookings();
+  }
+
+  protected updateBookingStatus(bookingId: string, status: BookingStatus): void {
+    this.loading = true;
+    this.errorMessage = '';
+    this.bookingService
+      .updateBookingStatus(bookingId, { status })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.loadBookings(),
+        error: (error) => {
+          this.errorMessage = error.error?.message ?? 'Unable to update booking status.';
+          this.loading = false;
+        },
+      });
   }
 
   private loadBookings(): void {

@@ -30,6 +30,10 @@ export class ApiService {
     return this.http.put<TResponse>(this.url(path), body, { withCredentials: true });
   }
 
+  patch<TResponse, TBody>(path: string, body: TBody): Observable<TResponse> {
+    return this.http.patch<TResponse>(this.url(path), body, { withCredentials: true });
+  }
+
   delete<TResponse>(path: string): Observable<TResponse> {
     return this.http.delete<TResponse>(this.url(path), { withCredentials: true });
   }

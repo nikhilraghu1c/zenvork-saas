@@ -276,6 +276,21 @@
         gap: 12px;
       }
 
+      &__open {
+        display: flex;
+        min-width: 0;
+        flex: 1;
+        align-items: center;
+        gap: 12px;
+        color: inherit;
+        text-decoration: none;
+
+        &:focus-visible {
+          outline: 2px solid var(--cyan);
+          outline-offset: 3px;
+        }
+      }
+
       &__avatar {
         display: grid;
         width: 32px;
@@ -322,6 +337,13 @@
         margin-top: 14px;
         padding-top: 12px;
         border-top: 1px solid var(--border);
+        color: inherit;
+        text-decoration: none;
+
+        &:focus-visible {
+          outline: 2px solid var(--cyan);
+          outline-offset: 3px;
+        }
       }
 
       &__metadata {
