@@ -11,6 +11,8 @@
 
 - Use Angular standalone components with external `.ts`, `.html`, `.scss`, and `.spec.ts` files.
 - Lazy-load feature routes and keep public and authenticated layouts separate at the routing level.
+- Keep a feature's route definitions in `<module>/<module>.routes.ts`; `app.routes.ts` composes layouts
+  and lazy-loads those route arrays, rather than owning individual feature page routes.
 - Pages use shared Zenvork UI wrappers over raw Angular Material components where a wrapper exists.
 - Keep component styles responsive and nested below one component parent class.
 - Use `src/styles/_tokens.scss` for exact Zenvork visual values and `--mat-sys-*` values for Material M3 semantic roles.

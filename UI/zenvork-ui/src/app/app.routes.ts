@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth-guard';
 import { ownerGuard } from './core/guards/owner-guard';
+
 export const routes: Routes = [
   {
     path: 'app',
@@ -10,106 +11,29 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        data: { title: 'Dashboard' },
-        loadComponent: () =>
-          import('./modules/dashboard/dashboard.component').then((m) => m.DashboardComponent),
-      },
-      {
-        path: 'booking/new',
-        data: { title: 'New Booking' },
-        loadComponent: () =>
-          import('./modules/booking/pages/booking-form/booking-form.component').then(
-            (m) => m.BookingFormComponent,
-          ),
-      },
-      {
-        path: 'booking/:id',
-        data: { title: 'Booking Details' },
-        loadComponent: () =>
-          import('./modules/booking/pages/booking-details/booking-details.component').then(
-            (m) => m.BookingDetailsComponent,
-          ),
+        loadChildren: () => import('./modules/dashboard/dashboard.routes').then((m) => m.dashboardRoutes),
       },
       {
         path: 'booking',
-        data: { title: 'Booking' },
-        loadComponent: () =>
-          import('./modules/booking/pages/booking-list/booking-list.component').then(
-            (m) => m.BookingListComponent,
-          ),
+        loadChildren: () => import('./modules/booking/booking.routes').then((m) => m.bookingRoutes),
       },
       {
         path: 'clients',
-        data: { title: 'Clients' },
-        loadComponent: () =>
-          import('./modules/coming-soon/coming-soon.component').then((m) => m.ComingSoonComponent),
-      },
-      {
-        path: 'staff/new',
-        canActivate: [ownerGuard],
-        data: { title: 'Add Staff' },
-        loadComponent: () =>
-          import('./modules/staff/pages/staff-form/staff-form.component').then((m) => m.StaffFormComponent),
-      },
-      {
-        path: 'staff/:id',
-        canActivate: [ownerGuard],
-        data: { title: 'Staff Details' },
-        loadComponent: () =>
-          import('./modules/staff/pages/staff-details/staff-details.component').then((m) => m.StaffDetailsComponent),
+        loadChildren: () => import('./modules/client/client.routes').then((m) => m.clientRoutes),
       },
       {
         path: 'staff',
         canActivate: [ownerGuard],
-        data: { title: 'Staff' },
-        loadComponent: () =>
-          import('./modules/staff/pages/staff-list/staff-list.component').then((m) => m.StaffListComponent),
-      },
-      {
-        path: 'resources/new',
-        canActivate: [ownerGuard],
-        data: { title: 'Add Resource' },
-        loadComponent: () => import('./modules/resources/pages/resource-form/resource-form.component').then(m => m.ResourceFormComponent),
-      },
-      {
-        path: 'resources/:id',
-        data: { title: 'Resource Details' },
-        loadComponent: () => import('./modules/resources/pages/resource-details/resource-details.component').then(m => m.ResourceDetailsComponent),
+        loadChildren: () => import('./modules/staff/staff.routes').then((m) => m.staffRoutes),
       },
       {
         path: 'resources',
-        data: { title: 'Resources' },
-        loadComponent: () => import('./modules/resources/pages/resource-list/resource-list.component').then(m => m.ResourceListComponent),
+        loadChildren: () => import('./modules/resources/resource.routes').then((m) => m.resourceRoutes),
       },
       {
-        path: 'reminders',
-        data: { title: 'Reminders' },
-        loadComponent: () =>
-          import('./modules/coming-soon/coming-soon.component').then((m) => m.ComingSoonComponent),
-      },
-      {
-        path: 'chat',
-        data: { title: 'Chat' },
-        loadComponent: () =>
-          import('./modules/coming-soon/coming-soon.component').then((m) => m.ComingSoonComponent),
-      },
-      {
-        path: 'ai-assistant',
-        data: { title: 'AI Assistant' },
-        loadComponent: () =>
-          import('./modules/coming-soon/coming-soon.component').then((m) => m.ComingSoonComponent),
-      },
-      {
-        path: 'analytics',
-        data: { title: 'Analytics' },
-        loadComponent: () =>
-          import('./modules/coming-soon/coming-soon.component').then((m) => m.ComingSoonComponent),
-      },
-      {
-        path: 'settings',
-        data: { title: 'Settings' },
-        loadComponent: () =>
-          import('./modules/coming-soon/coming-soon.component').then((m) => m.ComingSoonComponent),
+        path: '',
+        loadChildren: () =>
+          import('./modules/coming-soon/coming-soon.routes').then((m) => m.comingSoonRoutes),
       },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
@@ -121,18 +45,16 @@ export const routes: Routes = [
     children: [
       {
         path: 'login',
-        loadComponent: () =>
-          import('./modules/auth/pages/login/login.component').then((m) => m.LoginComponent),
+        loadChildren: () => import('./modules/auth/auth.routes').then((m) => m.authRoutes),
       },
       {
         path: 'register',
-        loadComponent: () =>
-          import('./modules/register/register.component').then((m) => m.RegisterComponent),
+        loadChildren: () => import('./modules/register/register.routes').then((m) => m.registerRoutes),
       },
       {
         path: '',
-        loadComponent: () =>
-          import('./modules/landing/landing.component').then((m) => m.LandingComponent),
+        pathMatch: 'full',
+        loadChildren: () => import('./modules/landing/landing.routes').then((m) => m.landingRoutes),
       },
     ],
   },
