@@ -13,6 +13,7 @@ const BOOKING_STATUSES = [
   "NO_SHOW",
 ];
 const SORT_FIELDS = ["scheduledStartAt", "createdAt", "updatedAt"];
+const PAYMENT_STATUSES = ["unpaid", "paid"];
 
 export class BookingValidationError extends Error {
   constructor(message) {
@@ -57,6 +58,28 @@ const parsePositiveInteger = (value, fieldName, defaultValue, maximum) => {
   return number;
 };
 
+const validateServiceIds = (serviceIds) => {
+  if (
+    !Array.isArray(serviceIds) ||
+    serviceIds.some((serviceId) => !isValidObjectId(serviceId))
+  ) {
+    throw new BookingValidationError("Invalid services");
+  }
+  if (new Set(serviceIds).size !== serviceIds.length) {
+    throw new BookingValidationError("Services cannot be selected more than once");
+  }
+  return serviceIds;
+};
+
+const validateExtraAmountPaise = (value) => {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new BookingValidationError(
+      "Extra amount must be a non-negative whole number of paise",
+    );
+  }
+  return value;
+};
+
 export const validateBookingCreation = (data) => {
   if (!data || typeof data !== "object" || Array.isArray(data)) {
     throw new BookingValidationError("Invalid request data");
@@ -68,6 +91,8 @@ export const validateBookingCreation = (data) => {
     "resourceIds",
     "scheduledStartAt",
     "scheduledEndAt",
+    "serviceIds",
+    "extraAmountPaise",
     "notes",
   ];
   // Status, tenant identity, creator, and actual times are server-controlled.
@@ -81,6 +106,8 @@ export const validateBookingCreation = (data) => {
     resourceIds = [],
     scheduledStartAt,
     scheduledEndAt,
+    serviceIds = [],
+    extraAmountPaise = 0,
     notes,
   } = data;
   const hasClientId = clientId !== undefined && clientId !== null;
@@ -129,6 +156,8 @@ export const validateBookingCreation = (data) => {
       "Resources cannot be selected more than once",
     );
   }
+  validateServiceIds(serviceIds);
+  validateExtraAmountPaise(extraAmountPaise);
   if (
     notes !== undefined &&
     (typeof notes !== "string" || notes.trim().length > 1000)
@@ -164,6 +193,8 @@ export const validateBookingCreation = (data) => {
     clientId: hasClientId ? clientId : null,
     client: newClient,
     resourceIds,
+    serviceIds,
+    extraAmountPaise,
     scheduledStartAt: startAt,
     scheduledEndAt: endAt,
     status: startAt ? "SCHEDULED" : "PENDING",
@@ -215,6 +246,21 @@ export const validateBookingStatusUpdate = (data) => {
   };
 };
 
+export const validateBookingPaymentStatusUpdate = (data) => {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    throw new BookingValidationError("Invalid request data");
+  }
+  if (
+    Object.keys(data).length !== 1 ||
+    !Object.hasOwn(data, "paymentStatus") ||
+    typeof data.paymentStatus !== "string" ||
+    !PAYMENT_STATUSES.includes(data.paymentStatus)
+  ) {
+    throw new BookingValidationError("Invalid payment status update");
+  }
+  return { paymentStatus: data.paymentStatus };
+};
+
 export const validateBookingUpdate = (data) => {
   if (!data || typeof data !== "object" || Array.isArray(data)) {
     throw new BookingValidationError("Invalid request data");
@@ -225,6 +271,8 @@ export const validateBookingUpdate = (data) => {
     "resourceIds",
     "scheduledStartAt",
     "scheduledEndAt",
+    "serviceIds",
+    "extraAmountPaise",
     "notes",
   ];
   // Lifecycle fields and actual times are always controlled by their dedicated server flows.
@@ -240,6 +288,8 @@ export const validateBookingUpdate = (data) => {
   const hasScheduledStart = Object.hasOwn(data, "scheduledStartAt");
   const hasScheduledEnd = Object.hasOwn(data, "scheduledEndAt");
   const hasNotes = Object.hasOwn(data, "notes");
+  const hasServiceIds = Object.hasOwn(data, "serviceIds");
+  const hasExtraAmountPaise = Object.hasOwn(data, "extraAmountPaise");
 
   // A time range is only valid when both ends are intentionally updated together.
   if (hasScheduledStart !== hasScheduledEnd) {
@@ -257,6 +307,8 @@ export const validateBookingUpdate = (data) => {
   ) {
     throw new BookingValidationError("Invalid resources");
   }
+  if (hasServiceIds) validateServiceIds(data.serviceIds);
+  if (hasExtraAmountPaise) validateExtraAmountPaise(data.extraAmountPaise);
   if (
     hasResourceIds &&
     new Set(data.resourceIds).size !== data.resourceIds.length
@@ -296,6 +348,10 @@ export const validateBookingUpdate = (data) => {
     scheduledEndAt,
     hasNotes,
     notes: hasNotes ? data.notes.trim() : null,
+    hasServiceIds,
+    serviceIds: hasServiceIds ? data.serviceIds : null,
+    hasExtraAmountPaise,
+    extraAmountPaise: hasExtraAmountPaise ? data.extraAmountPaise : null,
   };
 };
 

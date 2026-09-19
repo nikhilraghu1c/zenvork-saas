@@ -1,0 +1,14 @@
+<div class="app-toggle">
+  <div>
+    <p class="app-toggle__label">{{ label }}</p>
+    @if (hint) {
+      <p class="app-toggle__hint">{{ hint }}</p>
+    }
+  </div>
+  <mat-slide-toggle
+    [checked]="checked"
+    [disabled]="disabled"
+    [attr.aria-label]="label"
+    (change)="change($event.checked)"
+  />
+</div>

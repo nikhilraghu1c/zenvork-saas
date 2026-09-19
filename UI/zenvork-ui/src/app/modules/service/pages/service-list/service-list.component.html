@@ -1,0 +1,109 @@
+<section class="service-list-page" aria-labelledby="services-title">
+  <header class="service-list-page__header">
+    <div>
+      <p class="eyebrow">Service catalogue</p>
+      <div class="title-row">
+        <h1 id="services-title">Services</h1>
+        <span>{{ services.length }} services</span>
+      </div>
+      <p>Manage what you offer and what each one costs.</p>
+    </div>
+  </header>
+  <div class="service-list-page__filters">
+    <app-input
+      [formControl]="searchControl"
+      label="Search services"
+      labelPlacement="floating"
+      subscriptSizing="dynamic"
+      placeholder="Search services…"
+    />
+    <div class="filter-chips" aria-label="Filter services by status">
+      <button
+        type="button"
+        [class.is-selected]="statusFilter === 'all'"
+        (click)="setStatusFilter('all')"
+      >
+        All</button
+      ><button
+        type="button"
+        [class.is-selected]="statusFilter === 'active'"
+        (click)="setStatusFilter('active')"
+      >
+        Active</button
+      ><button
+        type="button"
+        [class.is-selected]="statusFilter === 'inactive'"
+        (click)="setStatusFilter('inactive')"
+      >
+        Inactive
+      </button>
+    </div>
+    @if (isOwner) {
+      <app-button class="add-service-button" routerLink="/app/services/new">
+        <span><mat-icon aria-hidden="true">add</mat-icon>Add service</span>
+      </app-button>
+    }
+  </div>
+  @if (loading) {
+    <p class="page-state" role="status">Loading services…</p>
+  } @else if (errorMessage) {
+    <div class="page-state is-error" role="alert">
+      <p>{{ errorMessage }}</p>
+      <app-button variant="secondary" (clicked)="loadServices()">Retry</app-button>
+    </div>
+  } @else if (!services.length) {
+    <div class="empty-state">
+      <mat-icon>content_cut</mat-icon>
+      <h2>No services yet</h2>
+      <p>Create services such as Haircut or Consultation to add them to bookings.</p>
+      @if (isOwner) {
+        <app-button routerLink="/app/services/new">Add service</app-button>
+      }
+    </div>
+  } @else if (!filteredServices.length) {
+    <p class="page-state" role="status">No services match this filter.</p>
+  } @else {
+    <div class="service-cards">
+      @for (service of filteredServices; track service._id) {
+        <article
+          class="service-card"
+          [class.is-inactive]="!service.isActive"
+        >
+          <a class="service-card__details" [routerLink]="['/app/services', service._id]">
+            <span class="service-card__icon"><mat-icon>content_cut</mat-icon></span>
+            <div class="service-card__main">
+              <h2>{{ service.name }}</h2>
+              <p>{{ service.description || 'No description added' }}</p>
+            </div>
+            <span class="service-card__duration">{{ service.durationMinutes }} min</span>
+            <strong class="service-card__price">{{ price(service) }}</strong>
+            @if (!isOwner) {
+              <mat-icon class="service-card__arrow">chevron_right</mat-icon>
+            }
+          </a>
+          @if (isOwner) {
+            <button
+              class="service-card__toggle"
+              type="button"
+              [attr.aria-label]="
+                service.isActive ? 'Deactivate ' + service.name : 'Activate ' + service.name
+              "
+              [disabled]="updatingId === service._id"
+              [class.is-active]="service.isActive"
+              (click)="toggleService(service)"
+            >
+              <span></span></button
+            ><button
+              class="service-card__edit"
+              type="button"
+              [attr.aria-label]="'Edit ' + service.name"
+              (click)="editService(service)"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+          }
+        </article>
+      }
+    </div>
+  }
+</section>

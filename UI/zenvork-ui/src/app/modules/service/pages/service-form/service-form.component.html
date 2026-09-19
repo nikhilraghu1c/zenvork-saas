@@ -1,0 +1,73 @@
+<section class="service-form-page" aria-labelledby="service-form-title">
+  <header>
+    <p class="eyebrow">Service catalogue</p>
+    <h1 id="service-form-title">{{ editing ? 'Edit service' : 'Add a service' }}</h1>
+    <p>
+      {{
+        editing
+          ? 'Update the default price and duration for future bookings.'
+          : 'It will be available to assign to new bookings right away.'
+      }}
+    </p>
+  </header>
+  @if (loading) {
+    <p class="page-state">Loading service…</p>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <app-input
+        formControlName="name"
+        label="Service name"
+        labelPlacement="outside"
+        placeholder="e.g. Haircut & style"
+        [required]="true"
+        [errorMessage]="fieldError('name')"
+      />
+      <div class="field-row">
+        <app-input
+          formControlName="price"
+          type="number"
+          label="Default price"
+          labelPlacement="outside"
+          placeholder="500"
+          prefix="₹ "
+          [required]="true"
+          [errorMessage]="fieldError('price')"
+        /><app-input
+          formControlName="duration"
+          type="number"
+          label="Duration"
+          labelPlacement="outside"
+          placeholder="45"
+          suffix=" min"
+          [required]="true"
+          [errorMessage]="fieldError('duration')"
+        />
+      </div>
+      <div class="description-field">
+        <label for="service-description">Description <span>(optional)</span></label>
+        <textarea
+          id="service-description"
+          formControlName="description"
+          rows="3"
+          maxlength="500"
+          placeholder="Anything staff should know about this service"
+        ></textarea>
+        <p>Shown on the service page. Maximum 500 characters.</p>
+      </div>
+      <app-toggle
+        formControlName="isActive"
+        label="Active"
+        hint="Inactive services cannot be assigned to new bookings."
+      />
+      @if (errorMessage) {
+        <p class="error" role="alert">{{ errorMessage }}</p>
+      }
+      <div class="actions">
+        <app-button variant="secondary" [disabled]="saving" (clicked)="cancel()">Cancel</app-button
+        ><app-button type="submit" [loading]="saving">{{
+          editing ? 'Save changes' : 'Add service'
+        }}</app-button>
+      </div>
+    </form>
+  }
+</section>

@@ -4,6 +4,7 @@ import {
   getAllBookings,
   getBookingById,
   updateBooking,
+  updateBookingPaymentStatus,
   updateBookingStatus,
 } from "./booking.controller.js";
 
@@ -15,5 +16,6 @@ bookingRouter.get("/:id", getBookingById);
 bookingRouter.post("/", createBooking);
 bookingRouter.patch("/:id", updateBooking);
 bookingRouter.patch("/:id/status", updateBookingStatus);
+bookingRouter.patch("/:id/payment-status", updateBookingPaymentStatus);
 
 export default bookingRouter;

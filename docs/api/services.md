@@ -16,7 +16,7 @@ GET /api/services?active=true
 Owners and staff can list only their business's services. Omit `active` to return both active and
 inactive services; use `active=true` or `active=false` to filter. The response is
 `{ "services": [...] }`, where each service contains `_id`, `name`, `pricePaise`,
-`durationMinutes`, `isActive`, `createdAt`, and `updatedAt`.
+`description`, `durationMinutes`, `isActive`, `createdAt`, and `updatedAt`.
 
 ## Service options
 
@@ -34,8 +34,8 @@ Owners and staff can retrieve the active services suitable for a booking selecto
 GET /api/services/:id
 ```
 
-Returns `{ "service": {...} }` for a service owned by the authenticated business, or `404` when
-the service is not in that business.
+Returns `{ "service": {...} }` for a service owned by the authenticated business, including
+`description`, or `404` when the service is not in that business.
 
 ## Create a service
 
@@ -48,13 +48,17 @@ Only an `OWNER` can create a service.
 ```json
 {
   "name": "Haircut",
+  "description": "Wash, cut, and finish.",
   "pricePaise": 50000,
-  "durationMinutes": 45
+  "durationMinutes": 45,
+  "isActive": true
 }
 ```
 
 `name` is required and limited to 100 characters. `pricePaise` must be a non-negative whole number;
-`durationMinutes` must be a whole number from 1 to 1440. Service names are unique within a business.
+`description` is optional plain text up to 500 characters. `durationMinutes` must be a whole number
+from 1 to 1440. `isActive` is optional and defaults to `true`. Service names are unique within a
+business.
 Successful creation returns HTTP `201` with the created public service.
 
 ## Update a service
@@ -63,6 +67,7 @@ Successful creation returns HTTP `201` with the created public service.
 PATCH /api/services/:id
 ```
 
-Only an `OWNER` can update one or more of `name`, `pricePaise`, `durationMinutes`, and `isActive`.
+Only an `OWNER` can update one or more of `name`, `description`, `pricePaise`, `durationMinutes`,
+and `isActive`.
 Use `{ "isActive": false }` to retire a service. The endpoint returns the updated public service;
 it does not change any service snapshots already stored on bookings.

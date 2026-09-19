@@ -9,6 +9,9 @@
     @if (labelPlacement === 'floating') {
       <mat-label>{{ label }}@if (required) { <span class="required-marker" aria-hidden="true">*</span> }</mat-label>
     }
+    @if (prefix) {
+      <span matTextPrefix>{{ prefix }}</span>
+    }
     <input
       matInput
       [id]="inputId"
@@ -21,6 +24,9 @@
       (input)="updateValue($event)"
       (blur)="markTouched()"
     />
+    @if (suffix) {
+      <span matTextSuffix>{{ suffix }}</span>
+    }
     @if (hint && !errorMessage) {
       <mat-hint>{{ hint }}</mat-hint>
     }

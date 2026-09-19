@@ -30,8 +30,12 @@ export class AppInputComponent implements ControlValueAccessor {
   /** Optional stable ID used to associate an outside label with its input. */
   @Input() inputId = `app-input-${nextInputId++}`;
   /** Native input type used for appropriate browser behavior and keyboards. */
-  @Input() type: 'email' | 'password' | 'tel' | 'text' = 'text';
+  @Input() type: 'email' | 'number' | 'password' | 'tel' | 'text' = 'text';
   @Input() placeholder = '';
+  /** Optional text rendered before the input value, such as a currency symbol. */
+  @Input() prefix = '';
+  /** Optional text rendered after the input value, such as a unit. */
+  @Input() suffix = '';
   @Input() autocomplete = '';
   @Input() hint = '';
   @Input() errorMessage = '';

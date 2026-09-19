@@ -49,6 +49,7 @@ export class SidebarComponent {
         { label: 'Clients', icon: 'groups', route: '/app/clients' },
         { label: 'Staff', icon: 'badge', route: '/app/staff', requiresOwner: true },
         { label: 'Resources', icon: 'inventory_2', route: '/app/resources', requiresOwner: true },
+        { label: 'Services', icon: 'content_cut', route: '/app/services' },
         { label: 'Reminders', icon: 'notifications', route: '/app/reminders' },
         { label: 'Chat', icon: 'chat', route: '/app/chat' },
         { label: 'AI Assistant', icon: 'auto_awesome', route: '/app/ai-assistant' },

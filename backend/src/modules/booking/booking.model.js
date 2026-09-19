@@ -30,6 +30,20 @@ const statusHistorySchema = new mongoose.Schema(
   { _id: false },
 );
 
+const bookingServiceSchema = new mongoose.Schema(
+  {
+    serviceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Service",
+      required: true,
+    },
+    name: { type: String, required: true, trim: true, maxlength: 100 },
+    pricePaise: { type: Number, required: true, min: 0 },
+    durationMinutes: { type: Number, required: true, min: 1, max: 1440 },
+  },
+  { _id: false },
+);
+
 const bookingSchema = new mongoose.Schema(
   {
     businessId: {
@@ -67,6 +81,28 @@ const bookingSchema = new mongoose.Schema(
     actualEndAt: {
       type: Date,
       default: null,
+    },
+    services: {
+      // Booking line items retain catalog values used to calculate this booking's total.
+      type: [bookingServiceSchema],
+      default: [],
+    },
+    extraAmountPaise: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0,
+    },
+    totalAmountPaise: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["unpaid", "paid"],
+      default: "unpaid",
     },
     status: {
       type: String,

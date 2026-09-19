@@ -15,6 +15,16 @@ const validateName = (value) => {
   return value.trim();
 };
 
+const validateDescription = (value) => {
+  if (typeof value !== "string") {
+    throw new ServiceValidationError("Description must be text");
+  }
+  if (value.trim().length > 500) {
+    throw new ServiceValidationError("Description cannot exceed 500 characters");
+  }
+  return value.trim();
+};
+
 const validatePricePaise = (value) => {
   if (!Number.isSafeInteger(value) || value < 0) {
     throw new ServiceValidationError("Price must be a non-negative whole number of paise");
@@ -53,32 +63,39 @@ const assertPlainRequestData = (data, allowedFields, errorMessage) => {
 export const validateServiceCreation = (data) => {
   assertPlainRequestData(
     data,
-    ["name", "pricePaise", "durationMinutes"],
+    ["name", "description", "pricePaise", "durationMinutes", "isActive"],
     "Invalid service data",
   );
   if (!("name" in data) || !("pricePaise" in data) || !("durationMinutes" in data)) {
     throw new ServiceValidationError("Service name, price, and duration are required");
   }
+  const hasIsActive = Object.hasOwn(data, "isActive");
+  const hasDescription = Object.hasOwn(data, "description");
   return {
     name: validateName(data.name),
+    description: hasDescription ? validateDescription(data.description) : "",
     pricePaise: validatePricePaise(data.pricePaise),
     durationMinutes: validateDurationMinutes(data.durationMinutes),
+    isActive: hasIsActive ? validateIsActive(data.isActive) : true,
   };
 };
 
 export const validateServiceUpdate = (data) => {
   assertPlainRequestData(
     data,
-    ["name", "pricePaise", "durationMinutes", "isActive"],
+    ["name", "description", "pricePaise", "durationMinutes", "isActive"],
     "Invalid service update fields",
   );
   const hasName = Object.hasOwn(data, "name");
+  const hasDescription = Object.hasOwn(data, "description");
   const hasPricePaise = Object.hasOwn(data, "pricePaise");
   const hasDurationMinutes = Object.hasOwn(data, "durationMinutes");
   const hasIsActive = Object.hasOwn(data, "isActive");
   return {
     hasName,
     name: hasName ? validateName(data.name) : null,
+    hasDescription,
+    description: hasDescription ? validateDescription(data.description) : null,
     hasPricePaise,
     pricePaise: hasPricePaise ? validatePricePaise(data.pricePaise) : null,
     hasDurationMinutes,

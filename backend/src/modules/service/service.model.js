@@ -14,6 +14,12 @@ const serviceSchema = new mongoose.Schema(
       minlength: [1, "Service name must be at least 1 character long"],
       maxlength: [100, "Service name cannot exceed 100 characters"],
     },
+    description: {
+      type: String,
+      trim: true,
+      maxlength: [500, "Service description cannot exceed 500 characters"],
+      default: "",
+    },
     pricePaise: { type: Number, required: true, min: [0, "Price must be a positive number"] },
     durationMinutes: { type: Number, required: true, min: [1, "Duration must be at least 1 minute"], max: [1440, "Duration cannot exceed 1440 minutes"] },
     isActive: { type: Boolean, default: true },

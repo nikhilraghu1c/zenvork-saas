@@ -1,0 +1,64 @@
+<section class="service-detail-page" aria-labelledby="service-title">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a routerLink="/app/services">Services</a><span aria-hidden="true">/</span
+    ><span aria-current="page">Service details</span>
+  </nav>
+  @if (loading) {
+    <p class="page-state">Loading service…</p>
+  } @else if (errorMessage) {
+    <div class="page-state is-error">
+      <p>{{ errorMessage }}</p>
+      <app-button variant="secondary" routerLink="/app/services">Back to services</app-button>
+    </div>
+  } @else if (service) {
+    <header class="service-detail-page__header">
+      <span class="service-icon"><mat-icon>content_cut</mat-icon></span>
+      <div class="service-summary">
+        <h1 id="service-title">{{ service.name }}</h1>
+        <p>{{ description() }}</p>
+        <div class="tags">
+          <span [class.is-active]="service.isActive">{{ service.isActive ? 'Active' : 'Inactive' }}</span>
+          <span>{{ price() }}</span>
+          <span>{{ service.durationMinutes }} min</span>
+        </div>
+      </div>
+      @if (isOwner) {
+        <div class="actions">
+          <app-button variant="secondary" [loading]="updating" (clicked)="toggle()">{{ service.isActive ? 'Deactivate' : 'Activate' }}</app-button>
+          <app-button (clicked)="edit()">Edit service</app-button>
+        </div>
+      }
+    </header>
+    <div class="stats" aria-label="Service summary">
+      <div><p>Used this month</p><strong>0</strong><span>bookings</span></div>
+      <div><p>Revenue this month</p><strong>₹0</strong><span>from this service</span></div>
+      <div><p>Average duration</p><strong>{{ service.durationMinutes }}</strong><span>minutes</span></div>
+      <div><p>Added</p><strong>{{ service.createdAt | date: 'd MMM' }}</strong><span>{{ service.createdAt | date: 'y' }}</span></div>
+    </div>
+    <section class="content-section">
+      <p class="section-label">Description</p>
+      <div class="description-card">{{ description() }}</div>
+    </section>
+    <section class="content-section">
+      <div class="section-heading">
+        <div><p class="section-label">Recent bookings</p><h2>Bookings using this service</h2></div>
+        <a routerLink="/app/booking">View all</a>
+      </div>
+      <div class="recent-bookings">
+        @for (booking of recentBookings; track booking.client) {
+          <div class="booking-row">
+            <span class="booking-avatar">{{ booking.initials }}</span>
+            <div><strong>{{ booking.client }}</strong><p>{{ booking.when }}</p></div>
+            <span>{{ booking.status }}</span>
+          </div>
+        }
+      </div>
+    </section>
+    @if (isOwner) {
+      <section class="danger-zone">
+        <div><h2>Delete service</h2><p>Services with booking history are kept for accurate records. Deactivate it instead.</p></div>
+        <app-button variant="secondary" [disabled]="true">Delete service</app-button>
+      </section>
+    }
+  }
+</section>

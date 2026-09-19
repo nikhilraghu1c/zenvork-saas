@@ -14,21 +14,24 @@ Pages should use a shared wrapper when one exists rather than styling raw Materi
 Start each wrapper with only the capabilities needed by its first caller. Extend that same wrapper
 when a real new requirement appears; avoid speculative props and variants.
 
-Current wrappers are `AppButtonComponent`, `AppCheckboxComponent`, `AppInputComponent`,
+Current wrappers are `AppButtonComponent`, `AppCheckboxComponent`, `AppInputComponent`, `AppToggleComponent`,
 `AppSelectComponent`, `AppDataGridComponent`, and `AppActionMenuComponent`. They provide the initial public-form,
 action-menu, and desktop data-grid UI while keeping their public APIs intentionally small.
 Business-type tiles are registration-specific native radio inputs, so they remain inside that module
 rather than being treated as a shared component.
 
 The wrappers live directly in `src/app/shared/button` and `src/app/shared/input`; their Angular
-selectors remain `app-button` and `app-input`. `AppCheckboxComponent` lives in
+Selectors remain `app-button` and `app-input`. `app-input` accepts optional `prefix` and `suffix`
+text for units such as currency or minutes. `app-toggle` renders a label and optional hint beside
+its accessible Material toggle. `AppCheckboxComponent` lives in
 `src/app/shared/checkbox` and uses the `app-checkbox` selector. The authenticated sidebar and
 topbar remain layout-owned components because they are specific to `AppLayoutComponent`.
 
-`AppInputComponent` uses Material's floating label by default. Set `floatLabel="always"` to keep
+`AppInputComponent` uses Material's floating label by default. Its supported native input types are
+`text`, `email`, `number`, `password`, and `tel`. Set `floatLabel="always"` to keep
 that label floated, or set `labelPlacement="outside"` for an accessible native label above the
 outlined field. Provide `inputId` when a stable DOM identifier is needed. Its supported native
-input types are `text`, `email`, `password`, and `tel`. Its `subscriptSizing` defaults to `fixed`
+Its `subscriptSizing` defaults to `fixed`
 for consistent form spacing; use `dynamic` for compact fields such as a search input that does not
 show supporting feedback. Fields marked `required` automatically show a visual error-colored star
 while retaining the native required attribute for accessibility and validation.

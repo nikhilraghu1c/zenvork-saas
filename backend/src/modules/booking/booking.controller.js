@@ -2,11 +2,13 @@ import mongoose from "mongoose";
 import Booking from "./booking.model.js";
 import Client from "../client/client.model.js";
 import Resource from "../resource/resource.model.js";
+import Service from "../service/service.model.js";
 import { tenantData, tenantFilter } from "../../utils/tenant-scope.js";
 import {
   BookingValidationError,
   validateBookingCreation,
   validateBookingListQuery,
+  validateBookingPaymentStatusUpdate,
   validateBookingStatusUpdate,
   validateBookingUpdate,
 } from "./booking.validation.js";
@@ -21,7 +23,35 @@ const ALLOWED_STATUS_TRANSITIONS = {
 };
 const EDITABLE_BOOKING_STATUSES = ["PENDING", "SCHEDULED", "CHECKED_IN"];
 
-const toPublicBooking = (booking) => {
+const getServiceSnapshots = async (req, serviceIds) => {
+  if (serviceIds.length === 0) return [];
+
+  // Booking line items can only be created from active services in the authenticated tenant.
+  const services = await Service.find(
+    tenantFilter(req, { _id: { $in: serviceIds }, isActive: true }),
+  )
+    .select("name pricePaise durationMinutes")
+    .lean();
+  if (services.length !== serviceIds.length) return null;
+
+  const servicesById = new Map(
+    services.map((service) => [service._id.toString(), service]),
+  );
+  return serviceIds.map((serviceId) => {
+    const service = servicesById.get(serviceId);
+    return {
+      serviceId: service._id,
+      name: service.name,
+      pricePaise: service.pricePaise,
+      durationMinutes: service.durationMinutes,
+    };
+  });
+};
+
+const getTotalAmountPaise = (services, extraAmountPaise = 0) =>
+  services.reduce((total, service) => total + service.pricePaise, extraAmountPaise);
+
+const toPublicBooking = (booking, includeServices = false) => {
   const source = typeof booking.toObject === "function" ? booking.toObject() : booking;
   const response = {
     _id: source._id,
@@ -32,10 +62,15 @@ const toPublicBooking = (booking) => {
     actualStartAt: source.actualStartAt,
     actualEndAt: source.actualEndAt,
     status: source.status,
+    extraAmountPaise: source.extraAmountPaise ?? 0,
+    totalAmountPaise: source.totalAmountPaise ?? 0,
+    paymentStatus: source.paymentStatus ?? "unpaid",
     notes: source.notes,
     createdAt: source.createdAt,
     updatedAt: source.updatedAt,
   };
+
+  if (includeServices) response.services = source.services ?? [];
 
   // Audit entries expose the lifecycle timeline without leaking staff or tenant identifiers.
   if (Object.hasOwn(source, "statusHistory")) {
@@ -62,7 +97,7 @@ const getAllBookings = async (req, res) => {
     const [bookings, total] = await Promise.all([
       Booking.find(filter)
         .select(
-          "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt status notes createdAt updatedAt",
+          "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt status extraAmountPaise totalAmountPaise paymentStatus notes createdAt updatedAt",
         )
         .populate("clientId", "name mobile")
         .populate("resourceIds", "name resourceType")
@@ -101,7 +136,7 @@ const getBookingById = async (req, res) => {
     // Load one tenant-owned booking with the same public summaries used by the list endpoint.
     const booking = await Booking.findOne(tenantFilter(req, { _id: req.params.id }))
       .select(
-        "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt status statusHistory notes createdAt updatedAt",
+        "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt services extraAmountPaise totalAmountPaise paymentStatus status statusHistory notes createdAt updatedAt",
       )
       .populate("clientId", "name mobile email")
       .populate("resourceIds", "name resourceType")
@@ -111,7 +146,7 @@ const getBookingById = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    return res.status(200).json({ booking: toPublicBooking(booking) });
+    return res.status(200).json({ booking: toPublicBooking(booking, true) });
   } catch (error) {
     console.error("Failed to retrieve booking details:", error);
     return res.status(500).json({ message: "Unable to retrieve booking details" });
@@ -137,7 +172,7 @@ const updateBooking = async (req, res) => {
       booking.status === "CHECKED_IN" &&
       (updateData.hasClientId || updateData.hasResourceIds || updateData.hasSchedule)
     ) {
-      return res.status(409).json({ message: "Only notes can be updated after check-in" });
+      return res.status(409).json({ message: "Only notes and services can be updated after check-in" });
     }
     if (
       booking.status === "PENDING" &&
@@ -171,6 +206,13 @@ const updateBooking = async (req, res) => {
         return res
           .status(400)
           .json({ message: "One or more resources are invalid or inactive" });
+      }
+    }
+    let serviceSnapshots = null;
+    if (updateData.hasServiceIds) {
+      serviceSnapshots = await getServiceSnapshots(req, updateData.serviceIds);
+      if (!serviceSnapshots) {
+        return res.status(400).json({ message: "One or more services are invalid or inactive" });
       }
     }
 
@@ -213,6 +255,18 @@ const updateBooking = async (req, res) => {
       booking.scheduledEndAt = updateData.scheduledEndAt;
     }
     if (updateData.hasNotes) booking.notes = updateData.notes;
+    if (serviceSnapshots) {
+      booking.services = serviceSnapshots;
+    }
+    if (updateData.hasExtraAmountPaise) {
+      booking.extraAmountPaise = updateData.extraAmountPaise;
+    }
+    if (serviceSnapshots || updateData.hasExtraAmountPaise) {
+      booking.totalAmountPaise = getTotalAmountPaise(
+        booking.services,
+        booking.extraAmountPaise,
+      );
+    }
     if (becomesScheduled) {
       // Scheduling a pending booking is the only non-lifecycle endpoint status change.
       const changedAt = new Date();
@@ -229,7 +283,7 @@ const updateBooking = async (req, res) => {
     await booking.populate("resourceIds", "name resourceType");
     return res.status(200).json({
       message: "Booking updated successfully",
-      booking: toPublicBooking(booking),
+      booking: toPublicBooking(booking, true),
     });
   } catch (error) {
     if (error instanceof BookingValidationError) {
@@ -327,7 +381,7 @@ const updateBookingStatus = async (req, res) => {
     await booking.populate("resourceIds", "name resourceType");
     return res.status(200).json({
       message: "Booking status updated successfully",
-      booking: toPublicBooking(booking),
+      booking: toPublicBooking(booking, true),
     });
   } catch (error) {
     if (error instanceof BookingValidationError) {
@@ -345,6 +399,8 @@ const createBooking = async (req, res) => {
     const {
       client: newClientData,
       clientId: existingClientId,
+      serviceIds,
+      extraAmountPaise,
       ...bookingFields
     } = bookingData;
     let createdBooking;
@@ -373,6 +429,17 @@ const createBooking = async (req, res) => {
           .json({ message: "One or more resources are invalid or inactive" });
       }
     }
+
+    const serviceSnapshots = await getServiceSnapshots(req, serviceIds);
+    if (!serviceSnapshots) {
+      return res.status(400).json({ message: "One or more services are invalid or inactive" });
+    }
+    const bookingServiceFields = {
+      ...bookingFields,
+      services: serviceSnapshots,
+      extraAmountPaise,
+      totalAmountPaise: getTotalAmountPaise(serviceSnapshots, extraAmountPaise),
+    };
 
     if (
       bookingFields.status === "SCHEDULED" &&
@@ -408,7 +475,7 @@ const createBooking = async (req, res) => {
           [createdBooking] = await Booking.create(
             [
               tenantData(req, {
-                ...bookingFields,
+                ...bookingServiceFields,
                 clientId: client._id,
                 createdBy: req.user._id,
               }),
@@ -423,7 +490,7 @@ const createBooking = async (req, res) => {
       // Tenant identity and creator are always derived from the authenticated user.
       createdBooking = await Booking.create(
         tenantData(req, {
-          ...bookingFields,
+          ...bookingServiceFields,
           clientId: existingClientId,
           createdBy: req.user._id,
         }),
@@ -444,10 +511,40 @@ const createBooking = async (req, res) => {
   }
 };
 
+const updateBookingPaymentStatus = async (req, res) => {
+  try {
+    if (!mongoose.isObjectIdOrHexString(req.params.id)) {
+      return res.status(400).json({ message: "Invalid booking" });
+    }
+    const { paymentStatus } = validateBookingPaymentStatusUpdate(req.body);
+    // Payment state is only meaningful for a completed, tenant-owned booking.
+    const booking = await Booking.findOne(tenantFilter(req, { _id: req.params.id }));
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    if (booking.status !== "COMPLETED") {
+      return res.status(409).json({ message: "Only completed bookings can be marked paid or unpaid" });
+    }
+    booking.paymentStatus = paymentStatus;
+    await booking.save();
+    await booking.populate("clientId", "name mobile email");
+    await booking.populate("resourceIds", "name resourceType");
+    return res.status(200).json({
+      message: "Payment status updated successfully",
+      booking: toPublicBooking(booking, true),
+    });
+  } catch (error) {
+    if (error instanceof BookingValidationError) {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Failed to update payment status:", error);
+    return res.status(500).json({ message: "Unable to update payment status" });
+  }
+};
+
 export {
   getAllBookings,
   getBookingById,
   updateBooking,
+  updateBookingPaymentStatus,
   updateBookingStatus,
   createBooking,
 };

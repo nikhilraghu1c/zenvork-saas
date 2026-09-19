@@ -11,7 +11,8 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        loadChildren: () => import('./modules/dashboard/dashboard.routes').then((m) => m.dashboardRoutes),
+        loadChildren: () =>
+          import('./modules/dashboard/dashboard.routes').then((m) => m.dashboardRoutes),
       },
       {
         path: 'booking',
@@ -28,7 +29,12 @@ export const routes: Routes = [
       },
       {
         path: 'resources',
-        loadChildren: () => import('./modules/resources/resource.routes').then((m) => m.resourceRoutes),
+        loadChildren: () =>
+          import('./modules/resources/resource.routes').then((m) => m.resourceRoutes),
+      },
+      {
+        path: 'services',
+        loadChildren: () => import('./modules/service/service.routes').then((m) => m.serviceRoutes),
       },
       {
         path: '',
@@ -41,7 +47,9 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./layouts/public-layout/public-layout.component').then((m) => m.PublicLayoutComponent),
+      import('./layouts/public-layout/public-layout.component').then(
+        (m) => m.PublicLayoutComponent,
+      ),
     children: [
       {
         path: 'login',
@@ -49,7 +57,8 @@ export const routes: Routes = [
       },
       {
         path: 'register',
-        loadChildren: () => import('./modules/register/register.routes').then((m) => m.registerRoutes),
+        loadChildren: () =>
+          import('./modules/register/register.routes').then((m) => m.registerRoutes),
       },
       {
         path: '',
