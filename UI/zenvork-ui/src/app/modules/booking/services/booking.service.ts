@@ -28,6 +28,13 @@ export interface BookingStatusHistoryEntry {
   changedAt: string;
 }
 
+export interface BookingServiceSnapshot {
+  serviceId: string;
+  name: string;
+  pricePaise: number;
+  durationMinutes: number;
+}
+
 export interface BookingRecord {
   _id: string;
   client: BookingClientSummary | null;
@@ -37,6 +44,11 @@ export interface BookingRecord {
   actualStartAt: string | null;
   actualEndAt: string | null;
   status: BookingStatus;
+  hasServices?: boolean;
+  services?: BookingServiceSnapshot[];
+  extraAmountPaise: number;
+  totalAmountPaise: number;
+  paymentStatus: 'unpaid' | 'paid';
   notes: string;
   createdAt: string;
   updatedAt: string;
@@ -73,6 +85,8 @@ export interface CreateBookingRequest {
   scheduledStartAt?: string;
   scheduledEndAt?: string;
   notes?: string;
+  serviceIds?: string[];
+  extraAmountPaise?: number;
 }
 
 export interface CreateBookingResponse {
@@ -86,6 +100,8 @@ export interface UpdateBookingRequest {
   scheduledStartAt?: string;
   scheduledEndAt?: string;
   notes?: string;
+  serviceIds?: string[];
+  extraAmountPaise?: number;
 }
 
 export interface UpdateBookingStatusRequest {
@@ -97,6 +113,10 @@ export interface UpdateBookingStatusRequest {
 export interface BookingUpdateResponse {
   message: string;
   booking: BookingRecord;
+}
+
+export interface UpdatePaymentStatusRequest {
+  paymentStatus: 'unpaid' | 'paid';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -137,6 +157,16 @@ export class BookingService {
   ): Observable<BookingUpdateResponse> {
     return this.api.patch<BookingUpdateResponse, UpdateBookingStatusRequest>(
       `bookings/${id}/status`,
+      payload,
+    );
+  }
+
+  updatePaymentStatus(
+    id: string,
+    payload: UpdatePaymentStatusRequest,
+  ): Observable<BookingUpdateResponse> {
+    return this.api.patch<BookingUpdateResponse, UpdatePaymentStatusRequest>(
+      `bookings/${id}/payment-status`,
       payload,
     );
   }

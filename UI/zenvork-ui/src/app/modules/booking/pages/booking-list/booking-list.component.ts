@@ -2,7 +2,7 @@ import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ColDef } from 'ag-grid-community';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppActionMenuComponent, AppActionMenuItem } from '../../../../shared/action-menu/action-menu.component';
@@ -57,6 +57,7 @@ const indiaTodayInputValue = (): string => {
 })
 export class BookingListComponent implements OnInit {
   private readonly bookingService = inject(BookingService);
+  private readonly router = inject(Router);
   private readonly resourceService = inject(ResourceService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -93,6 +94,8 @@ export class BookingListComponent implements OnInit {
   protected readonly gridContext = {
     updateBookingStatus: (bookingId: string, status: BookingStatus) =>
       this.updateBookingStatus(bookingId, status),
+    updatePaymentStatus: (bookingId: string, paymentStatus: 'unpaid' | 'paid') =>
+      this.updatePaymentStatus(bookingId, paymentStatus),
     openCheckIn: (booking: BookingRecord) => (this.checkInBooking = booking),
   };
   /** Defines the staff-oriented desktop grid, separating a booking date from its time slot. */
@@ -134,6 +137,34 @@ export class BookingListComponent implements OnInit {
       cellStyle: ({ data }) => ({
         color: data?.resources.length ? 'var(--text-dim)' : 'var(--text-mute)',
         fontStyle: data?.resources.length ? 'normal' : 'italic',
+      }),
+    },
+    {
+      field: 'totalAmountPaise',
+      headerName: 'Bill',
+      minWidth: 104,
+      maxWidth: 120,
+      valueFormatter: ({ value }) => this.formatAmount(Number(value ?? 0)),
+    },
+    {
+      field: 'paymentStatus',
+      headerName: 'Payment',
+      minWidth: 96,
+      maxWidth: 108,
+      valueFormatter: ({ data }) =>
+        data?.status === 'COMPLETED'
+          ? data.paymentStatus === 'paid'
+            ? 'Paid'
+            : 'Unpaid'
+          : '—',
+      cellStyle: ({ data }) => ({
+        color:
+          data?.status === 'COMPLETED'
+            ? data.paymentStatus === 'paid'
+              ? 'var(--green)'
+              : 'var(--amber)'
+            : 'var(--text-mute)',
+        fontWeight: data?.status === 'COMPLETED' ? '600' : '400',
       }),
     },
     {
@@ -201,10 +232,27 @@ export class BookingListComponent implements OnInit {
     }).format(new Date(value));
   }
 
+  /** Keeps the compact booking-card schedule row readable on narrow screens. */
+  protected formatMobileDate(value: string | null): string {
+    if (!value) return 'Unscheduled';
+    return new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date(value));
+  }
+
   /** Combines a planned start and end into the concise time slot shown in the grid. */
   protected timeSlotLabel(booking: BookingRecord | undefined): string {
     if (!booking?.scheduledStartAt) return 'Awaiting slot';
     const start = this.formatTime(booking.scheduledStartAt);
+    return booking.scheduledEndAt ? `${start} – ${this.formatTime(booking.scheduledEndAt)}` : start;
+  }
+
+  protected mobileTimeSlotLabel(booking: BookingRecord): string {
+    if (!booking.scheduledStartAt) return 'Awaiting slot';
+    const start = this.formatTime(booking.scheduledStartAt).replace(/ (AM|PM)$/, '');
     return booking.scheduledEndAt ? `${start} – ${this.formatTime(booking.scheduledEndAt)}` : start;
   }
 
@@ -213,6 +261,14 @@ export class BookingListComponent implements OnInit {
     return booking.resources.length
       ? booking.resources.map((resource) => resource.name).join(', ')
       : 'Unassigned';
+  }
+
+  protected formatAmount(amountPaise: number): string {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(amountPaise / 100);
   }
 
   /** Creates a readable one-letter fallback for each client avatar. */
@@ -234,11 +290,24 @@ export class BookingListComponent implements OnInit {
   }
 
   /** Mirrors desktop lifecycle options in the mobile card menu. */
-  protected statusActions(status: BookingStatus): AppActionMenuItem[] {
-    if (status === 'CHECKED_IN') {
-      return [{ id: 'COMPLETED', label: 'Mark completed', icon: 'task_alt' }];
+  protected statusActions(booking: BookingRecord): AppActionMenuItem[] {
+    if (booking.status === 'CHECKED_IN') {
+      return [
+        booking.hasServices
+          ? { id: 'COMPLETED', label: 'Mark completed', icon: 'task_alt' }
+          : { id: 'add-services', label: 'Add services', icon: 'add' },
+      ];
     }
-    if (status === 'PENDING' || status === 'SCHEDULED') {
+    if (booking.status === 'COMPLETED') {
+      return [
+        {
+          id: `payment:${booking.paymentStatus === 'paid' ? 'unpaid' : 'paid'}`,
+          label: `Mark as ${booking.paymentStatus === 'paid' ? 'unpaid' : 'paid'}`,
+          icon: 'payments',
+        },
+      ];
+    }
+    if (booking.status === 'PENDING' || booking.status === 'SCHEDULED') {
       return [
         { id: 'CHECKED_IN', label: 'Check in', icon: 'login' },
         { id: 'NO_SHOW', label: 'Mark no-show', icon: 'person_off' },
@@ -249,7 +318,16 @@ export class BookingListComponent implements OnInit {
   }
 
   /** Opens resource assignment before check-in; other status changes submit immediately. */
-  protected requestStatusUpdate(booking: BookingRecord, status: BookingStatus): void {
+  protected requestBookingAction(booking: BookingRecord, actionId: string): void {
+    if (actionId === 'add-services') {
+      void this.router.navigate(['/app/booking', booking._id]);
+      return;
+    }
+    if (actionId.startsWith('payment:')) {
+      this.updatePaymentStatus(booking._id, actionId.replace('payment:', '') as 'unpaid' | 'paid');
+      return;
+    }
+    const status = actionId as BookingStatus;
     if (status === 'CHECKED_IN') {
       this.checkInBooking = booking;
       return;
@@ -263,26 +341,37 @@ export class BookingListComponent implements OnInit {
 
   protected handleCheckedIn(): void {
     this.checkInBooking = null;
-    this.loadBookings();
+    this.loadBookings(false);
   }
 
   protected updateBookingStatus(bookingId: string, status: BookingStatus): void {
-    this.loading = true;
     this.errorMessage = '';
     this.bookingService
       .updateBookingStatus(bookingId, { status })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.loadBookings(),
+        next: () => this.loadBookings(false),
         error: (error) => {
           this.errorMessage = error.error?.message ?? 'Unable to update booking status.';
-          this.loading = false;
         },
       });
   }
 
-  private loadBookings(): void {
-    this.loading = true;
+  protected updatePaymentStatus(bookingId: string, paymentStatus: 'unpaid' | 'paid'): void {
+    this.errorMessage = '';
+    this.bookingService
+      .updatePaymentStatus(bookingId, { paymentStatus })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.loadBookings(false),
+        error: (error) => {
+          this.errorMessage = error.error?.message ?? 'Unable to update payment status.';
+        },
+      });
+  }
+
+  private loadBookings(showLoading = true): void {
+    if (showLoading) this.loading = true;
     this.errorMessage = '';
     const query: BookingListQuery = {};
     if (this.dateControl.value) {

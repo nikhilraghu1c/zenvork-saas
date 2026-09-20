@@ -73,6 +73,77 @@
           </dl>
         </section>
 
+        <section class="detail-section" aria-labelledby="bill-title">
+          <div class="section-heading">
+            <h2 id="bill-title">Services and bill</h2>
+            @if (canEditBill(booking) && !editingBill) {
+              <app-button variant="text" (clicked)="openBillEditor()">Edit services</app-button>
+            }
+          </div>
+          @if (editingBill) {
+            <div class="card bill-editor">
+              @if (loadingServices) {
+                <p class="muted">Loading services…</p>
+              } @else {
+                <app-select
+                  [formControl]="serviceIdsControl"
+                  label="Services"
+                  labelPlacement="outside"
+                  subscriptSizing="dynamic"
+                  [multiple]="true"
+                  [options]="serviceOptionsForSelect()"
+                  placeholder="Select services"
+                />
+                @if (selectedServices().length) {
+                  <div class="bill-lines">
+                    @for (service of selectedServices(); track service._id) {
+                      <div><span>{{ service.name }}</span><strong>{{ formatAmount(service.pricePaise) }}</strong></div>
+                    }
+                  </div>
+                }
+                <app-input
+                  [formControl]="extraAmountControl"
+                  type="number"
+                  label="Extra charge"
+                  labelPlacement="outside"
+                  prefix="₹ "
+                  placeholder="0"
+                />
+                <div class="bill-total"><span>Estimated total</span><strong>{{ formatAmount(billTotalPaise()) }}</strong></div>
+                @if (billError) { <p class="form-error" role="alert">{{ billError }}</p> }
+                <div class="bill-editor__actions">
+                  <app-button variant="secondary" [disabled]="savingBill" (clicked)="cancelBillEditor()">Cancel</app-button>
+                  <app-button [loading]="savingBill" (clicked)="saveBill()">Save services</app-button>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="card bill-summary">
+              @if (booking.services?.length) {
+                <div class="bill-lines">
+                  @for (service of booking.services; track service.serviceId) {
+                    <div><span>{{ service.name }} <small>{{ service.durationMinutes }} min</small></span><strong>{{ formatAmount(service.pricePaise) }}</strong></div>
+                  }
+                </div>
+              } @else {
+                <p class="muted">No services added yet.</p>
+              }
+              @if (booking.extraAmountPaise) {
+                <div class="bill-adjustment"><span>Extra charge</span><strong>{{ formatAmount(booking.extraAmountPaise) }}</strong></div>
+              }
+              <div class="bill-total"><span>Total</span><strong>{{ formatAmount(booking.totalAmountPaise) }}</strong></div>
+              @if (booking.status === 'COMPLETED') {
+                <div class="payment-status">
+                  <span>Payment</span>
+                  <app-button variant="secondary" [loading]="updatingPayment" (clicked)="updatePaymentStatus(booking.paymentStatus === 'paid' ? 'unpaid' : 'paid')">
+                    Mark as {{ booking.paymentStatus === 'paid' ? 'unpaid' : 'paid' }}
+                  </app-button>
+                </div>
+              }
+            </div>
+          }
+        </section>
+
         <section class="detail-section" aria-labelledby="notes-title">
           <h2 id="notes-title">Notes</h2>
           <div class="card notes"><p [class.muted]="!booking.notes">{{ booking.notes || 'No notes added.' }}</p></div>

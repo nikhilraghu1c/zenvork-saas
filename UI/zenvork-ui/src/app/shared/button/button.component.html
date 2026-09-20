@@ -1,10 +1,11 @@
 <div class="app-button" [class.is-full-width]="fullWidth">
   <button
-    [matButton]="variant === 'secondary' ? 'outlined' : 'filled'"
+    [matButton]="variant === 'secondary' ? 'outlined' : variant === 'text' ? 'text' : 'filled'"
     [type]="type"
     [disabled]="disabled || loading"
     [class.app-secondary-button]="variant === 'secondary'"
     [class.app-tertiary-button]="variant === 'tertiary'"
+    [class.app-text-button]="variant === 'text'"
     (click)="clicked.emit($event)"
   >
     @if (loading) {

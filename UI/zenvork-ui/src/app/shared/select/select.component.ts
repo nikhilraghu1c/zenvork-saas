@@ -32,23 +32,25 @@ export class AppSelectComponent implements ControlValueAccessor {
   /** Controls whether Material reserves space for supporting feedback. */
   @Input() subscriptSizing: 'fixed' | 'dynamic' = 'fixed';
   @Input() placeholder = '';
+  /** Enables selecting multiple options and binding a string array to the form control. */
+  @Input() multiple = false;
   @Input() hint = '';
   @Input() errorMessage = '';
   @Input() required = false;
   /** Stable identifier associating an outside label with its select. */
   @Input() selectId = `app-select-${nextSelectId++}`;
-  protected value = '';
+  protected value: string | string[] = '';
   protected disabled = false;
   protected readonly errorStateMatcher = { isErrorState: () => !!this.errorMessage };
-  private onChange: (value: string) => void = () => undefined;
+  private onChange: (value: string | string[]) => void = () => undefined;
   private onTouched: () => void = () => undefined;
 
   /** Receives a value supplied by the parent form control. */
-  writeValue(value: string | null): void {
-    this.value = value ?? '';
+  writeValue(value: string | string[] | null): void {
+    this.value = this.multiple ? (Array.isArray(value) ? value : []) : (value ?? '');
   }
   /** Stores the callback that propagates selections to the parent form. */
-  registerOnChange(callback: (value: string) => void): void {
+  registerOnChange(callback: (value: string | string[]) => void): void {
     this.onChange = callback;
   }
   /** Stores the callback that marks the parent control as visited. */
@@ -60,7 +62,7 @@ export class AppSelectComponent implements ControlValueAccessor {
     this.disabled = disabled;
   }
   /** Sends the selected value back to the parent form control. */
-  protected updateValue(value: string): void {
+  protected updateValue(value: string | string[]): void {
     this.value = value;
     this.onChange(value);
   }

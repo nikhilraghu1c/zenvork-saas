@@ -87,12 +87,15 @@
             </a>
             <span [class]="'status-pill is-' + booking.status.toLowerCase()">
               <span aria-hidden="true">●</span>{{ statusLabel(booking.status) }}
+              @if (booking.status === 'COMPLETED') {
+                <small [class.is-unpaid]="booking.paymentStatus === 'unpaid'">· {{ booking.paymentStatus === 'paid' ? 'Paid' : 'Unpaid' }}</small>
+              }
             </span>
-            @if (statusActions(booking.status).length) {
+            @if (statusActions(booking).length) {
               <app-action-menu
-                ariaLabel="Booking status actions"
-                [items]="statusActions(booking.status)"
-                (actionSelected)="requestStatusUpdate(booking, $any($event))"
+                ariaLabel="Booking actions"
+                [items]="statusActions(booking)"
+                (actionSelected)="requestBookingAction(booking, $any($event))"
               />
             }
           </div>
@@ -101,12 +104,13 @@
               <div class="booking-card__schedule">
                 <span
                   ><mat-icon aria-hidden="true">calendar_today</mat-icon
-                  >{{ formatDate(booking.scheduledStartAt) }}</span
+                  >{{ formatMobileDate(booking.scheduledStartAt) }}</span
                 >
                 <span
                   ><mat-icon aria-hidden="true">schedule</mat-icon
-                  >{{ timeSlotLabel(booking) }}</span
+                  >{{ mobileTimeSlotLabel(booking) }}</span
                 >
+                <strong>{{ formatAmount(booking.totalAmountPaise) }}</strong>
               </div>
               <div
                 class="booking-card__resources"

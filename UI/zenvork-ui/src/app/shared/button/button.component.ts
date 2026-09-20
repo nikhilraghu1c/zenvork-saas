@@ -12,7 +12,7 @@ export class AppButtonComponent {
   /** Native button behavior when this wrapper is used inside a form. */
   @Input() type: 'button' | 'submit' = 'button';
   /** Visual role provided by the shared button wrapper. */
-  @Input() variant: 'primary' | 'secondary' | 'tertiary' = 'primary';
+  @Input() variant: 'primary' | 'secondary' | 'tertiary' | 'text' = 'primary';
   /** Prevents user interaction. */
   @Input() disabled = false;
   /** Replaces button content with a progress indicator while work is in progress. */

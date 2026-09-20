@@ -65,6 +65,7 @@ const toPublicBooking = (booking, includeServices = false) => {
     extraAmountPaise: source.extraAmountPaise ?? 0,
     totalAmountPaise: source.totalAmountPaise ?? 0,
     paymentStatus: source.paymentStatus ?? "unpaid",
+    hasServices: (source.services ?? []).length > 0,
     notes: source.notes,
     createdAt: source.createdAt,
     updatedAt: source.updatedAt,
@@ -97,7 +98,7 @@ const getAllBookings = async (req, res) => {
     const [bookings, total] = await Promise.all([
       Booking.find(filter)
         .select(
-          "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt status extraAmountPaise totalAmountPaise paymentStatus notes createdAt updatedAt",
+          "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt services status extraAmountPaise totalAmountPaise paymentStatus notes createdAt updatedAt",
         )
         .populate("clientId", "name mobile")
         .populate("resourceIds", "name resourceType")
@@ -312,6 +313,11 @@ const updateBookingStatus = async (req, res) => {
     if (!ALLOWED_STATUS_TRANSITIONS[booking.status].includes(nextStatus)) {
       return res.status(409).json({
         message: `Cannot change ${booking.status} booking to ${nextStatus}`,
+      });
+    }
+    if (nextStatus === "COMPLETED" && (booking.services ?? []).length === 0) {
+      return res.status(409).json({
+        message: "Add at least one service before completing this booking",
       });
     }
 

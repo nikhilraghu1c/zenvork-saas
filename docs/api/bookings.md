@@ -14,7 +14,7 @@ GET /api/bookings
 ```
 
 Returns `{ bookings: [...], pagination: { page, limit, total } }`. Each booking includes its schedule,
-actual times, status, `extraAmountPaise`, `totalAmountPaise`, `paymentStatus`, notes, timestamps, a populated `client`
+actual times, status, `hasServices`, `extraAmountPaise`, `totalAmountPaise`, `paymentStatus`, notes, timestamps, a populated `client`
 (`name`, `mobile`), and populated `resources` (`name`, `resourceType`) summaries. Database reference
 names `clientId` and `resourceIds` are not returned in list responses. Line-item services are returned
 only by the detail endpoint.
@@ -99,7 +99,8 @@ Allowed transitions are:
 
 `CHECKED_IN` assigns selected resources and sets `actualStartAt`; `COMPLETED` sets `actualEndAt`.
 `COMPLETED`, `CANCELLED`, and `NO_SHOW` are terminal states. Invalid transitions or unavailable
-resources return `409`.
+resources return `409`. A booking must contain at least one service before it can be completed;
+create a zero-price service when a completed appointment has no charge.
 
 ## Update payment status
 

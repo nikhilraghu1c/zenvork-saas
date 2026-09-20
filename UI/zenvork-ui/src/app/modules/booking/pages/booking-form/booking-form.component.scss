@@ -80,6 +80,10 @@
       font-weight: 400;
       text-transform: none;
     }
+    .required-marker {
+      color: var(--mat-sys-error);
+      font-weight: 600;
+    }
   }
   .card,
   .summary,
@@ -206,6 +210,10 @@
     gap: 12px;
   }
   .resource-fields {
+    display: grid;
+    gap: 14px;
+  }
+  .service-fields {
     display: grid;
     gap: 14px;
   }

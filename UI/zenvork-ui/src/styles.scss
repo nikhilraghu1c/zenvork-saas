@@ -9,6 +9,12 @@ body {
   font-family: var(--font-body);
 }
 
+// Mobile browsers apply a colored tap highlight independently of our focus styles.
+// Remove it while keeping keyboard focus indicators defined by individual components.
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
 h1,
 h2,
 h3,

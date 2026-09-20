@@ -17,7 +17,7 @@
     <form class="booking-layout" (ngSubmit)="submit()">
       <div class="booking-form">
         <section class="form-section" aria-labelledby="client-title">
-          <h2 id="client-title">Client</h2>
+          <h2 id="client-title">Client <span class="required-marker" aria-hidden="true">*</span></h2>
           <div class="card">
             @if (selectedClient) {
               <div class="selected-client">
@@ -106,7 +106,7 @@
         </section>
 
         <section class="form-section" aria-labelledby="schedule-title">
-          <h2 id="schedule-title">Schedule <span>optional</span></h2>
+          <h2 id="schedule-title">Schedule</h2>
           <div class="card schedule-fields">
             <label class="native-field"
               ><span>Date</span><input type="date" [formControl]="dateControl"
@@ -120,8 +120,32 @@
           </div>
         </section>
 
+        <section class="form-section" aria-labelledby="services-title">
+          <h2 id="services-title">Services</h2>
+          <div class="card service-fields">
+            <app-select
+              [formControl]="serviceIdsControl"
+              label="Services"
+              labelPlacement="outside"
+              subscriptSizing="dynamic"
+              [multiple]="true"
+              [options]="serviceOptionsForSelect()"
+              placeholder="Select services"
+            />
+            <app-input
+              [formControl]="extraAmountControl"
+              type="number"
+              label="Extra charge"
+              labelPlacement="outside"
+              prefix="₹ "
+              placeholder="0"
+            />
+            <p class="field-hint">You can also add or change services after check-in.</p>
+          </div>
+        </section>
+
         <section class="form-section" aria-labelledby="notes-title">
-          <h2 id="notes-title">Booking notes <span>optional</span></h2>
+          <h2 id="notes-title">Booking notes</h2>
           <div class="card">
             <label class="native-field"
               ><span>Notes</span
@@ -159,6 +183,12 @@
               ? startTimeControl.value + ' – ' + endTimeControl.value
               : 'Not set'
           }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Services</span><strong [class.empty]="summaryServices() === 'Not selected'">{{ summaryServices() }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Estimated bill</span><strong>{{ estimatedTotal() }}</strong>
         </div>
         @if (errorMessage) {
           <p class="form-error" role="alert">{{ errorMessage }}</p>

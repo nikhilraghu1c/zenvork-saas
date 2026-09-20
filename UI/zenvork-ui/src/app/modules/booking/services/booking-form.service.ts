@@ -7,6 +7,7 @@ import {
   ResourceTypeOption,
 } from '../../resources/services/resource.service';
 import { BookingService, CreateBookingRequest } from './booking.service';
+import { ServiceService } from '../../service/services/service.service';
 
 export interface BookingFormData {
   clients: ClientRecord[];
@@ -25,6 +26,8 @@ export interface BookingFormValues {
   startTime: string;
   endTime: string;
   notes: string;
+  serviceIds: string[];
+  extraAmount: string;
 }
 
 export type BookingPayloadResult =
@@ -36,6 +39,7 @@ export class BookingFormService {
   private readonly clientService = inject(ClientService);
   private readonly resourceService = inject(ResourceService);
   private readonly bookingService = inject(BookingService);
+  private readonly serviceService = inject(ServiceService);
 
   /** Loads all tenant-scoped records required by the booking form in parallel. */
   loadFormData() {
@@ -43,6 +47,7 @@ export class BookingFormService {
       clients: this.clientService.getClients(),
       resources: this.resourceService.getResources(),
       resourceTypes: this.resourceService.getOptions(),
+      services: this.serviceService.getServiceOptions(),
     });
   }
 
@@ -101,6 +106,16 @@ export class BookingFormService {
       resourceIds: values.resourceIds,
       notes: values.notes.trim(),
     };
+    const extraAmount = values.extraAmount.trim();
+    if (extraAmount && !/^\d+(?:\.\d{1,2})?$/.test(extraAmount)) {
+      return { payload: null, errorMessage: 'Enter a valid non-negative extra charge.' };
+    }
+    const extraAmountPaise = extraAmount ? Math.round(Number(extraAmount) * 100) : 0;
+    if (!Number.isSafeInteger(extraAmountPaise)) {
+      return { payload: null, errorMessage: 'Extra charge is too large.' };
+    }
+    if (values.serviceIds.length) payload.serviceIds = values.serviceIds;
+    if (extraAmountPaise) payload.extraAmountPaise = extraAmountPaise;
     if (values.selectedClient) payload.clientId = values.selectedClient._id;
     if (values.isNewClient) {
       payload.client = {

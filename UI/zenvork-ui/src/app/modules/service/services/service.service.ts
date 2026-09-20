@@ -24,6 +24,13 @@ export interface UpdateServicePayload extends Partial<ServicePayload> {
   isActive?: boolean;
 }
 
+export interface ServiceOption {
+  _id: string;
+  name: string;
+  pricePaise: number;
+  durationMinutes: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ServiceService {
   constructor(private readonly api: ApiService) {}
@@ -33,6 +40,9 @@ export class ServiceService {
   }
   getService(id: string) {
     return this.api.get<{ service: ServiceRecord }>(`services/${id}`);
+  }
+  getServiceOptions() {
+    return this.api.get<{ services: ServiceOption[] }>('services/options');
   }
   createService(payload: ServicePayload) {
     return this.api.post<{ message: string; service: ServiceRecord }, ServicePayload>(

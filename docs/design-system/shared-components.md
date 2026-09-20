@@ -38,7 +38,8 @@ while retaining the native required attribute for accessibility and validation.
 
 `AppButtonComponent` emits `clicked` for page-level actions such as routed navigation while keeping
 the same shared Material button styling. Use `primary` for the main action, `secondary` for neutral
-outlined actions such as Cancel, and `tertiary` only for intentional purple emphasis.
+outlined actions such as Cancel, `tertiary` only for intentional purple emphasis, and `text` for a
+borderless cyan action that should not compete with a primary control.
 
 `AppActionMenuComponent` provides the icon-only three-dot trigger and menu overlay for record
 actions. Pass its `items` array (`id`, `label`, `icon`, optional `disabled`) and handle
@@ -50,7 +51,7 @@ columns, accessible cell focus behavior, and auto-height layout. Pair it with a 
 view only when a compact grid is not practical. Grids intended for mobile should pin their action
 column so it remains visible while the remaining columns scroll horizontally.
 
-`AppSelectComponent` (`shared/select`, `app-select`) wraps Material's single-select listbox and
+`AppSelectComponent` (`shared/select`, `app-select`) wraps Material's select listbox and
 implements ControlValueAccessor for reactive forms. Pass `options` with string `value`, `label`,
 and optional `disabled` fields. An empty string is a selectable value for optional choices.
 It supports `label`, `labelPlacement` (`floating` or `outside`), `placeholder`, `required`, `hint`,
@@ -58,3 +59,5 @@ It supports `label`, `labelPlacement` (`floating` or `outside`), `placeholder`, 
 Callers supply validation messages when touched/submitted. Fields match the shared input geometry;
 the scoped overlay uses compact menu-like rows and cyan hover/selection while retaining Material's
 keyboard navigation and listbox semantics. Feature pages use this wrapper rather than raw selects.
+Set `multiple="true"` only when a form control intentionally stores a string array, such as the
+services assigned to a booking.

@@ -13,6 +13,14 @@
     background: transparent;
   }
 
+  .app-text-button {
+    --mat-text-button-label-text-color: var(--cyan);
+    --mat-text-button-hover-state-layer-color: var(--cyan);
+
+    min-height: 36px;
+    padding: 0 8px;
+  }
+
   &.is-full-width {
     display: block;
 

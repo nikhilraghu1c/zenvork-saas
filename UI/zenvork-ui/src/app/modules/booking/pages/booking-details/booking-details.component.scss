@@ -189,6 +189,13 @@
     margin-top: 24px;
   }
 
+  .section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
   h2 {
     margin: 0 0 12px;
     color: var(--text-mute);
@@ -288,6 +295,69 @@
     font-size: 14px;
     line-height: 1.6;
     white-space: pre-wrap;
+  }
+
+  .bill-editor {
+    display: grid;
+    gap: 16px;
+  }
+
+  .bill-lines {
+    display: grid;
+    gap: 10px;
+    div {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+    strong { color: var(--text); font-weight: 500; }
+    small { color: var(--text-mute); font-size: 12px; }
+  }
+
+  .bill-adjustment,
+  .bill-total,
+  .payment-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .bill-adjustment {
+    margin-top: 14px;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  .bill-total {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--text);
+    font-size: 15px;
+    strong { font-size: 18px; }
+  }
+
+  .payment-status {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  .bill-editor__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .form-error {
+    margin: 0;
+    color: var(--mat-sys-error);
+    font-size: 13px;
   }
 
   .timeline {

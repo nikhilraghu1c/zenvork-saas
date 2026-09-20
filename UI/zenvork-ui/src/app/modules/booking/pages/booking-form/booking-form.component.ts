@@ -5,10 +5,11 @@ import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppInputComponent } from '../../../../shared/input/input.component';
-import { AppSelectComponent } from '../../../../shared/select/select.component';
+import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
 import { ClientRecord } from '../../../client/services/client.service';
 import { ResourceRecord, ResourceTypeOption } from '../../../resources/services/resource.service';
 import { BookingFormService } from '../../services/booking-form.service';
+import { ServiceOption } from '../../../service/services/service.service';
 
 @Component({
   selector: 'app-booking-form',
@@ -36,11 +37,14 @@ export class BookingFormComponent implements OnInit {
   protected readonly startTimeControl = new FormControl('', { nonNullable: true });
   protected readonly endTimeControl = new FormControl('', { nonNullable: true });
   protected readonly notesControl = new FormControl('', { nonNullable: true });
+  protected readonly serviceIdsControl = new FormControl<string[]>([], { nonNullable: true });
+  protected readonly extraAmountControl = new FormControl('', { nonNullable: true });
   protected readonly resourceSelections: Record<string, FormControl<string>> = {};
 
   protected clients: ClientRecord[] = [];
   protected resources: ResourceRecord[] = [];
   protected resourceTypes: ResourceTypeOption[] = [];
+  protected serviceOptions: ServiceOption[] = [];
   protected selectedClient: ClientRecord | null = null;
   protected showNewClientForm = false;
   protected loading = true;
@@ -53,10 +57,11 @@ export class BookingFormComponent implements OnInit {
       .loadFormData()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ clients, resources, resourceTypes }) => {
+        next: ({ clients, resources, resourceTypes, services }) => {
           this.clients = clients.clients;
           this.resources = resources.resources;
           this.resourceTypes = resourceTypes.resourceTypes;
+          this.serviceOptions = services.services;
           this.resourceTypes.forEach(
             (type) =>
               (this.resourceSelections[type.code] = new FormControl('', { nonNullable: true })),
@@ -124,6 +129,8 @@ export class BookingFormComponent implements OnInit {
       startTime: this.startTimeControl.value,
       endTime: this.endTimeControl.value,
       notes: this.notesControl.value,
+      serviceIds: this.serviceIdsControl.value,
+      extraAmount: this.extraAmountControl.value,
     });
     this.errorMessage = errorMessage;
     if (!payload) return;
@@ -165,5 +172,30 @@ export class BookingFormComponent implements OnInit {
   /** Displays selected resource names or an honest unassigned state in the confirmation summary. */
   protected summaryResource(type: ResourceTypeOption): string {
     return this.formService.selectedResourceName(this.resourceControl(type.code)?.value, this.resources);
+  }
+
+  protected serviceOptionsForSelect(): AppSelectOption[] {
+    return this.serviceOptions.map((service) => ({
+      value: service._id,
+      label: `${service.name} · ${this.formatAmount(service.pricePaise)}`,
+    }));
+  }
+
+  protected summaryServices(): string {
+    const count = this.serviceIdsControl.value.length;
+    return count ? `${count} selected` : 'Not selected';
+  }
+
+  protected estimatedTotal(): string {
+    const selectedIds = new Set(this.serviceIdsControl.value);
+    const serviceTotal = this.serviceOptions
+      .filter((service) => selectedIds.has(service._id))
+      .reduce((total, service) => total + service.pricePaise, 0);
+    const extra = Number(this.extraAmountControl.value || 0);
+    return this.formatAmount(serviceTotal + (Number.isFinite(extra) && extra >= 0 ? Math.round(extra * 100) : 0));
+  }
+
+  protected formatAmount(amountPaise: number): string {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(amountPaise / 100);
   }
 }
