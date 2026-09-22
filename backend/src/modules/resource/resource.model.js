@@ -12,7 +12,10 @@ const resourceSchema = new mongoose.Schema(
       required: true,
       trim: true,
       uppercase: true,
-      match: [/^[A-Z][A-Z0-9_]*$/, "Resource type must use uppercase letters, numbers, or underscores"],
+      match: [
+        /^[A-Z][A-Z0-9_]*$/,
+        "Resource type must use uppercase letters, numbers, or underscores",
+      ],
     },
     name: {
       type: String,
@@ -38,5 +41,7 @@ const resourceSchema = new mongoose.Schema(
 
 // Supports tenant-scoped resource lists and filtering by resource type.
 resourceSchema.index({ businessId: 1, resourceType: 1 });
+// Dashboard staff totals include enabled person-resource types for the tenant.
+resourceSchema.index({ businessId: 1, isActive: 1, resourceType: 1 });
 
 export default mongoose.model("Resource", resourceSchema);

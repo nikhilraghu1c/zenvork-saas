@@ -202,5 +202,7 @@ bookingSchema.pre("validate", function () {
 // Supports tenant calendar views and resource-availability conflict checks.
 bookingSchema.index({ businessId: 1, scheduledStartAt: 1 });
 bookingSchema.index({ businessId: 1, resourceIds: 1, scheduledStartAt: 1 });
+// Dashboard revenue is calculated from completed bookings in a tenant time range.
+bookingSchema.index({ businessId: 1, status: 1, actualEndAt: 1 });
 
 export default mongoose.model("Booking", bookingSchema);

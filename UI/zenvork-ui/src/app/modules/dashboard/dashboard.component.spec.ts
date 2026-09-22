@@ -19,8 +19,24 @@ describe('DashboardComponent', () => {
         {
           provide: DashboardService,
           useValue: {
-            getResources: () => of({ resources: [] }),
-            getStaffUsers: () => of({ users: [] }),
+            getSummary: () =>
+              of({
+                summary: {
+                  period: 'today',
+                  range: { from: '2026-09-21T18:30:00.000Z', to: '2026-09-22T18:30:00.000Z' },
+                  bookingsCount: 0,
+                  revenue: {
+                    earnedPaise: 0,
+                    previousEarnedPaise: 0,
+                    collectedPaise: 0,
+                    outstandingPaise: 0,
+                  },
+                  noShows: { count: 0, resolvedBookings: 0, rate: 0 },
+                  activeStaffCount: 0,
+                  topServices: [],
+                  topStaff: [],
+                },
+              }),
           },
         },
       ],

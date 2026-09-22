@@ -2,32 +2,44 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 
-export interface DashboardResource {
-  _id: string;
+export type DashboardPeriod = 'today' | 'week' | 'month';
+
+export interface DashboardTopService {
+  serviceId: string;
   name: string;
-  resourceType: string;
-  isActive: boolean;
+  revenuePaise: number;
+  bookingsCount: number;
 }
 
-export interface DashboardStaffUser {
-  _id: string;
+export interface DashboardTopStaffMember {
+  resourceId: string;
   name: string;
-  email?: string;
-  mobile: string;
-  role: 'STAFF';
+  resourceType: string;
+  bookingsCount: number;
+}
+
+export interface DashboardSummary {
+  period: DashboardPeriod;
+  range: { from: string; to: string };
+  bookingsCount: number;
+  revenue: {
+    earnedPaise: number;
+    previousEarnedPaise: number;
+    collectedPaise: number;
+    outstandingPaise: number;
+  };
+  noShows: { count: number; resolvedBookings: number; rate: number };
+  activeStaffCount: number;
+  topServices: DashboardTopService[];
+  topStaff: DashboardTopStaffMember[];
 }
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   constructor(private readonly api: ApiService) {}
 
-  /** Loads tenant-scoped resources for the dashboard summary. */
-  getResources(): Observable<{ resources: DashboardResource[] }> {
-    return this.api.get<{ resources: DashboardResource[] }>('resources');
-  }
-
-  /** Loads owner-visible staff accounts for the dashboard summary. */
-  getStaffUsers(): Observable<{ users: DashboardStaffUser[] }> {
-    return this.api.get<{ users: DashboardStaffUser[] }>('users');
+  /** Loads operational metrics derived from authenticated-tenant bookings and resources. */
+  getSummary(period: DashboardPeriod): Observable<{ summary: DashboardSummary }> {
+    return this.api.query<{ summary: DashboardSummary }>('dashboard/summary', { period });
   }
 }

@@ -14,6 +14,7 @@ Documentation is maintained with the code and reviewed in the same change that a
 - [Business types API](api/business-types.md)
 - [Resources API](api/resources.md)
 - [Services API](api/services.md)
+- [Dashboard API](api/dashboard.md)
 - [Users API](api/users.md)
 - [Login API](api/login.md)
 - [Architecture decision records](decisions/README.md)

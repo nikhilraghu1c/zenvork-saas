@@ -52,5 +52,9 @@ to that same business. Initial types are created with
 applies authentication before mounting protected module routes; `app.js` mounts this router at
 `/api`.
 
+The authenticated dashboard summary combines tenant-scoped booking and resource counts without
+accepting a business identifier. Its earned-revenue figures use completed bookings' server-recorded
+`actualEndAt`; its manual collected/outstanding split never processes a payment or changes a bill.
+
 Owners manage staff through the tenant-scoped users module. Its create endpoint accepts no client
 role or `businessId`: it always creates a `STAFF` user for the authenticated owner's business.

@@ -2,43 +2,176 @@
   <header class="dashboard-header">
     <p class="eyebrow">Workspace Overview</p>
     <h1 id="dashboard-title">Welcome Back, {{ firstName }}</h1>
-    <p>Here is a quick view of your business workspace.</p>
+    <p>Keep an eye on appointments, earned revenue, and your team's workload.</p>
+    <div class="period-picker" aria-label="Dashboard period">
+      @for (period of periods; track period) {
+        <app-button
+          variant="text"
+          [class.is-selected]="selectedPeriod === period"
+          (clicked)="selectPeriod(period)"
+        >
+          {{ period === 'today' ? 'Today' : period === 'week' ? 'This week' : 'This month' }}
+        </app-button>
+      }
+    </div>
   </header>
 
-  <div class="summary-grid">
-    <article class="summary-card">
-      <span class="card-icon"><mat-icon>inventory_2</mat-icon></span>
-      <span class="card-label">Resources</span>
-      @if (resourceError) {
-        <strong>—</strong><small>Unavailable right now</small>
-      } @else {
-        <strong>{{ resourceCount ?? '…' }}</strong><small>Tenant-scoped resources</small>
-      }
-    </article>
+  @if (errorMessage) {
+    <div class="dashboard-error" role="alert">{{ errorMessage }}</div>
+  } @else if (loading || summary) {
+    <div class="summary-grid" [attr.aria-busy]="loading">
+      <article class="summary-card">
+        <span class="card-icon"><mat-icon>calendar_month</mat-icon></span>
+        <span class="card-label">Appointments</span>
+        <strong>{{ loading ? '…' : summary?.bookingsCount }}</strong>
+        <small>Scheduled {{ periodLabel.toLowerCase() }}</small>
+      </article>
 
-    <article class="summary-card">
-      <span class="card-icon"><mat-icon>group</mat-icon></span>
-      <span class="card-label">Staff</span>
-      @if (staffError) {
-        <strong>—</strong><small>Unavailable right now</small>
-      } @else {
-        <strong>{{ staffCount ?? '…' }}</strong><small>Owner-visible accounts</small>
-      }
-    </article>
+      <article class="summary-card">
+        <span class="card-icon"><mat-icon>payments</mat-icon></span>
+        <span class="card-label">Revenue earned</span>
+        <strong>{{ loading ? '…' : formatMoney(summary?.revenue?.earnedPaise ?? 0) }}</strong>
+        <small
+          [class.positive]="
+            (summary?.revenue?.earnedPaise ?? 0) >= (summary?.revenue?.previousEarnedPaise ?? 0)
+          "
+          >{{ loading ? 'Loading comparison' : revenueComparison() }}</small
+        >
+      </article>
 
-    <article class="summary-card is-planned">
-      <span class="card-icon"><mat-icon>calendar_month</mat-icon></span>
-      <span class="card-label">Today's Bookings</span>
-      <strong>—</strong><small>Booking module coming soon</small>
-    </article>
-  </div>
+      <article class="summary-card">
+        <span class="card-icon"><mat-icon>person_off</mat-icon></span>
+        <span class="card-label">No-show rate</span>
+        <strong>{{
+          loading ? '…' : ((summary?.noShows?.rate ?? 0) * 100 | number: '1.0-0') + '%'
+        }}</strong>
+        <small>{{
+          loading
+            ? 'Loading attendance'
+            : (summary?.noShows?.count ?? 0) +
+              ' of ' +
+              (summary?.noShows?.resolvedBookings ?? 0) +
+              ' resolved bookings'
+        }}</small>
+      </article>
 
-  <section class="getting-started" aria-labelledby="next-steps-title">
-    <div>
-      <p class="eyebrow">Getting Started</p>
-      <h2 id="next-steps-title">Your workspace is ready to grow.</h2>
-      <p>Resources and staff are connected to live tenant-scoped APIs. Other workspace modules will appear here as they are added.</p>
+      <article class="summary-card">
+        <span class="card-icon"><mat-icon>groups</mat-icon></span>
+        <span class="card-label">Active staff</span>
+        <strong>{{ loading ? '…' : summary?.activeStaffCount }}</strong>
+        <small>Enabled staff resources</small>
+      </article>
     </div>
-    <mat-icon aria-hidden="true">auto_awesome</mat-icon>
-  </section>
+
+    <section class="revenue-breakdown" aria-labelledby="revenue-breakdown-title">
+      <div>
+        <p class="eyebrow">Revenue breakdown</p>
+        <h2 id="revenue-breakdown-title">What has been settled?</h2>
+        <p>
+          Revenue is counted only after a booking is completed. Payment status remains a manual
+          settlement record.
+        </p>
+      </div>
+      <dl>
+        <div>
+          <dt>Collected</dt>
+          <dd>{{ loading ? '…' : formatMoney(summary?.revenue?.collectedPaise ?? 0) }}</dd>
+        </div>
+        <div>
+          <dt>Outstanding</dt>
+          <dd>{{ loading ? '…' : formatMoney(summary?.revenue?.outstandingPaise ?? 0) }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <div class="ranking-grid">
+      <section class="top-services" aria-labelledby="top-services-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Service performance</p>
+            <h2 id="top-services-title">Top services by revenue</h2>
+          </div>
+          <mat-icon aria-hidden="true">workspace_premium</mat-icon>
+        </div>
+        @if (loading) {
+          <ol class="ranking-skeleton" aria-label="Loading service performance">
+            @for (row of [1, 2, 3]; track row) {
+              <li>
+                <span></span>
+                <div></div>
+                <b></b>
+              </li>
+            }
+          </ol>
+        } @else if (!summary?.topServices?.length) {
+          <p class="empty-insight">No completed services {{ periodLabel.toLowerCase() }}.</p>
+        } @else {
+          <ol class="service-ranking">
+            @for (
+              service of summary?.topServices ?? [];
+              track service.serviceId;
+              let index = $index
+            ) {
+              <li>
+                <span class="rank">{{ index + 1 }}</span>
+                <div>
+                  <strong>{{ service.name }}</strong
+                  ><small
+                    >{{ service.bookingsCount }} booking{{
+                      service.bookingsCount === 1 ? '' : 's'
+                    }}</small
+                  >
+                </div>
+                <b>{{ formatMoney(service.revenuePaise) }}</b>
+              </li>
+            }
+          </ol>
+        }
+      </section>
+
+      <section class="top-staff" aria-labelledby="top-staff-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Team performance</p>
+            <h2 id="top-staff-title">Top staff by completed bookings</h2>
+          </div>
+          <mat-icon aria-hidden="true">groups</mat-icon>
+        </div>
+        @if (loading) {
+          <ol class="ranking-skeleton" aria-label="Loading staff performance">
+            @for (row of [1, 2, 3]; track row) {
+              <li>
+                <span></span>
+                <div></div>
+                <b></b>
+              </li>
+            }
+          </ol>
+        } @else if (!summary?.topStaff?.length) {
+          <p class="empty-insight">No completed staff bookings {{ periodLabel.toLowerCase() }}.</p>
+        } @else {
+          <ol class="staff-ranking">
+            @for (
+              staffMember of summary?.topStaff ?? [];
+              track staffMember.resourceId;
+              let index = $index
+            ) {
+              <li>
+                <span class="rank">{{ index + 1 }}</span>
+                <div>
+                  <strong>{{ staffMember.name }}</strong
+                  ><small>{{ staffMember.resourceType }}</small>
+                </div>
+                <b
+                  >{{ staffMember.bookingsCount }} booking{{
+                    staffMember.bookingsCount === 1 ? '' : 's'
+                  }}</b
+                >
+              </li>
+            }
+          </ol>
+        }
+      </section>
+    </div>
+  }
 </section>
