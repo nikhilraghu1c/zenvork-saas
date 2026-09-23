@@ -62,6 +62,11 @@ export class AuthService {
     return this.userSubject.value;
   }
 
+  /** Clears only browser-held metadata after the API reports that the HttpOnly session is invalid. */
+  clearExpiredSession(): void {
+    this.clearUser();
+  }
+
   private storeUser(user: AuthenticatedUser): void {
     this.userSubject.next(user);
     sessionStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(user));

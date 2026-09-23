@@ -28,6 +28,12 @@ provides reactive updates.
 boundary for protected API requests. A future authenticated session-check endpoint is required to
 validate the cookie after browser reload or expiry before relying on the client route state.
 
+The frontend's global HTTP interceptor handles a `401` from a protected API request by clearing the
+cached safe user metadata and navigating to `/login?reason=expired`. It preserves an internal
+`/app/...` return path and sends the user there after a successful login. A `401` from the login
+endpoint is deliberately left for the login form to display as invalid credentials. `403` and
+network/server failures do not trigger a logout redirect.
+
 Owner-management routes use `ownerGuard` as an additional UI-routing check, and owner-only sidebar
 items are hidden from staff users. Backend role authorization remains mandatory for every API.
 

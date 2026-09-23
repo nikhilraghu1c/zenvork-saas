@@ -89,6 +89,7 @@
   }
 
   .server-error,
+  .session-message,
   .success-message {
     margin: 0 0 18px;
     padding: 10px 12px;
@@ -106,6 +107,12 @@
     border: 1px solid var(--green-border);
     background: var(--green-soft);
     color: var(--green);
+  }
+
+  .session-message {
+    border: 1px solid var(--cyan-border);
+    background: var(--cyan-soft);
+    color: var(--cyan);
   }
 
   .register-note {

@@ -3,10 +3,24 @@
 }
 
 .dashboard-page {
+  position: relative;
   box-sizing: border-box;
-  max-width: 1240px;
-  margin: 0 auto;
+  width: 100%;
+  min-height: calc(100dvh - 60px);
+  margin: 0;
   padding: 32px;
+  isolation: isolate;
+
+  &::before {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: -1;
+    height: 360px;
+    background: var(--gradient-page-glow);
+    content: '';
+    opacity: 0.55;
+    pointer-events: none;
+  }
 
   .dashboard-header {
     margin-bottom: 28px;

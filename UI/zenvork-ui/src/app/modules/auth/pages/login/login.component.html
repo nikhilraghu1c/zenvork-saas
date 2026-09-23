@@ -9,6 +9,9 @@
 
     <div class="login-card">
       <form [formGroup]="loginForm" (ngSubmit)="submit()" novalidate>
+        @if (sessionMessage) {
+          <p class="session-message" role="status">{{ sessionMessage }}</p>
+        }
         @if (successMessage) {
           <p class="success-message" role="status">{{ successMessage }}</p>
         }
@@ -46,7 +49,9 @@
       </form>
     </div>
 
-    <p class="access-note">Private workspace <span aria-hidden="true">•</span> Business owners &amp; staff only</p>
+    <p class="access-note">
+      Private workspace <span aria-hidden="true">•</span> Business owners &amp; staff only
+    </p>
     <p class="register-note">
       Don't have a business account yet? <a routerLink="/register">Create One Free</a>
     </p>
