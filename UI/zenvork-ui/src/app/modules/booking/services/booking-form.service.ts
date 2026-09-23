@@ -8,6 +8,7 @@ import {
 } from '../../resources/services/resource.service';
 import { BookingService, CreateBookingRequest } from './booking.service';
 import { ServiceService } from '../../service/services/service.service';
+import { BusinessDateTimeService } from '../../../core/services/business-date-time.service';
 
 export interface BookingFormData {
   clients: ClientRecord[];
@@ -40,6 +41,7 @@ export class BookingFormService {
   private readonly resourceService = inject(ResourceService);
   private readonly bookingService = inject(BookingService);
   private readonly serviceService = inject(ServiceService);
+  private readonly dateTime = inject(BusinessDateTimeService);
 
   /** Loads all tenant-scoped records required by the booking form in parallel. */
   loadFormData() {
@@ -79,7 +81,7 @@ export class BookingFormService {
     return resources.find((resource) => resource._id === resourceId)?.name ?? 'Not assigned';
   }
 
-  /** Validates and converts India-local form values into the backend booking contract. */
+  /** Validates and converts business-local form values into the backend booking contract. */
   buildPayload(values: BookingFormValues): BookingPayloadResult {
     const hasScheduleValue = [values.date, values.startTime, values.endTime].some(Boolean);
     if (!values.selectedClient && !values.isNewClient) {
@@ -125,12 +127,16 @@ export class BookingFormService {
       };
     }
     if (hasScheduleValue) {
-      const start = new Date(`${values.date}T${values.startTime}:00+05:30`);
-      const end = new Date(`${values.date}T${values.endTime}:00+05:30`);
-      if (end <= start)
-        return { payload: null, errorMessage: 'End time must be after start time.' };
-      payload.scheduledStartAt = start.toISOString();
-      payload.scheduledEndAt = end.toISOString();
+      try {
+        const scheduledStartAt = this.dateTime.toBusinessDateTimeIso(values.date, values.startTime);
+        const scheduledEndAt = this.dateTime.toBusinessDateTimeIso(values.date, values.endTime);
+        if (scheduledEndAt <= scheduledStartAt)
+          return { payload: null, errorMessage: 'End time must be after start time.' };
+        payload.scheduledStartAt = scheduledStartAt;
+        payload.scheduledEndAt = scheduledEndAt;
+      } catch {
+        return { payload: null, errorMessage: 'Enter a valid appointment date and time.' };
+      }
     }
     return { payload, errorMessage: '' };
   }

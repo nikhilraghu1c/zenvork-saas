@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -11,11 +10,13 @@ import { AppDataGridComponent } from '../../../../shared/data-grid/data-grid.com
 import { AuthService } from '../../../auth/services/auth.service';
 import { ResourceRecord, ResourceService } from '../../services/resource.service';
 import { ResourceGridActionsComponent } from '../../components/resource-grid-actions/resource-grid-actions.component';
+import { BusinessDatePipe } from '../../../../core/pipes/business-date.pipe';
+import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
 
 @Component({
   selector: 'app-resource-list',
   imports: [
-    DatePipe,
+    BusinessDatePipe,
     ReactiveFormsModule,
     RouterLink,
     MatIconModule,
@@ -29,6 +30,7 @@ import { ResourceGridActionsComponent } from '../../components/resource-grid-act
 export class ResourceListComponent implements OnInit {
   private readonly service = inject(ResourceService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly dateTime = inject(BusinessDateTimeService);
   protected readonly isOwner = inject(AuthService).getCurrentUser()?.role === 'OWNER';
   /** Search value used to narrow the visible resources. */
   protected readonly searchControl = new FormControl('', { nonNullable: true });
@@ -60,7 +62,7 @@ export class ResourceListComponent implements OnInit {
       field: 'createdAt',
       headerName: 'Added',
       minWidth: 130,
-      valueFormatter: ({ value }) => new Date(value).toLocaleDateString(),
+      valueFormatter: ({ value }) => this.dateTime.format(value, 'date'),
     },
     {
       headerName: 'Actions',

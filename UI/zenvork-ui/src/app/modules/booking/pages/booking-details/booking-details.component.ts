@@ -14,6 +14,7 @@ import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/s
 import { BookingCheckInDialogComponent } from '../../components/booking-check-in-dialog/booking-check-in-dialog.component';
 import { BookingRecord, BookingService, BookingStatus } from '../../services/booking.service';
 import { ServiceOption, ServiceService } from '../../../service/services/service.service';
+import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
 
 interface TimelineStep {
   label: string;
@@ -42,6 +43,7 @@ export class BookingDetailsComponent implements OnInit {
   private readonly serviceApi = inject(ServiceService);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly dateTime = inject(BusinessDateTimeService);
 
   protected booking: BookingRecord | null = null;
   protected loading = true;
@@ -82,20 +84,9 @@ export class BookingDetailsComponent implements OnInit {
       });
   }
 
-  /** Formats stored UTC timestamps for the India-focused business display. */
+  /** Formats stored UTC timestamps for the shared business display timezone. */
   protected formatDateTime(value: string | null): string {
-    if (!value) return 'Not recorded';
-    return new Intl.DateTimeFormat('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    })
-      .format(new Date(value))
-      .toUpperCase();
+    return value ? this.dateTime.format(value, 'dateTime') : 'Not recorded';
   }
 
   /** Builds a compact planned slot without showing an artificial end time for pending work. */
@@ -103,19 +94,15 @@ export class BookingDetailsComponent implements OnInit {
     if (!booking.scheduledStartAt) return 'Awaiting schedule';
     const start = this.formatDateTime(booking.scheduledStartAt);
     if (!booking.scheduledEndAt) return start;
-    return `${start} – ${new Intl.DateTimeFormat('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    })
-      .format(new Date(booking.scheduledEndAt))
-      .toUpperCase()}`;
+    return `${start} – ${this.dateTime.format(booking.scheduledEndAt, 'time')}`;
   }
 
   /** Maps stored lifecycle values to concise staff-facing labels. */
   protected statusLabel(status: BookingStatus): string {
-    return status.replace('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
+    return status
+      .replace('_', ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
   }
 
   /** Lists only valid lifecycle actions for the booking's current state. */
@@ -164,7 +151,10 @@ export class BookingDetailsComponent implements OnInit {
   }
 
   protected billTotalPaise(): number {
-    return this.selectedServices().reduce((total, service) => total + service.pricePaise, this.extraAmountPaise());
+    return this.selectedServices().reduce(
+      (total, service) => total + service.pricePaise,
+      this.extraAmountPaise(),
+    );
   }
 
   protected formatAmount(amountPaise: number): string {
@@ -179,7 +169,9 @@ export class BookingDetailsComponent implements OnInit {
     if (!this.booking || this.loadingServices || this.savingBill) return;
     this.editingBill = true;
     this.billError = '';
-    this.serviceIdsControl.setValue((this.booking.services ?? []).map((service) => service.serviceId));
+    this.serviceIdsControl.setValue(
+      (this.booking.services ?? []).map((service) => service.serviceId),
+    );
     this.extraAmountControl.setValue(this.formatMoneyInput(this.booking.extraAmountPaise));
     this.loadingServices = true;
     this.serviceApi
@@ -230,7 +222,8 @@ export class BookingDetailsComponent implements OnInit {
   }
 
   protected updatePaymentStatus(paymentStatus: 'unpaid' | 'paid'): void {
-    if (!this.booking || this.updatingPayment || this.booking.paymentStatus === paymentStatus) return;
+    if (!this.booking || this.updatingPayment || this.booking.paymentStatus === paymentStatus)
+      return;
     this.updatingPayment = true;
     this.statusError = '';
     this.bookingService
@@ -296,12 +289,20 @@ export class BookingDetailsComponent implements OnInit {
       {
         label: 'Scheduled',
         timestamp: booking.scheduledStartAt,
-        state: booking.scheduledStartAt ? 'done' : booking.status === 'PENDING' ? 'current' : 'upcoming',
+        state: booking.scheduledStartAt
+          ? 'done'
+          : booking.status === 'PENDING'
+            ? 'current'
+            : 'upcoming',
       },
       {
         label: 'Checked in',
         timestamp: booking.actualStartAt,
-        state: booking.actualStartAt ? 'done' : booking.status === 'CHECKED_IN' ? 'current' : 'upcoming',
+        state: booking.actualStartAt
+          ? 'done'
+          : booking.status === 'CHECKED_IN'
+            ? 'current'
+            : 'upcoming',
       },
       {
         label: terminal ? this.statusLabel(booking.status) : 'Completed',

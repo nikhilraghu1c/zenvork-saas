@@ -1,16 +1,16 @@
 import { InitialsPipe } from '../../../../core/pipes/initials.pipe';
-import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
+import { BusinessDatePipe } from '../../../../core/pipes/business-date.pipe';
 import { AuthService } from '../../../auth/services/auth.service';
 import { ResourceRecord, ResourceService } from '../../services/resource.service';
 
 @Component({
   selector: 'app-resource-details',
-  imports: [InitialsPipe, DatePipe, RouterLink, MatIconModule, AppButtonComponent],
+  imports: [InitialsPipe, BusinessDatePipe, RouterLink, MatIconModule, AppButtonComponent],
   templateUrl: './resource-details.component.html',
   styleUrl: './resource-details.component.scss',
 })

@@ -16,7 +16,9 @@
             ><span aria-hidden="true">●</span> {{ resource.isActive ? 'Active' : 'Inactive' }}</span
           >
           @if (resource.isPerson) {
-            <span class="coming-soon">{{ resource.linkedUserId ? 'Login linked' : 'No login linked' }}</span>
+            <span class="coming-soon">{{
+              resource.linkedUserId ? 'Login linked' : 'No login linked'
+            }}</span>
           }
         </div>
       </div>
@@ -49,11 +51,11 @@
           }
           <div>
             <dt>Added on</dt>
-            <dd>{{ resource.createdAt | date: 'mediumDate' }}</dd>
+            <dd>{{ resource.createdAt | businessDate }}</dd>
           </div>
           <div>
             <dt>Last updated</dt>
-            <dd>{{ resource.updatedAt | date: 'mediumDate' }}</dd>
+            <dd>{{ resource.updatedAt | businessDate }}</dd>
           </div>
         </dl>
       </section>

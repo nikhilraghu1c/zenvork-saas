@@ -5,13 +5,17 @@ import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
 import { ColDef } from 'ag-grid-community';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
-import { AppActionMenuComponent, AppActionMenuItem } from '../../../../shared/action-menu/action-menu.component';
+import {
+  AppActionMenuComponent,
+  AppActionMenuItem,
+} from '../../../../shared/action-menu/action-menu.component';
 import { AppDataGridComponent } from '../../../../shared/data-grid/data-grid.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
 import { BookingClientGridCellComponent } from '../../components/booking-client-grid-cell/booking-client-grid-cell.component';
 import { BookingCheckInDialogComponent } from '../../components/booking-check-in-dialog/booking-check-in-dialog.component';
 import { BookingGridActionsComponent } from '../../components/booking-grid-actions/booking-grid-actions.component';
 import { BookingStatusGridCellComponent } from '../../components/booking-status-grid-cell/booking-status-grid-cell.component';
+import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
 import { ResourceRecord, ResourceService } from '../../../resources/services/resource.service';
 import {
   BookingListQuery,
@@ -27,18 +31,6 @@ interface StatusFilterOption {
   value: BookingStatusFilter;
   label: string;
 }
-
-const indiaTodayInputValue = (): string => {
-  const parts = new Intl.DateTimeFormat('en-IN', {
-    timeZone: 'Asia/Kolkata',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(new Date());
-  const valueFor = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((part) => part.type === type)?.value ?? '';
-  return `${valueFor('year')}-${valueFor('month')}-${valueFor('day')}`;
-};
 
 @Component({
   selector: 'app-booking-list',
@@ -60,9 +52,12 @@ export class BookingListComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly resourceService = inject(ResourceService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly dateTime = inject(BusinessDateTimeService);
 
-  /** Starts with today's India business day so staff see the operational schedule first. */
-  protected readonly dateControl = new FormControl(indiaTodayInputValue(), { nonNullable: true });
+  /** Starts with today's business day so staff see the operational schedule first. */
+  protected readonly dateControl = new FormControl(this.dateTime.businessDateInputValue(), {
+    nonNullable: true,
+  });
   protected readonly resourceControl = new FormControl('', { nonNullable: true });
   protected readonly assignmentControl = new FormControl<AssignmentFilter>('ALL', {
     nonNullable: true,
@@ -152,11 +147,7 @@ export class BookingListComponent implements OnInit {
       minWidth: 96,
       maxWidth: 108,
       valueFormatter: ({ data }) =>
-        data?.status === 'COMPLETED'
-          ? data.paymentStatus === 'paid'
-            ? 'Paid'
-            : 'Unpaid'
-          : '—',
+        data?.status === 'COMPLETED' ? (data.paymentStatus === 'paid' ? 'Paid' : 'Unpaid') : '—',
       cellStyle: ({ data }) => ({
         color:
           data?.status === 'COMPLETED'
@@ -208,39 +199,19 @@ export class BookingListComponent implements OnInit {
     this.loadBookings();
   }
 
-  /** Converts UTC booking timestamps to the current India-focused product display timezone. */
+  /** Converts UTC booking timestamps to the shared business display timezone. */
   protected formatTime(value: string | null): string {
-    if (!value) return '—';
-    return new Intl.DateTimeFormat('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    })
-      .format(new Date(value))
-      .toUpperCase();
+    return this.dateTime.format(value, 'time');
   }
 
-  /** Formats scheduled dates in IST so staff see the business calendar day. */
+  /** Formats scheduled dates in the business timezone so staff see the business calendar day. */
   protected formatDate(value: string | null): string {
-    if (!value) return 'Unscheduled';
-    return new Intl.DateTimeFormat('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date(value));
+    return value ? this.dateTime.format(value, 'date') : 'Unscheduled';
   }
 
   /** Keeps the compact booking-card schedule row readable on narrow screens. */
   protected formatMobileDate(value: string | null): string {
-    if (!value) return 'Unscheduled';
-    return new Intl.DateTimeFormat('en-GB', {
-      timeZone: 'Asia/Kolkata',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(new Date(value));
+    return value ? this.dateTime.format(value, 'compactDate') : 'Unscheduled';
   }
 
   /** Combines a planned start and end into the concise time slot shown in the grid. */
@@ -375,7 +346,7 @@ export class BookingListComponent implements OnInit {
     this.errorMessage = '';
     const query: BookingListQuery = {};
     if (this.dateControl.value) {
-      const { from, to } = this.indiaDayRange(this.dateControl.value);
+      const { from, to } = this.businessDayRange(this.dateControl.value);
       query.from = from;
       query.to = to;
     }
@@ -415,11 +386,8 @@ export class BookingListComponent implements OnInit {
     ];
   }
 
-  private indiaDayRange(dateValue: string): { from: string; to: string } {
-    const [year, month, day] = dateValue.split('-').map(Number);
-    // Booking storage is UTC; these bounds represent midnight-to-midnight in Asia/Kolkata.
-    const start = new Date(Date.UTC(year, month - 1, day, -5, -30));
-    const end = new Date(Date.UTC(year, month - 1, day + 1, -5, -30));
-    return { from: start.toISOString(), to: end.toISOString() };
+  private businessDayRange(dateValue: string): { from: string; to: string } {
+    // Booking storage is UTC; the shared service creates bounds for the configured business day.
+    return this.dateTime.businessDayRange(dateValue);
   }
 }

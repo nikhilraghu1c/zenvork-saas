@@ -28,12 +28,30 @@
       <section class="detail-section" aria-labelledby="account-title">
         <h2 id="account-title">Account details</h2>
         <dl class="card info-grid">
-          <div><dt>Email address</dt><dd>{{ staffMember.email || 'Not provided' }}</dd></div>
-          <div><dt>Mobile number</dt><dd>{{ staffMember.mobile }}</dd></div>
-          <div><dt>Role</dt><dd>Staff</dd></div>
-          <div><dt>Joined</dt><dd>{{ staffMember.createdAt | date: 'mediumDate' }}</dd></div>
-          <div><dt>Last login</dt><dd class="unavailable">Not available yet</dd></div>
-          <div><dt>Linked resource</dt><dd class="unavailable">Not available yet</dd></div>
+          <div>
+            <dt>Email address</dt>
+            <dd>{{ staffMember.email || 'Not provided' }}</dd>
+          </div>
+          <div>
+            <dt>Mobile number</dt>
+            <dd>{{ staffMember.mobile }}</dd>
+          </div>
+          <div>
+            <dt>Role</dt>
+            <dd>Staff</dd>
+          </div>
+          <div>
+            <dt>Joined</dt>
+            <dd>{{ staffMember.createdAt | businessDate }}</dd>
+          </div>
+          <div>
+            <dt>Last login</dt>
+            <dd class="unavailable">Not available yet</dd>
+          </div>
+          <div>
+            <dt>Linked resource</dt>
+            <dd class="unavailable">Not available yet</dd>
+          </div>
         </dl>
       </section>
 
@@ -49,12 +67,14 @@
                 <h3>{{ permission.name }}</h3>
                 <p>{{ permission.description }}</p>
               </div>
-              <mat-slide-toggle [disabled]="true" [aria-label]="permission.name + ' — not available yet'" />
+              <mat-slide-toggle
+                [disabled]="true"
+                [aria-label]="permission.name + ' — not available yet'"
+              />
             </div>
           }
         </div>
       </section>
-
     </div>
 
     <section class="detail-section" aria-labelledby="danger-title">

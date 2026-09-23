@@ -65,13 +65,13 @@
             <div class="resource-card__metadata">
               @if (resource.isPerson) {
                 <span class="resource-card__account">
-                  <mat-icon aria-hidden="true">{{ resource.linkedUserId ? 'link' : 'link_off' }}</mat-icon>
+                  <mat-icon aria-hidden="true">{{
+                    resource.linkedUserId ? 'link' : 'link_off'
+                  }}</mat-icon>
                   {{ resource.linkedUserId ? 'Login linked' : 'No login linked' }}
                 </span>
               }
-              <span class="resource-card__date"
-                >Added {{ resource.createdAt | date: 'mediumDate' }}</span
-              >
+              <span class="resource-card__date">Added {{ resource.createdAt | businessDate }}</span>
             </div>
             <mat-icon class="resource-card__arrow" aria-hidden="true">chevron_right</mat-icon>
           </div>

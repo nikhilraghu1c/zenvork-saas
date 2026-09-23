@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -6,17 +5,26 @@ import { MatIconModule } from '@angular/material/icon';
 import { ColDef } from 'ag-grid-community';
 import { AppDataGridComponent } from '../../../../shared/data-grid/data-grid.component';
 import { AppInputComponent } from '../../../../shared/input/input.component';
+import { BusinessDatePipe } from '../../../../core/pipes/business-date.pipe';
+import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
 import { ClientRecord, ClientService } from '../../services/client.service';
 
 @Component({
   selector: 'app-client-list',
-  imports: [DatePipe, ReactiveFormsModule, MatIconModule, AppDataGridComponent, AppInputComponent],
+  imports: [
+    BusinessDatePipe,
+    ReactiveFormsModule,
+    MatIconModule,
+    AppDataGridComponent,
+    AppInputComponent,
+  ],
   templateUrl: './client-list.component.html',
   styleUrl: './client-list.component.scss',
 })
 export class ClientListComponent implements OnInit {
   private readonly service = inject(ClientService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly dateTime = inject(BusinessDateTimeService);
 
   /** Search value used to narrow the already loaded tenant client list. */
   protected readonly searchControl = new FormControl('', { nonNullable: true });
@@ -46,7 +54,7 @@ export class ClientListComponent implements OnInit {
       field: 'createdAt',
       headerName: 'Added',
       minWidth: 130,
-      valueFormatter: ({ value }) => new Date(value).toLocaleDateString(),
+      valueFormatter: ({ value }) => this.dateTime.format(value, 'date'),
     },
   ];
 

@@ -43,7 +43,9 @@ configuration allows the Angular development origin at `http://localhost:4200`. 
 services define feature endpoints and request/response types by composing that client; for example,
 business registration belongs to `modules/register`. The registration module fetches active business
 types from `GET /api/business-types` and submits the selected `businessTypeId`; it does not hardcode
-the selectable platform types.
+the selectable platform types. A global HTTP interceptor clears cached user metadata and redirects
+protected `401` responses to login; login-request `401` responses remain available to the form as
+invalid-credential feedback.
 
 ## State management
 
@@ -60,9 +62,17 @@ later for genuinely cross-feature workflows, WebSocket events, or optimistic upd
 
 - After the backend provides `GET /api/me`, restore and validate the cookie session at application
   startup instead of using `sessionStorage` metadata alone for client route access.
-- Add an HTTP interceptor that clears local auth metadata and redirects to `/login` after an
-  authenticated API request returns `401`.
 - Use Angular's `takeUntilDestroyed()` for `AppLayoutComponent` breakpoint and router subscriptions.
+
+## Business date and time
+
+`BusinessDateTimeService` is the single frontend source for date/time formatting, business-day
+query bounds, and conversion of native booking form date/time values into UTC API timestamps. Its
+current hardcoded IANA timezone is `Asia/Kolkata`; `BusinessDatePipe` lets templates use the same
+rules with `value | businessDate`, or explicit `date`, `compactDate`, `time`, `dateTime`,
+`monthDay`, and `year` formats. All stored and API timestamps remain ISO UTC values. Replacing the
+hardcoded timezone with a tenant business setting later changes the display and scheduling rules in
+one frontend service; backend date-range reporting will use that same persisted setting separately.
 
 ## Resource workspace
 
@@ -89,7 +99,7 @@ the tenant-owned booking detail workspace directly. The detail page presents onl
 data: client contact details, resources, planned/actual schedule, notes, lifecycle timestamps, and
 booking metadata. `/app/booking/new` is a lazy-loaded operational form that selects an existing
 tenant client or creates one inline, assigns only configured resource types, and creates a pending
-booking unless staff provide the complete India-local date/start/end schedule.
+booking unless staff provide the complete business-local date/start/end schedule.
 `BookingService` also provides typed PATCH calls for booking detail edits (including scheduling and
 rescheduling) and lifecycle status transitions; the detail-page controls will use those calls as the
 editing workflow is added. The booking list action menu and detail header expose only valid next
@@ -104,3 +114,4 @@ businesses.
 Pure standalone display pipes live in `core/pipes`. `InitialsPipe` (`name | initials`) is shared by
 staff, resource, and sidebar avatars. It uses the first and last words, returns one uppercase initial
 for a single-word name, normalizes whitespace, and returns an empty string for missing names.
+`BusinessDatePipe` delegates date/time display to the configured business timezone.

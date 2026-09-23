@@ -6,7 +6,9 @@
         <h1 id="clients-title">Clients</h1>
         <span class="client-count">{{ clients.length }} Clients</span>
       </div>
-      <p class="client-description">Find the contact details and notes for everyone your business serves.</p>
+      <p class="client-description">
+        Find the contact details and notes for everyone your business serves.
+      </p>
     </div>
   </header>
 
@@ -33,13 +35,19 @@
   } @else if (!filteredClients.length) {
     <p class="page-state" role="status">No clients match your search.</p>
   } @else {
-    <app-data-grid class="client-grid desktop-grid" [rowData]="filteredClients" [columnDefs]="columnDefs" />
+    <app-data-grid
+      class="client-grid desktop-grid"
+      [rowData]="filteredClients"
+      [columnDefs]="columnDefs"
+    />
 
     <div class="mobile-clients">
       @for (client of filteredClients; track client._id) {
         <article class="client-card">
           <header class="client-card__header">
-            <span class="client-card__avatar" aria-hidden="true">{{ client.name.slice(0, 1) }}</span>
+            <span class="client-card__avatar" aria-hidden="true">{{
+              client.name.slice(0, 1)
+            }}</span>
             <div class="client-card__identity">
               <h2>{{ client.name }}</h2>
               <a [href]="'tel:' + client.mobile">{{ client.mobile }}</a>
@@ -57,7 +65,7 @@
               </p>
             }
           </div>
-          <footer>Added {{ client.createdAt | date: 'mediumDate' }}</footer>
+          <footer>Added {{ client.createdAt | businessDate }}</footer>
         </article>
       }
     </div>

@@ -1,18 +1,18 @@
 import { InitialsPipe } from '../../../../core/pipes/initials.pipe';
-import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
+import { BusinessDatePipe } from '../../../../core/pipes/business-date.pipe';
 import { StaffService, StaffUser } from '../../services/staff.service';
 
 @Component({
   selector: 'app-staff-details',
   imports: [
     InitialsPipe,
-    DatePipe,
+    BusinessDatePipe,
     MatIconModule,
     MatSlideToggleModule,
     AppButtonComponent,

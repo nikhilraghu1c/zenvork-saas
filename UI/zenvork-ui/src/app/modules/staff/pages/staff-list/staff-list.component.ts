@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,6 +8,7 @@ import { ColDef } from 'ag-grid-community';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppDataGridComponent } from '../../../../shared/data-grid/data-grid.component';
 import { AppInputComponent } from '../../../../shared/input/input.component';
+import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
 import { StaffGridActionsComponent } from '../../components/staff-grid-actions/staff-grid-actions.component';
 import { StaffService, StaffUser } from '../../services/staff.service';
 
@@ -24,6 +25,7 @@ import { StaffService, StaffUser } from '../../services/staff.service';
   styleUrl: './staff-list.component.scss',
 })
 export class StaffListComponent implements OnInit {
+  private readonly dateTime = inject(BusinessDateTimeService);
   /** Search value used to narrow the visible staff list. */
   protected readonly searchControl = new FormControl('', { nonNullable: true });
   protected staff: StaffUser[] = [];
@@ -44,7 +46,7 @@ export class StaffListComponent implements OnInit {
       field: 'createdAt',
       headerName: 'Added',
       minWidth: 130,
-      valueFormatter: ({ value }) => new Date(value).toLocaleDateString(),
+      valueFormatter: ({ value }) => this.dateTime.format(value, 'date'),
     },
     {
       headerName: 'Actions',
