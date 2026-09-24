@@ -17,6 +17,7 @@ Owners and staff can list only their business's services. Omit `active` to retur
 inactive services; use `active=true` or `active=false` to filter. The response is
 `{ "services": [...] }`, where each service contains `_id`, `name`, `pricePaise`,
 `description`, `durationMinutes`, `isActive`, `createdAt`, and `updatedAt`.
+When both statuses are requested, active services appear first, followed by name and ID order.
 
 ## Service options
 
@@ -26,7 +27,7 @@ GET /api/services/options
 
 Owners and staff can retrieve the active services suitable for a booking selector. The response is
 `{ "services": [{ "_id": "...", "name": "Haircut", "pricePaise": 50000,
-"durationMinutes": 45 }] }`.
+"durationMinutes": 45 }] }`, ordered by name and ID.
 
 ## Get a service
 

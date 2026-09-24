@@ -14,7 +14,8 @@ const getStaffUsers = async (req, res) => {
       }),
     )
       .select("name email mobile role createdAt updatedAt")
-      .sort({ name: 1 })
+      // Staff accounts have no active state yet, so use a stable alphabetical order with a unique tie-breaker.
+      .sort({ name: 1, _id: 1 })
       .lean();
 
     return res.status(200).json({ users });

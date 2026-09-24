@@ -25,7 +25,8 @@ const getServices = async (req, res) => {
     // Every service list is constrained to the authenticated business.
     const services = await Service.find(tenantFilter(req, listFilter))
       .select("name description pricePaise durationMinutes isActive createdAt updatedAt")
-      .sort({ name: 1 })
+      // Keep the catalogue stable while prioritizing services that can be assigned to new bookings.
+      .sort({ isActive: -1, name: 1, _id: 1 })
       .lean();
     return res.status(200).json({ services: services.map(toPublicService) });
   } catch (error) {
@@ -42,7 +43,7 @@ const getServiceOptions = async (req, res) => {
     // Booking forms may choose only active services from the authenticated business.
     const services = await Service.find(tenantFilter(req, { isActive: true }))
       .select("name pricePaise durationMinutes")
-      .sort({ name: 1 })
+      .sort({ name: 1, _id: 1 })
       .lean();
     return res.status(200).json({
       services: services.map(({ _id, name, pricePaise, durationMinutes }) => ({

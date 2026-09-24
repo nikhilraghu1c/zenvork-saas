@@ -10,6 +10,7 @@ import { AppDataGridComponent } from '../../../../shared/data-grid/data-grid.com
 import { AppInputComponent } from '../../../../shared/input/input.component';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
 import { StaffGridActionsComponent } from '../../components/staff-grid-actions/staff-grid-actions.component';
+import { NameAvatarGridCellComponent } from '../../../../shared/data-grid/components/name-avatar-grid-cell/name-avatar-grid-cell.component';
 import { StaffService, StaffUser } from '../../services/staff.service';
 
 @Component({
@@ -33,7 +34,13 @@ export class StaffListComponent implements OnInit {
   protected loading = true;
   protected errorMessage = '';
   protected readonly columnDefs: ColDef<StaffUser>[] = [
-    { field: 'name', headerName: 'Staff Member', minWidth: 190, flex: 1.3 },
+    {
+      field: 'name',
+      headerName: 'Staff Member',
+      minWidth: 190,
+      flex: 1.3,
+      cellRenderer: NameAvatarGridCellComponent,
+    },
     {
       field: 'email',
       headerName: 'Email',

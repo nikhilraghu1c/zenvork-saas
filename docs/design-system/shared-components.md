@@ -17,6 +17,8 @@ when a real new requirement appears; avoid speculative props and variants.
 Current wrappers are `AppButtonComponent`, `AppCheckboxComponent`, `AppInputComponent`, `AppToggleComponent`,
 `AppSelectComponent`, `AppDataGridComponent`, and `AppActionMenuComponent`. They provide the initial public-form,
 action-menu, and desktop data-grid UI while keeping their public APIs intentionally small.
+`NameAvatarGridCellComponent` lives under `shared/data-grid/components` as an AG Grid renderer for
+name columns that need a one-letter avatar beside the displayed name.
 Business-type tiles are registration-specific native radio inputs, so they remain inside that module
 rather than being treated as a shared component.
 

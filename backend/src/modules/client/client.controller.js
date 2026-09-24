@@ -10,7 +10,8 @@ const getClientList = async (req, res) => {
     // Client records are always scoped to the authenticated business.
     const clients = await Client.find(tenantFilter(req))
       .select("name mobile email notes createdAt updatedAt")
-      .sort({ name: 1 }) // Sort by name ascending for consistent display order
+      // Show recently added clients first, with an ID tie-breaker for records created at the same time.
+      .sort({ createdAt: -1, _id: -1 })
       .lean();
 
     return res.status(200).json({ clients });

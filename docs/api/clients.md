@@ -10,7 +10,7 @@ staff can manage only clients belonging to their authenticated business. Request
 GET /api/clients
 ```
 
-Returns `{ clients: [...] }`, sorted by name. Each client includes `_id`, `name`, `mobile`, optional
+Returns `{ clients: [...] }`, sorted newest first by `createdAt` and then `_id`. Each client includes `_id`, `name`, `mobile`, optional
 `email` and `notes`, plus `createdAt` and `updatedAt`. Tenant IDs are not returned.
 
 ## Create a client

@@ -8,6 +8,7 @@ import { AppInputComponent } from '../../../../shared/input/input.component';
 import { BusinessDatePipe } from '../../../../core/pipes/business-date.pipe';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
 import { ClientRecord, ClientService } from '../../services/client.service';
+import { NameAvatarGridCellComponent } from '../../../../shared/data-grid/components/name-avatar-grid-cell/name-avatar-grid-cell.component';
 
 @Component({
   selector: 'app-client-list',
@@ -34,7 +35,13 @@ export class ClientListComponent implements OnInit {
   protected errorMessage = '';
   /** Defines the concise desktop client grid. */
   protected readonly columnDefs: ColDef<ClientRecord>[] = [
-    { field: 'name', headerName: 'Client', minWidth: 200, flex: 1.2 },
+    {
+      field: 'name',
+      headerName: 'Client',
+      minWidth: 200,
+      flex: 1.2,
+      cellRenderer: NameAvatarGridCellComponent,
+    },
     { field: 'mobile', headerName: 'Mobile', minWidth: 150 },
     {
       field: 'email',

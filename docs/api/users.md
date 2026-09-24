@@ -10,6 +10,9 @@ must not be supplied in a request.
 GET /api/users
 ```
 
+Returns tenant-owned staff accounts in name and then ID order. Staff accounts do not currently have
+an active/inactive state.
+
 Returns only `STAFF` users belonging to the owner's business. Password hashes and tenant IDs are
 never returned.
 
