@@ -54,9 +54,9 @@
     </div>
   } @else if (!services.length) {
     <div class="empty-state">
-      <mat-icon>content_cut</mat-icon>
+      <mat-icon>miscellaneous_services</mat-icon>
       <h2>No services yet</h2>
-      <p>Create services such as Haircut or Consultation to add them to bookings.</p>
+      <p>Create services to make them available for bookings.</p>
       @if (isOwner) {
         <app-button routerLink="/app/services/new">Add service</app-button>
       }
@@ -71,7 +71,7 @@
           [class.is-inactive]="!service.isActive"
         >
           <a class="service-card__details" [routerLink]="['/app/services', service._id]">
-            <span class="service-card__icon"><mat-icon>content_cut</mat-icon></span>
+            <span class="service-card__icon"><mat-icon>miscellaneous_services</mat-icon></span>
             <div class="service-card__main">
               <h2>{{ service.name }}</h2>
               <p>{{ service.description || 'No description added' }}</p>
