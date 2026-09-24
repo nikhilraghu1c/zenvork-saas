@@ -17,7 +17,8 @@ const getResources = async (req, res) => {
     // Every resource list is limited to the authenticated user's business.
     const resources = await Resource.find(tenantFilter(req))
       .select("name resourceType isActive linkedUserId createdAt updatedAt")
-      .sort({ name: 1 })
+      // Keep resource lists stable: type groups, active records, names, then a final unique tie-breaker.
+      .sort({ resourceType: 1, isActive: -1, name: 1, _id: 1 })
       .lean();
 
     const business = await Business.findById(tenantId(req))

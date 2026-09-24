@@ -12,6 +12,8 @@ GET /api/resources
 Returns `{ resources: [...] }` containing only resources owned by the authenticated user's business.
 Each record includes `_id`, `name`, `resourceType`, `isActive`, `linkedUserId`, `createdAt`, and
 `updatedAt`, and `isPerson` (resolved from the business-type catalog). The linked account is an ID or `null`, not a populated user record.
+The default order is resource type, active resources first, name, then ID, so clients receive a
+stable list even when names are the same.
 
 ## Resource type options
 

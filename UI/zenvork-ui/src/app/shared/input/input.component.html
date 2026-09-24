@@ -12,6 +12,9 @@
     @if (prefix) {
       <span matTextPrefix>{{ prefix }}</span>
     }
+    @if (prefixIcon) {
+      <mat-icon matIconPrefix aria-hidden="true">{{ prefixIcon }}</mat-icon>
+    }
     <input
       matInput
       [id]="inputId"

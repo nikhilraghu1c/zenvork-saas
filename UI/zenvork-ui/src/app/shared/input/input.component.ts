@@ -1,13 +1,14 @@
 import { Component, EventEmitter, Input, Output, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
 let nextInputId = 0;
 
 @Component({
   selector: 'app-input',
-  imports: [MatFormFieldModule, MatInputModule],
+  imports: [MatFormFieldModule, MatIconModule, MatInputModule],
   templateUrl: './input.component.html',
   styleUrl: './input.component.scss',
   providers: [
@@ -34,6 +35,8 @@ export class AppInputComponent implements ControlValueAccessor {
   @Input() placeholder = '';
   /** Optional text rendered before the input value, such as a currency symbol. */
   @Input() prefix = '';
+  /** Optional Material icon rendered before the input value, such as a search icon. */
+  @Input() prefixIcon = '';
   /** Optional text rendered after the input value, such as a unit. */
   @Input() suffix = '';
   @Input() autocomplete = '';

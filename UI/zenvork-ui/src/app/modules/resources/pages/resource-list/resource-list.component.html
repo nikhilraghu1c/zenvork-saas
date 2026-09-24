@@ -2,29 +2,54 @@
   <header class="resource-list-page__header">
     <div>
       <p class="eyebrow">Business Resources</p>
-      <div class="resource-title-row">
-        <h1 id="resources-title">Resources</h1>
-        <span class="resource-count">{{ resources.length }} Resources</span>
-      </div>
-      <p class="resource-description">Manage the people and spaces available for bookings.</p>
+      <h1 id="resources-title">Resources</h1>
+      <p class="resource-description">Everything available to assign to bookings, grouped by type.</p>
     </div>
+    @if (isOwner) {
+      <app-button routerLink="/app/resources/new">
+        <span class="add-button-content"><mat-icon>add</mat-icon><span>Add resource</span></span>
+      </app-button>
+    }
   </header>
-  <div class="resource-list-page__search">
+
+  <div class="resource-list-page__filters" aria-label="Resource filters">
     <app-input
       [formControl]="searchControl"
-      label="Search Resources"
+      label="Search resources"
       labelPlacement="floating"
       subscriptSizing="dynamic"
-      placeholder="Search by name, type, or status"
+      prefixIcon="search"
+      placeholder="Search resources..."
     />
-    @if (isOwner) {
-      <app-button class="add-button" routerLink="/app/resources/new"
-        ><span class="add-button-content"
-          ><mat-icon>add</mat-icon><span>Add</span></span
-        ></app-button
-      >
-    }
+    <div class="filter-group filter-group--types" aria-label="Filter by resource type">
+      @for (type of typeFilters; track type.code) {
+        <button
+          class="filter-chip"
+          type="button"
+          [class.is-selected]="selectedType === type.code"
+          [attr.aria-pressed]="selectedType === type.code"
+          (click)="selectType(type.code)"
+        >
+          {{ type.name }} <span>{{ type.count }}</span>
+        </button>
+      }
+    </div>
+    <span class="filter-divider" aria-hidden="true"></span>
+    <div class="filter-group" aria-label="Filter by status">
+      @for (status of ['ACTIVE', 'INACTIVE', 'ALL']; track status) {
+        <button
+          class="filter-chip"
+          type="button"
+          [class.is-selected]="selectedStatus === status"
+          [attr.aria-pressed]="selectedStatus === status"
+          (click)="selectStatus($any(status))"
+        >
+          {{ status === 'ACTIVE' ? 'Active' : status === 'INACTIVE' ? 'Inactive' : 'All' }}
+        </button>
+      }
+    </div>
   </div>
+
   @if (loading) {
     <p class="page-state" role="status">Loading resources…</p>
   } @else if (errorMessage) {
@@ -32,50 +57,45 @@
   } @else if (!resources.length) {
     <div class="empty-state">
       <mat-icon aria-hidden="true">category</mat-icon>
-      <h2>No Resources Yet</h2>
-      <p>Your business resources will appear here.</p>
+      <h2>No resources yet</h2>
+      <p>Add the people, rooms, chairs, or equipment your business needs for bookings.</p>
       @if (isOwner) {
-        <app-button routerLink="/app/resources/new">Add Resource</app-button>
+        <app-button routerLink="/app/resources/new">Add resource</app-button>
       }
     </div>
-  } @else if (!filteredResources.length) {
-    <p class="page-state" role="status">No resources match your search.</p>
+  } @else if (!resourceGroups.length) {
+    <p class="page-state" role="status">No resources match these filters.</p>
   } @else {
-    <app-data-grid
-      class="resource-grid desktop-grid"
-      [rowData]="filteredResources"
-      [columnDefs]="columnDefs"
-    />
-    <div class="mobile-resources">
-      @for (resource of filteredResources; track resource._id) {
-        <a class="resource-card" [routerLink]="['/app/resources', resource._id]">
-          <div class="resource-card__header">
-            <span class="resource-card__icon" aria-hidden="true"
-              ><mat-icon>category</mat-icon></span
-            >
-            <div class="resource-card__identity">
-              <h2>{{ resource.name }}</h2>
-              <p class="resource-card__type">{{ resource.resourceType }}</p>
-            </div>
-            <span class="resource-card__status" [class.is-active]="resource.isActive">
-              <span aria-hidden="true">●</span> {{ resource.isActive ? 'Active' : 'Inactive' }}
-            </span>
-          </div>
-          <div class="resource-card__footer">
-            <div class="resource-card__metadata">
-              @if (resource.isPerson) {
-                <span class="resource-card__account">
-                  <mat-icon aria-hidden="true">{{
-                    resource.linkedUserId ? 'link' : 'link_off'
-                  }}</mat-icon>
-                  {{ resource.linkedUserId ? 'Login linked' : 'No login linked' }}
+    <div class="resource-groups">
+      @for (group of resourceGroups; track group.code) {
+        <section class="resource-group" [attr.aria-labelledby]="'resource-type-' + group.code">
+          <header class="resource-group__header">
+            <h2 [id]="'resource-type-' + group.code">{{ group.name }}</h2>
+            <span class="resource-group__active-count">{{ group.activeCount }} active</span>
+          </header>
+          <div class="resource-group__rows">
+            @for (resource of group.resources; track resource._id) {
+              <a class="resource-row" [routerLink]="['/app/resources', resource._id]">
+                <span
+                  class="resource-row__icon"
+                  [class.is-person]="resource.isPerson"
+                  aria-hidden="true"
+                >
+                  <mat-icon>{{ resourceIcon(resource) }}</mat-icon>
                 </span>
-              }
-              <span class="resource-card__date">Added {{ resource.createdAt | businessDate }}</span>
-            </div>
-            <mat-icon class="resource-card__arrow" aria-hidden="true">chevron_right</mat-icon>
+                <span class="resource-row__details">
+                  <span class="resource-row__name">{{ resource.name }}</span>
+                  <span class="resource-row__summary">{{ resourceSummary(resource) }}</span>
+                </span>
+                <span class="resource-row__type">{{ resourceTypeName(resource) }}</span>
+                <span class="resource-row__status" [class.is-active]="resource.isActive">
+                  <span aria-hidden="true">●</span> {{ resource.isActive ? 'Active' : 'Inactive' }}
+                </span>
+                <mat-icon class="resource-row__arrow" aria-hidden="true">chevron_right</mat-icon>
+              </a>
+            }
           </div>
-        </a>
+        </section>
       }
     </div>
   }

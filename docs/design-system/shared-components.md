@@ -22,7 +22,8 @@ rather than being treated as a shared component.
 
 The wrappers live directly in `src/app/shared/button` and `src/app/shared/input`; their Angular
 Selectors remain `app-button` and `app-input`. `app-input` accepts optional `prefix` and `suffix`
-text for units such as currency or minutes. `app-toggle` renders a label and optional hint beside
+text for units such as currency or minutes, plus `prefixIcon` for a leading Material icon such as
+search. `app-toggle` renders a label and optional hint beside
 its accessible Material toggle. `AppCheckboxComponent` lives in
 `src/app/shared/checkbox` and uses the `app-checkbox` selector. The authenticated sidebar and
 topbar remain layout-owned components because they are specific to `AppLayoutComponent`.

@@ -22,6 +22,13 @@
     --mat-form-field-container-text-size: 14px;
   }
 
+  mat-icon[matIconPrefix] {
+    width: 16px;
+    height: 16px;
+    color: var(--text-mute);
+    font-size: 18px;
+  }
+
   .input-error {
     margin: -12px 0 8px;
     color: var(--mat-sys-error);
