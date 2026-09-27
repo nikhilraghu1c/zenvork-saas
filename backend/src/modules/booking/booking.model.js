@@ -204,5 +204,7 @@ bookingSchema.index({ businessId: 1, scheduledStartAt: 1 });
 bookingSchema.index({ businessId: 1, resourceIds: 1, scheduledStartAt: 1 });
 // Dashboard revenue is calculated from completed bookings in a tenant time range.
 bookingSchema.index({ businessId: 1, status: 1, actualEndAt: 1 });
+// The all-bookings activity feed filters by tenant and pages newest updates first.
+bookingSchema.index({ businessId: 1, updatedAt: -1, _id: -1 });
 
 export default mongoose.model("Booking", bookingSchema);

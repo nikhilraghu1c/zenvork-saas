@@ -1,15 +1,17 @@
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
 import { ColDef } from 'ag-grid-community';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import {
   AppActionMenuComponent,
   AppActionMenuItem,
 } from '../../../../shared/action-menu/action-menu.component';
 import { AppDataGridComponent } from '../../../../shared/data-grid/data-grid.component';
+import { AppInputComponent } from '../../../../shared/input/input.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
 import { BookingClientGridCellComponent } from '../../components/booking-client-grid-cell/booking-client-grid-cell.component';
 import { BookingCheckInDialogComponent } from '../../components/booking-check-in-dialog/booking-check-in-dialog.component';
@@ -25,11 +27,10 @@ import {
 } from '../../services/booking.service';
 
 type BookingStatusFilter = 'ALL' | BookingStatus;
-type AssignmentFilter = 'ALL' | 'assigned' | 'unassigned';
+type BookingListView = 'TODAY' | 'ALL';
 
-interface StatusFilterOption {
+interface StatusFilterOption extends AppSelectOption {
   value: BookingStatusFilter;
-  label: string;
 }
 
 @Component({
@@ -41,29 +42,32 @@ interface StatusFilterOption {
     AppActionMenuComponent,
     AppButtonComponent,
     AppDataGridComponent,
+    AppInputComponent,
     AppSelectComponent,
     BookingCheckInDialogComponent,
   ],
   templateUrl: './booking-list.component.html',
   styleUrl: './booking-list.component.scss',
 })
-export class BookingListComponent implements OnInit {
+export class BookingListComponent implements OnInit, OnDestroy {
   private readonly bookingService = inject(BookingService);
   private readonly router = inject(Router);
   private readonly resourceService = inject(ResourceService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly dateTime = inject(BusinessDateTimeService);
 
-  /** Starts with today's business day so staff see the operational schedule first. */
-  protected readonly dateControl = new FormControl(this.dateTime.businessDateInputValue(), {
+  /** Today's work is the default operational view; all bookings remains a full activity history. */
+  protected readonly viewControl = new FormControl<BookingListView>('TODAY', {
     nonNullable: true,
   });
+  protected readonly statusControl = new FormControl<BookingStatusFilter>('ALL', {
+    nonNullable: true,
+  });
+  protected readonly searchControl = new FormControl('', { nonNullable: true });
+  protected readonly updatedDateControl = new FormControl('', { nonNullable: true });
   protected readonly resourceControl = new FormControl('', { nonNullable: true });
-  protected readonly assignmentControl = new FormControl<AssignmentFilter>('ALL', {
-    nonNullable: true,
-  });
   protected readonly statusFilters: StatusFilterOption[] = [
-    { value: 'ALL', label: 'All' },
+    { value: 'ALL', label: 'All bookings' },
     { value: 'PENDING', label: 'Pending' },
     { value: 'SCHEDULED', label: 'Scheduled' },
     { value: 'CHECKED_IN', label: 'Checked in' },
@@ -71,18 +75,13 @@ export class BookingListComponent implements OnInit {
     { value: 'CANCELLED', label: 'Cancelled' },
     { value: 'NO_SHOW', label: 'No-show' },
   ];
-  protected readonly assignmentOptions: AppSelectOption[] = [
-    { value: 'ALL', label: 'All assignments' },
-    { value: 'assigned', label: 'Assigned' },
-    { value: 'unassigned', label: 'Needs assignment' },
-  ];
 
   protected resourceOptions: AppSelectOption[] = [{ value: '', label: 'All resources' }];
   protected readonly personResourceIds = new Set<string>();
-  protected selectedStatus: BookingStatusFilter = 'ALL';
   protected bookings: BookingRecord[] = [];
   protected totalBookings = 0;
   protected loading = true;
+  protected loadingMore = false;
   protected errorMessage = '';
   protected checkInBooking: BookingRecord | null = null;
   /** Lets the grid's action renderer refresh this feature-owned tenant list after an action. */
@@ -93,8 +92,20 @@ export class BookingListComponent implements OnInit {
       this.updatePaymentStatus(bookingId, paymentStatus),
     openCheckIn: (booking: BookingRecord) => (this.checkInBooking = booking),
   };
-  /** Defines the staff-oriented desktop grid, separating a booking date from its time slot. */
-  protected readonly columnDefs: ColDef<BookingRecord>[] = [
+  protected currentPage = 1;
+  protected readonly pageSize = 20;
+  private mobileLoadObserver: IntersectionObserver | null = null;
+
+  /** Defines the staff-oriented desktop grid for the active lifecycle view. */
+  protected columnDefs: ColDef<BookingRecord>[] = this.createColumnDefs();
+
+  @ViewChild('mobileLoadMore')
+  set mobileLoadMore(element: ElementRef<HTMLElement> | undefined) {
+    this.observeMobileLoadMore(element?.nativeElement);
+  }
+
+  private createColumnDefs(): ColDef<BookingRecord>[] {
+    return [
     {
       field: 'status',
       headerName: 'Status',
@@ -111,17 +122,24 @@ export class BookingListComponent implements OnInit {
     },
     {
       field: 'scheduledStartAt',
-      headerName: 'Time slot',
+      headerName: 'Date',
       minWidth: 142,
       flex: 0.9,
-      valueFormatter: ({ data }) => this.timeSlotLabel(data),
+      valueFormatter: ({ data }) => this.formatDate(this.appointmentAt(data)),
     },
     {
       field: 'scheduledStartAt',
-      headerName: 'Date',
+      headerName: 'Time',
+      minWidth: 142,
+      flex: 0.9,
+      valueFormatter: ({ data }) => (data ? this.bookingTimeLabel(data) : '—'),
+    },
+    {
+      field: 'updatedAt',
+      headerName: 'Modified',
       minWidth: 138,
       flex: 0.85,
-      valueFormatter: ({ value }) => this.formatDate(value as string | null),
+      valueFormatter: ({ data }) => this.formatDate(this.activityAt(data)),
     },
     {
       field: 'resources',
@@ -168,15 +186,19 @@ export class BookingListComponent implements OnInit {
       minWidth: 96,
       maxWidth: 96,
     },
-  ];
+    ];
+  }
 
   /** Loads filters and refreshes the list whenever a list control changes. */
   ngOnInit(): void {
-    [this.dateControl, this.resourceControl, this.assignmentControl].forEach((control) =>
+    [this.viewControl, this.statusControl, this.updatedDateControl, this.resourceControl].forEach((control) =>
       control.valueChanges
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(() => this.loadBookings()),
+        .subscribe(() => this.resetAndLoadBookings()),
     );
+    this.searchControl.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.resetAndLoadBookings());
 
     this.resourceService
       .getResources()
@@ -192,11 +214,29 @@ export class BookingListComponent implements OnInit {
     this.loadBookings();
   }
 
-  /** Applies one lifecycle filter at a time so its meaning remains clear to staff. */
-  protected selectStatus(status: BookingStatusFilter): void {
-    if (this.selectedStatus === status) return;
-    this.selectedStatus = status;
-    this.loadBookings();
+  ngOnDestroy(): void {
+    this.mobileLoadObserver?.disconnect();
+  }
+
+  protected get isTodayView(): boolean {
+    return this.viewControl.value === 'TODAY';
+  }
+
+  protected get hasNextPage(): boolean {
+    return this.currentPage * this.pageSize < this.totalBookings;
+  }
+
+  protected get hasPreviousPage(): boolean {
+    return this.currentPage > 1;
+  }
+
+  protected get totalPages(): number {
+    return Math.max(1, Math.ceil(this.totalBookings / this.pageSize));
+  }
+
+  /** Switches between the operational daily feed and the full booking history. */
+  protected setView(view: BookingListView): void {
+    if (this.viewControl.value !== view) this.viewControl.setValue(view);
   }
 
   /** Converts UTC booking timestamps to the shared business display timezone. */
@@ -204,27 +244,49 @@ export class BookingListComponent implements OnInit {
     return this.dateTime.format(value, 'time');
   }
 
-  /** Formats scheduled dates in the business timezone so staff see the business calendar day. */
+  /** Formats lifecycle dates in the business timezone so staff see the business calendar day. */
   protected formatDate(value: string | null): string {
     return value ? this.dateTime.format(value, 'date') : 'Unscheduled';
   }
 
-  /** Keeps the compact booking-card schedule row readable on narrow screens. */
-  protected formatMobileDate(value: string | null): string {
-    return value ? this.dateTime.format(value, 'compactDate') : 'Unscheduled';
+  /** Both list views are ordered by the latest meaningful booking update. */
+  protected activityAt(booking: BookingRecord | undefined): string | null {
+    return booking?.updatedAt ?? null;
   }
 
-  /** Combines a planned start and end into the concise time slot shown in the grid. */
-  protected timeSlotLabel(booking: BookingRecord | undefined): string {
-    if (!booking?.scheduledStartAt) return 'Awaiting slot';
-    const start = this.formatTime(booking.scheduledStartAt);
-    return booking.scheduledEndAt ? `${start} – ${this.formatTime(booking.scheduledEndAt)}` : start;
+  /** Shows planned timing before check-in and recorded timing once work has started. */
+  protected appointmentAt(booking: BookingRecord | undefined): string | null {
+    if (!booking) return null;
+
+    return booking.status === 'CHECKED_IN' || booking.status === 'COMPLETED'
+      ? booking.actualStartAt ?? booking.scheduledStartAt
+      : booking.scheduledStartAt;
   }
 
-  protected mobileTimeSlotLabel(booking: BookingRecord): string {
-    if (!booking.scheduledStartAt) return 'Awaiting slot';
-    const start = this.formatTime(booking.scheduledStartAt).replace(/ (AM|PM)$/, '');
-    return booking.scheduledEndAt ? `${start} – ${this.formatTime(booking.scheduledEndAt)}` : start;
+  /** Displays the relevant planned or actual time range for the booking lifecycle state. */
+  protected bookingTimeLabel(booking: BookingRecord): string {
+    const startAt = this.appointmentAt(booking);
+    if (!startAt) return 'Awaiting schedule';
+
+    const start = this.formatTime(startAt);
+    const endAt =
+      booking.status === 'COMPLETED'
+        ? booking.actualEndAt
+        : booking.status === 'SCHEDULED' || booking.status === 'CANCELLED' || booking.status === 'NO_SHOW'
+          ? booking.scheduledEndAt
+          : null;
+
+    return endAt ? `${start} – ${this.formatTime(endAt)}` : start;
+  }
+
+  /** Keeps the booking date short enough to share a mobile row with the appointment time. */
+  protected formatMobileAppointmentDate(booking: BookingRecord): string {
+    const appointmentAt = this.appointmentAt(booking);
+    return appointmentAt ? this.dateTime.format(appointmentAt, 'compactDate') : 'Unscheduled';
+  }
+
+  protected todayLabel(): string {
+    return this.dateTime.format(new Date(), 'date');
   }
 
   /** Returns assigned resources generically without assuming salon-only resource types. */
@@ -312,7 +374,7 @@ export class BookingListComponent implements OnInit {
 
   protected handleCheckedIn(): void {
     this.checkInBooking = null;
-    this.loadBookings(false);
+    this.resetAndLoadBookings();
   }
 
   protected updateBookingStatus(bookingId: string, status: BookingStatus): void {
@@ -321,7 +383,7 @@ export class BookingListComponent implements OnInit {
       .updateBookingStatus(bookingId, { status })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.loadBookings(false),
+        next: () => this.resetAndLoadBookings(),
         error: (error) => {
           this.errorMessage = error.error?.message ?? 'Unable to update booking status.';
         },
@@ -334,40 +396,88 @@ export class BookingListComponent implements OnInit {
       .updatePaymentStatus(bookingId, { paymentStatus })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.loadBookings(false),
+        next: () => this.resetAndLoadBookings(),
         error: (error) => {
           this.errorMessage = error.error?.message ?? 'Unable to update payment status.';
         },
       });
   }
 
-  private loadBookings(showLoading = true): void {
+  protected goToPage(page: number): void {
+    if (page < 1 || page === this.currentPage || (page > this.currentPage && !this.hasNextPage)) {
+      return;
+    }
+    this.currentPage = page;
+    this.loadBookings(false);
+  }
+
+  /** Requests the next stable offset page when the mobile sentinel enters view. */
+  protected loadMoreBookings(): void {
+    if (this.loading || this.loadingMore || !this.hasNextPage) return;
+    this.currentPage += 1;
+    this.loadBookings(false, true);
+  }
+
+  private loadBookings(showLoading = true, append = false): void {
+    if (!append) this.currentPage = this.currentPage || 1;
     if (showLoading) this.loading = true;
+    if (append) this.loadingMore = true;
     this.errorMessage = '';
-    const query: BookingListQuery = {};
-    if (this.dateControl.value) {
-      const { from, to } = this.businessDayRange(this.dateControl.value);
+    const query: BookingListQuery = {
+      view: this.isTodayView ? 'today' : 'all',
+      page: this.currentPage,
+      limit: this.pageSize,
+    };
+    if (this.isTodayView) {
+      const { from, to } = this.businessDayRange(this.dateTime.businessDateInputValue());
+      query.from = from;
+      query.to = to;
+    } else if (this.updatedDateControl.value) {
+      const { from, to } = this.businessDayRange(this.updatedDateControl.value);
       query.from = from;
       query.to = to;
     }
     if (this.resourceControl.value) query.resourceId = this.resourceControl.value;
-    if (this.assignmentControl.value !== 'ALL') query.assignment = this.assignmentControl.value;
-    if (this.selectedStatus !== 'ALL') query.status = this.selectedStatus;
+    if (this.statusControl.value !== 'ALL') query.status = this.statusControl.value;
+    const search = this.searchControl.value.trim();
+    if (search.length >= 2) query.search = search;
 
     this.bookingService
       .getBookings(query)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ({ bookings, pagination }) => {
-          this.bookings = bookings;
+          this.bookings = append ? [...this.bookings, ...bookings] : bookings;
           this.totalBookings = pagination.total;
           this.loading = false;
+          this.loadingMore = false;
         },
         error: (error) => {
           this.errorMessage = error.error?.message ?? 'Unable to load bookings.';
           this.loading = false;
+          this.loadingMore = false;
+          if (append) this.currentPage -= 1;
         },
       });
+  }
+
+  private resetAndLoadBookings(): void {
+    this.currentPage = 1;
+    this.bookings = [];
+    this.loadBookings();
+  }
+
+  /** Mobile cards append as the sentinel becomes visible; desktop uses explicit grid pagination. */
+  private observeMobileLoadMore(element?: HTMLElement): void {
+    this.mobileLoadObserver?.disconnect();
+    if (!element || typeof IntersectionObserver === 'undefined') return;
+    this.mobileLoadObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) this.loadMoreBookings();
+      },
+      { rootMargin: '160px' },
+    );
+    this.mobileLoadObserver.observe(element);
   }
 
   private setResourceOptions(resources: ResourceRecord[]): void {

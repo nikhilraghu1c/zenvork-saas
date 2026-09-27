@@ -23,6 +23,9 @@ const ALLOWED_STATUS_TRANSITIONS = {
 };
 const EDITABLE_BOOKING_STATUSES = ["PENDING", "SCHEDULED", "CHECKED_IN"];
 
+// Escaping client input keeps the tenant-scoped name search a literal, bounded regular expression.
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const getServiceSnapshots = async (req, serviceIds) => {
   if (serviceIds.length === 0) return [];
 
@@ -89,10 +92,31 @@ const getAllBookings = async (req, res) => {
     const {
       filter: listFilter,
       sort,
+      search,
       page,
       limit,
     } = validateBookingListQuery(req.query);
     const filter = tenantFilter(req, listFilter);
+
+    if (search) {
+      // Search client records in the same tenant before applying their IDs to booking records.
+      const matchingClients = await Client.find(
+        tenantFilter(req, {
+          $or: [
+            { name: { $regex: escapeRegex(search), $options: "i" } },
+            { mobile: { $regex: escapeRegex(search) } },
+          ],
+        }),
+      )
+        .select("_id")
+        .limit(100)
+        .lean();
+      const matchingClientIds = matchingClients.map((client) => client._id);
+      // An explicit client filter and free-text search must intersect rather than overwrite each other.
+      filter.clientId = filter.clientId
+        ? { $in: matchingClientIds.filter((id) => id.equals(filter.clientId)) }
+        : { $in: matchingClientIds };
+    }
 
     // Return only bookings owned by the authenticated business.
     const [bookings, total] = await Promise.all([

@@ -19,10 +19,18 @@ actual times, status, `hasServices`, `extraAmountPaise`, `totalAmountPaise`, `pa
 names `clientId` and `resourceIds` are not returned in list responses. Line-item services are returned
 only by the detail endpoint.
 
-Optional query parameters are `from` and `to` (ISO date-times with a timezone), comma-separated
-`status`, `resourceId`, `clientId`, `assignment=assigned|unassigned`, `page`, `limit` (maximum 100),
-`sortBy=scheduledStartAt|createdAt|updatedAt`, and `order=asc|desc`. The default is chronological
-scheduled time ascending; a `status=PENDING` queue defaults to oldest created first.
+Optional query parameters are `view=today|all`, `status`, `from` and `to` (ISO date-times with a
+timezone), `search`, `resourceId`, `clientId`, `assignment=assigned|unassigned`, `page`, and `limit`
+(maximum 100). `status` accepts one lifecycle value, not a comma-separated list. `search` is a
+tenant-scoped, case-insensitive client-name or mobile-number search and must contain 2–100 characters.
+
+`view=all` is the default and returns history ordered by `updatedAt` newest first. When a date range is
+provided for that view, it applies to `updatedAt`. `view=today` requires a complete business-day
+`from`/`to` range. It includes pending bookings created in that range, scheduled bookings whose planned
+start is in the range, checked-in bookings whose actual start is in the range, completed bookings whose
+actual end is in the range, and cancelled/no-show bookings updated in the range. Both views use
+`updatedAt` newest first with `_id` as a final tie-breaker, so a status change keeps a today booking
+visible and moves it to the top rather than making it disappear.
 
 ## Get a booking
 

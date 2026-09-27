@@ -25,6 +25,7 @@
       [required]="required"
       [disabled]="disabled"
       (input)="updateValue($event)"
+      (click)="openDatePicker($event)"
       (blur)="markTouched()"
     />
     @if (suffix) {

@@ -56,8 +56,5 @@ choice, not a global automatic rule.
 
 - Add tenant-scoped booking status summary counts for clickable Needs assignment, Checked in, Completed,
   and No-show cards.
-- Default the list to an Active view (`PENDING`, `SCHEDULED`, `CHECKED_IN`) and add backend-supported
-  client name/mobile search.
-- Add Today, Tomorrow, and This week date shortcuts; keep pending work as a visible queue rather than
-  hiding unresolved bookings behind a schedule-date filter.
+- Add Tomorrow and This week date shortcuts to the all-bookings history view.
 - Add the gradient treatment for the single New booking primary CTA.

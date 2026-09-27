@@ -12,8 +12,8 @@ const BOOKING_STATUSES = [
   "CANCELLED",
   "NO_SHOW",
 ];
-const SORT_FIELDS = ["scheduledStartAt", "createdAt", "updatedAt"];
 const PAYMENT_STATUSES = ["unpaid", "paid"];
+const BOOKING_LIST_VIEWS = ["today", "all"];
 
 export class BookingValidationError extends Error {
   constructor(message) {
@@ -368,10 +368,10 @@ export const validateBookingListQuery = (query) => {
     "resourceId",
     "assignment",
     "clientId",
+    "view",
+    "search",
     "page",
     "limit",
-    "sortBy",
-    "order",
   ];
   if (Object.keys(query).some((field) => !allowedFields.includes(field))) {
     throw new BookingValidationError("Invalid query parameters");
@@ -391,16 +391,25 @@ export const validateBookingListQuery = (query) => {
     resourceId,
     assignment,
     clientId,
+    view = "all",
+    search,
     page,
     limit,
-    sortBy,
-    order,
   } = query;
   const fromDate = from === undefined ? null : parseDateTime(from, "from date");
   const toDate = to === undefined ? null : parseDateTime(to, "to date");
 
   if (fromDate && toDate && toDate <= fromDate) {
     throw new BookingValidationError("To date must be after from date");
+  }
+  if (!BOOKING_LIST_VIEWS.includes(view)) {
+    throw new BookingValidationError("Invalid booking list view");
+  }
+  if (
+    search !== undefined &&
+    (typeof search !== "string" || search.trim().length < 2 || search.trim().length > 100)
+  ) {
+    throw new BookingValidationError("Search must contain between 2 and 100 characters");
   }
 
   if (resourceId !== undefined && !isValidObjectId(resourceId)) {
@@ -425,55 +434,45 @@ export const validateBookingListQuery = (query) => {
     );
   }
 
-  if (sortBy !== undefined && !SORT_FIELDS.includes(sortBy)) {
-    throw new BookingValidationError("Invalid sort field");
-  }
-
-  if (order !== undefined && !["asc", "desc"].includes(order)) {
-    throw new BookingValidationError("Invalid sort order");
-  }
-
-  const statuses =
-    status === undefined ? [] : status.split(",").filter(Boolean);
-  if (
-    (status !== undefined && statuses.length === 0) ||
-    statuses.some(
-      (bookingStatus) => !BOOKING_STATUSES.includes(bookingStatus),
-    ) ||
-    new Set(statuses).size !== statuses.length
-  ) {
+  if (status !== undefined && !BOOKING_STATUSES.includes(status)) {
     throw new BookingValidationError("Invalid status filter");
   }
-
   // Build only allow-listed MongoDB criteria from validated query parameters.
   const filter = {};
-  if (fromDate || toDate) {
-    filter.scheduledStartAt = {
-      ...(fromDate && { $gte: fromDate }),
-      ...(toDate && { $lt: toDate }),
-    };
+  const dateRange = {
+    ...(fromDate && { $gte: fromDate }),
+    ...(toDate && { $lt: toDate }),
+  };
+  if (view === "today") {
+    if (!fromDate || !toDate) {
+      throw new BookingValidationError("Today's view requires a complete business-day range");
+    }
+    // Each status enters Today's work through its own business-relevant timestamp.
+    filter.$or = [
+      { status: "PENDING", createdAt: dateRange },
+      { status: "SCHEDULED", scheduledStartAt: dateRange },
+      { status: "CHECKED_IN", actualStartAt: dateRange },
+      { status: "COMPLETED", actualEndAt: dateRange },
+      { status: "CANCELLED", updatedAt: dateRange },
+      { status: "NO_SHOW", updatedAt: dateRange },
+    ];
+  } else if (fromDate || toDate) {
+    // Historical date filtering is consistently based on the latest booking activity.
+    filter.updatedAt = dateRange;
   }
-  if (statuses.length > 0) filter.status = { $in: statuses };
+  if (status) filter.status = status;
   if (resourceId) filter.resourceIds = resourceId;
   if (clientId) filter.clientId = clientId;
   if (assignment === "assigned") filter["resourceIds.0"] = { $exists: true };
   if (assignment === "unassigned") filter.resourceIds = { $size: 0 };
 
-  // Pending work is a FIFO task queue; calendar results are chronological by default.
-  const defaultSortBy =
-    statuses.length === 1 && statuses[0] === "PENDING"
-      ? "createdAt"
-      : "scheduledStartAt";
-  const selectedSortBy = sortBy ?? defaultSortBy;
-  const direction = order === "desc" ? -1 : 1;
-  const sort =
-    selectedSortBy === "createdAt"
-      ? { createdAt: direction }
-      : { [selectedSortBy]: direction, createdAt: direction };
+  // Both views are activity feeds; a stable tie-breaker prevents records moving between pages.
+  const sort = { updatedAt: -1, _id: -1 };
 
   return {
     filter,
     sort,
+    search: search?.trim() || "",
     page: parsePositiveInteger(page, "page", 1, 1000000),
     limit: parsePositiveInteger(limit, "limit", 50, 100),
   };

@@ -31,7 +31,7 @@ export class AppInputComponent implements ControlValueAccessor {
   /** Optional stable ID used to associate an outside label with its input. */
   @Input() inputId = `app-input-${nextInputId++}`;
   /** Native input type used for appropriate browser behavior and keyboards. */
-  @Input() type: 'email' | 'number' | 'password' | 'tel' | 'text' = 'text';
+  @Input() type: 'date' | 'email' | 'number' | 'password' | 'tel' | 'text' = 'text';
   @Input() placeholder = '';
   /** Optional text rendered before the input value, such as a currency symbol. */
   @Input() prefix = '';
@@ -75,6 +75,13 @@ export class AppInputComponent implements ControlValueAccessor {
   protected updateValue(event: Event): void {
     this.value = (event.target as HTMLInputElement).value;
     this.onChange(this.value);
+  }
+
+  /** Opens the native calendar on browsers that expose a programmatic date picker. */
+  protected openDatePicker(event: MouseEvent): void {
+    if (this.type !== 'date') return;
+    const input = event.target as HTMLInputElement;
+    if (typeof input.showPicker === 'function') input.showPicker();
   }
 
   /** Marks the field as visited and notifies any listener of the blur event. */

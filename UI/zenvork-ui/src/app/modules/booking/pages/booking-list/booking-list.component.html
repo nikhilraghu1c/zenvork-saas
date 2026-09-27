@@ -11,50 +11,77 @@
         }
       </div>
       <p class="booking-description">
-        Keep the day moving by assigning and tracking every appointment.
+        Track today’s activity or browse the complete booking history.
       </p>
     </div>
-    <app-button class="new-booking-button" routerLink="/app/booking/new">
-      <span><mat-icon aria-hidden="true">add</mat-icon>New booking</span>
-    </app-button>
+    <div class="booking-list-page__header-actions">
+      <app-button class="new-booking-button" routerLink="/app/booking/new">
+        <span><mat-icon aria-hidden="true">add</mat-icon>New booking</span>
+      </app-button>
+    </div>
   </header>
 
-  <div class="booking-list-page__filters" aria-label="Booking filters">
-    <label class="date-filter">
-      <span>Schedule date</span>
-      <input type="date" [formControl]="dateControl" />
-    </label>
+  <nav class="booking-list-page__views" aria-label="Booking view">
+    <button
+      type="button"
+      [class.is-selected]="isTodayView"
+      (click)="setView('TODAY')"
+    >
+      Today’s work
+    </button>
+    <button
+      type="button"
+      [class.is-selected]="!isTodayView"
+      (click)="setView('ALL')"
+    >
+      All bookings
+    </button>
+  </nav>
+
+  <p class="activity-description">
+    @if (isTodayView) {
+      Today · {{ todayLabel() }} · newest activity first
+    } @else {
+      All booking activity · newest first
+    }
+  </p>
+
+  <div
+    class="booking-list-page__filters"
+    [class.has-updated-date]="!isTodayView"
+    aria-label="Booking filters"
+  >
+    <app-input
+      class="search-filter"
+      [formControl]="searchControl"
+      label="Search bookings"
+      placeholder="Search client or mobile"
+      prefixIcon="search"
+      subscriptSizing="dynamic"
+    />
+    @if (!isTodayView) {
+      <app-input
+        class="updated-date-filter"
+        [formControl]="updatedDateControl"
+        label="Modified on"
+        type="date"
+        subscriptSizing="dynamic"
+      />
+    }
+    <app-select
+      class="status-filter"
+      [formControl]="statusControl"
+      label="Status"
+      subscriptSizing="dynamic"
+      [options]="statusFilters"
+    />
     <app-select
       class="resource-filter"
       [formControl]="resourceControl"
       label="Resource"
-      labelPlacement="outside"
       subscriptSizing="dynamic"
       [options]="resourceOptions"
     />
-    <app-select
-      class="assignment-filter"
-      [formControl]="assignmentControl"
-      label="Assignment"
-      labelPlacement="outside"
-      subscriptSizing="dynamic"
-      [options]="assignmentOptions"
-    />
-    <div class="status-filters" aria-label="Booking status">
-      <span class="status-filters__label">Status</span>
-      <div class="status-filters__chips" role="group">
-        @for (status of statusFilters; track status.value) {
-          <button
-            type="button"
-            class="status-chip"
-            [class.is-selected]="selectedStatus === status.value"
-            (click)="selectStatus(status.value)"
-          >
-            {{ status.label }}
-          </button>
-        }
-      </div>
-    </div>
   </div>
 
   @if (loading) {
@@ -74,6 +101,15 @@
       [columnDefs]="columnDefs"
       [context]="gridContext"
     />
+    <nav class="desktop-pagination" aria-label="Booking pages">
+      <app-button variant="secondary" [disabled]="!hasPreviousPage" (clicked)="goToPage(currentPage - 1)">
+        Previous
+      </app-button>
+      <span>Page {{ currentPage }} of {{ totalPages }}</span>
+      <app-button variant="secondary" [disabled]="!hasNextPage" (clicked)="goToPage(currentPage + 1)">
+        Next
+      </app-button>
+    </nav>
     <div class="mobile-bookings">
       @for (booking of bookings; track booking._id) {
         <article class="booking-card" [class.is-muted]="booking.status === 'CANCELLED'">
@@ -104,11 +140,11 @@
               <div class="booking-card__schedule">
                 <span
                   ><mat-icon aria-hidden="true">calendar_today</mat-icon
-                  >{{ formatMobileDate(booking.scheduledStartAt) }}</span
+                  >{{ formatMobileAppointmentDate(booking) }}</span
                 >
                 <span
                   ><mat-icon aria-hidden="true">schedule</mat-icon
-                  >{{ mobileTimeSlotLabel(booking) }}</span
+                  >{{ bookingTimeLabel(booking) }}</span
                 >
                 <strong>{{ formatAmount(booking.totalAmountPaise) }}</strong>
               </div>
@@ -133,6 +169,11 @@
             <mat-icon class="booking-card__arrow" aria-hidden="true">chevron_right</mat-icon>
           </a>
         </article>
+      }
+      @if (hasNextPage) {
+        <div #mobileLoadMore class="mobile-load-more" role="status">
+          {{ loadingMore ? 'Loading more bookings…' : 'Loading more bookings…' }}
+        </div>
       }
     </div>
     @if (checkInBooking) {

@@ -31,10 +31,11 @@ its accessible Material toggle. `AppCheckboxComponent` lives in
 topbar remain layout-owned components because they are specific to `AppLayoutComponent`.
 
 `AppInputComponent` uses Material's floating label by default. Its supported native input types are
-`text`, `email`, `number`, `password`, and `tel`. Set `floatLabel="always"` to keep
+`text`, `date`, `email`, `number`, `password`, and `tel`. Set `floatLabel="always"` to keep
 that label floated, or set `labelPlacement="outside"` for an accessible native label above the
-outlined field. Provide `inputId` when a stable DOM identifier is needed. Its supported native
-Its `subscriptSizing` defaults to `fixed`
+outlined field. Provide `inputId` when a stable DOM identifier is needed. Date inputs use the
+browser's native calendar and open it on click where the browser supports that interaction. Its
+`subscriptSizing` defaults to `fixed`
 for consistent form spacing; use `dynamic` for compact fields such as a search input that does not
 show supporting feedback. Fields marked `required` automatically show a visual error-colored star
 while retaining the native required attribute for accessibility and validation.

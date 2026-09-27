@@ -56,13 +56,15 @@ export interface BookingRecord {
 }
 
 export interface BookingListQuery extends ApiQuery {
+  view?: 'today' | 'all';
   from?: string;
   to?: string;
+  search?: string;
   status?: BookingStatus;
   resourceId?: string;
   assignment?: 'assigned' | 'unassigned';
-  sortBy?: 'scheduledStartAt' | 'createdAt' | 'updatedAt';
-  order?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
 }
 
 export interface BookingListResponse {
