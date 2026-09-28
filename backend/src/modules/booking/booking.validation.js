@@ -188,6 +188,10 @@ export const validateBookingCreation = (data) => {
       "Scheduled end time must be after the start time",
     );
   }
+  // New appointments must remain actionable; past slots are historical, not schedulable.
+  if (startAt && startAt < new Date()) {
+    throw new BookingValidationError("Scheduled start time cannot be in the past");
+  }
 
   return {
     clientId: hasClientId ? clientId : null,
@@ -336,6 +340,10 @@ export const validateBookingUpdate = (data) => {
     throw new BookingValidationError(
       "Scheduled end time must be after the start time",
     );
+  }
+  // Enforce this only when the slot changes, so notes/services remain editable on an overdue booking.
+  if (scheduledStartAt && scheduledStartAt < new Date()) {
+    throw new BookingValidationError("Scheduled start time cannot be in the past");
   }
 
   return {

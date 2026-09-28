@@ -199,6 +199,10 @@ const updateBooking = async (req, res) => {
     ) {
       return res.status(409).json({ message: "Only notes and services can be updated after check-in" });
     }
+    if (updateData.hasClientId && booking.status !== "PENDING") {
+      // A scheduled appointment must not be silently transferred to another client.
+      return res.status(409).json({ message: "Client can only be changed while a booking is pending" });
+    }
     if (
       booking.status === "PENDING" &&
       updateData.hasResourceIds &&
@@ -211,7 +215,7 @@ const updateBooking = async (req, res) => {
     }
 
     if (updateData.hasClientId) {
-      // Reassigned clients must remain records owned by the authenticated business.
+      // A corrected pending client must still belong to the authenticated business.
       const clientExists = await Client.exists(
         tenantFilter(req, { _id: updateData.clientId }),
       );

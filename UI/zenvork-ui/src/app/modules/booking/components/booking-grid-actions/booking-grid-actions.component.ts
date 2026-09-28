@@ -41,6 +41,10 @@ export class BookingGridActionsComponent implements ICellRendererAngularComp {
       void this.router.navigate(['/app/booking', this.booking._id]);
       return;
     }
+    if (actionId === 'edit') {
+      void this.router.navigate(['/app/booking', this.booking._id, 'edit']);
+      return;
+    }
     if (actionId === 'add-services') {
       void this.router.navigate(['/app/booking', this.booking._id]);
       return;
@@ -68,9 +72,17 @@ export class BookingGridActionsComponent implements ICellRendererAngularComp {
     this.booking = params.data!;
     this.actions = [
       { id: 'details', label: 'Details', icon: 'visibility' },
+      ...this.editActions(this.booking.status),
       ...this.paymentActions(this.booking),
       ...this.statusActions(this.booking.status),
     ];
+  }
+
+  /** Keeps the shared editor available only while the booking remains operationally editable. */
+  private editActions(status: BookingStatus): AppActionMenuItem[] {
+    return ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(status)
+      ? [{ id: 'edit', label: 'Edit booking', icon: 'edit' }]
+      : [];
   }
 
   private statusActions(status: BookingStatus): AppActionMenuItem[] {

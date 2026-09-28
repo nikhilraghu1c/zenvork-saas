@@ -62,14 +62,15 @@ PATCH /api/bookings/:id
 ```
 
 Only `clientId`, `resourceIds`, `serviceIds`, `extraAmountPaise`, `scheduledStartAt`,
-`scheduledEndAt`, and `notes` are accepted. Client, resource, and schedule edits are allowed only
+`scheduledEndAt`, and `notes` are accepted. Client correction is allowed only while a booking is
+`PENDING`; after scheduling, the client is locked. Resource and schedule edits are allowed only
 while a booking is `PENDING` or `SCHEDULED`; services and the extra amount may be changed while it
 is `PENDING`, `SCHEDULED`, or `CHECKED_IN`.
 Terminal bookings cannot be edited.
 
 Send scheduled start and end together; they must be ISO date-times with a timezone and form a valid
-range. The server verifies tenant-owned active resources and checks conflicts, excluding the booking
-being rescheduled. Supplying a time range for a `PENDING` booking automatically changes it to
+range, with a start time that is not in the past. The server verifies tenant-owned active resources
+and checks conflicts, excluding the booking being rescheduled. Supplying a time range for a `PENDING` booking automatically changes it to
 `SCHEDULED` and adds a status-history entry. A pending booking cannot receive resources until it is
 being scheduled. `serviceIds` replaces the selected service list. Every ID must be an active service
 owned by the authenticated business; the backend snapshots each service's name, price, and duration.

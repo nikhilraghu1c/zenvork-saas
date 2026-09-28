@@ -2,7 +2,7 @@ import { InitialsPipe } from '../../../../core/pipes/initials.pipe';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import {
   AppActionMenuComponent,
@@ -42,6 +42,7 @@ export class BookingDetailsComponent implements OnInit {
   private readonly bookingService = inject(BookingService);
   private readonly serviceApi = inject(ServiceService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly dateTime = inject(BusinessDateTimeService);
 
@@ -135,6 +136,15 @@ export class BookingDetailsComponent implements OnInit {
   }
 
   protected canEditBill(booking: BookingRecord): boolean {
+    return ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status);
+  }
+
+  /** Opens the full editor only while the booking has fields the backend permits staff to change. */
+  protected openBookingEditor(booking: BookingRecord): void {
+    void this.router.navigate(['/app/booking', booking._id, 'edit']);
+  }
+
+  protected canEditBooking(booking: BookingRecord): boolean {
     return ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status);
   }
 

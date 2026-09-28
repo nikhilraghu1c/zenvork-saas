@@ -8,6 +8,12 @@ export const bookingRoutes: Routes = [
       import('./pages/booking-form/booking-form.component').then((m) => m.BookingFormComponent),
   },
   {
+    path: ':id/edit',
+    data: { title: 'Edit Booking' },
+    loadComponent: () =>
+      import('./pages/booking-edit/booking-edit.component').then((m) => m.BookingEditComponent),
+  },
+  {
     path: ':id',
     data: { title: 'Booking Details' },
     loadComponent: () =>

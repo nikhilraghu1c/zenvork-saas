@@ -75,6 +75,18 @@ export class BusinessDateTimeService {
     return `${year}-${this.pad(month)}-${this.pad(day)}`;
   }
 
+  /** Converts a stored UTC instant into native date and time input values for the business timezone. */
+  businessDateTimeInputValues(value: DateTimeValue): { date: string; time: string } | null {
+    const date = this.parse(value);
+    if (!date) return null;
+
+    const { year, month, day, hour, minute } = this.parts(date);
+    return {
+      date: `${year}-${this.pad(month)}-${this.pad(day)}`,
+      time: `${this.pad(hour)}:${this.pad(minute)}`,
+    };
+  }
+
   /** Converts one business-local date/time from native inputs into the API's UTC ISO format. */
   toBusinessDateTimeIso(dateValue: string, timeValue: string): string {
     const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateValue);

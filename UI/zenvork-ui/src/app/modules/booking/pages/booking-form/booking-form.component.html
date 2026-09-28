@@ -109,15 +109,25 @@
         <section class="form-section" aria-labelledby="schedule-title">
           <h2 id="schedule-title">Schedule</h2>
           <div class="card schedule-fields">
-            <label class="native-field"
-              ><span>Date</span><input type="date" [formControl]="dateControl"
-            /></label>
-            <label class="native-field"
-              ><span>Start time</span><input type="time" [formControl]="startTimeControl"
-            /></label>
-            <label class="native-field"
-              ><span>End time</span><input type="time" [formControl]="endTimeControl"
-            /></label>
+            <app-date-picker
+              [formControl]="dateControl"
+              label="Date"
+              labelPlacement="outside"
+              subscriptSizing="dynamic"
+              [min]="dateTime.businessDateInputValue()"
+            />
+            <app-time-picker
+              [formControl]="startTimeControl"
+              label="Start time"
+              labelPlacement="outside"
+              subscriptSizing="dynamic"
+            />
+            <app-time-picker
+              [formControl]="endTimeControl"
+              label="End time"
+              labelPlacement="outside"
+              subscriptSizing="dynamic"
+            />
           </div>
         </section>
 

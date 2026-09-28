@@ -1,15 +1,18 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { Router, RouterLink } from '@angular/router';
+import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
+import { AppDatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { AppInputComponent } from '../../../../shared/input/input.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
+import { AppTimePickerComponent } from '../../../../shared/time-picker/time-picker.component';
 import { ClientRecord } from '../../../client/services/client.service';
 import { ResourceRecord, ResourceTypeOption } from '../../../resources/services/resource.service';
-import { BookingFormService } from '../../services/booking-form.service';
 import { ServiceOption } from '../../../service/services/service.service';
+import { BookingFormService } from '../../services/booking-form.service';
 
 @Component({
   selector: 'app-booking-form',
@@ -20,6 +23,8 @@ import { ServiceOption } from '../../../service/services/service.service';
     AppButtonComponent,
     AppInputComponent,
     AppSelectComponent,
+    AppDatePickerComponent,
+    AppTimePickerComponent,
   ],
   templateUrl: './booking-form.component.html',
   styleUrl: './booking-form.component.scss',
@@ -28,6 +33,7 @@ export class BookingFormComponent implements OnInit {
   private readonly formService = inject(BookingFormService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly dateTime = inject(BusinessDateTimeService);
 
   protected readonly clientSearchControl = new FormControl('', { nonNullable: true });
   protected readonly newClientNameControl = new FormControl('', { nonNullable: true });

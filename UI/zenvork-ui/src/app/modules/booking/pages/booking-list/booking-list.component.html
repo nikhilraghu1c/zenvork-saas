@@ -60,11 +60,10 @@
       subscriptSizing="dynamic"
     />
     @if (!isTodayView) {
-      <app-input
+      <app-date-picker
         class="updated-date-filter"
         [formControl]="updatedDateControl"
         label="Modified on"
-        type="date"
         subscriptSizing="dynamic"
       />
     }

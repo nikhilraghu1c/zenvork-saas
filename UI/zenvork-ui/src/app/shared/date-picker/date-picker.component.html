@@ -1,0 +1,40 @@
+<div class="app-date-picker">
+  @if (labelPlacement === 'outside') {
+    <label class="outside-label" [for]="inputId">
+      {{ label }}@if (required) {
+        <span class="required-marker" aria-hidden="true">*</span>
+      }
+    </label>
+  }
+  <mat-form-field appearance="outline" [subscriptSizing]="subscriptSizing">
+    @if (labelPlacement === 'floating') {
+      <mat-label>
+        {{ label }}@if (required) {
+          <span class="required-marker" aria-hidden="true">*</span>
+        }
+      </mat-label>
+    }
+    <input
+      matInput
+      [id]="inputId"
+      [matDatepicker]="picker"
+      [formControl]="control"
+      [placeholder]="placeholder"
+      [min]="minDate"
+      [max]="maxDate"
+      [required]="required"
+      [disabled]="disabled || isReadonly"
+      [attr.aria-invalid]="errorMessage ? 'true' : null"
+      [attr.aria-describedby]="errorMessage ? inputId + '-error' : null"
+      (blur)="markTouched()"
+    />
+    <mat-datepicker-toggle matIconSuffix [for]="picker" [disabled]="disabled || isReadonly" />
+    <mat-datepicker #picker panelClass="app-date-picker-panel" />
+    @if (hint && !errorMessage) {
+      <mat-hint>{{ hint }}</mat-hint>
+    }
+  </mat-form-field>
+  @if (errorMessage) {
+    <p class="input-error" [id]="inputId + '-error'" role="alert">{{ errorMessage }}</p>
+  }
+</div>

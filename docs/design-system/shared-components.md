@@ -14,8 +14,9 @@ Pages should use a shared wrapper when one exists rather than styling raw Materi
 Start each wrapper with only the capabilities needed by its first caller. Extend that same wrapper
 when a real new requirement appears; avoid speculative props and variants.
 
-Current wrappers are `AppButtonComponent`, `AppCheckboxComponent`, `AppInputComponent`, `AppToggleComponent`,
-`AppSelectComponent`, `AppDataGridComponent`, and `AppActionMenuComponent`. They provide the initial public-form,
+Current wrappers are `AppButtonComponent`, `AppCheckboxComponent`, `AppInputComponent`, `AppDatePickerComponent`,
+`AppTimePickerComponent`, `AppToggleComponent`, `AppSelectComponent`, `AppDataGridComponent`, and
+`AppActionMenuComponent`. They provide the initial public-form,
 action-menu, and desktop data-grid UI while keeping their public APIs intentionally small.
 `NameAvatarGridCellComponent` lives under `shared/data-grid/components` as an AG Grid renderer for
 name columns that need a one-letter avatar beside the displayed name.
@@ -31,14 +32,23 @@ its accessible Material toggle. `AppCheckboxComponent` lives in
 topbar remain layout-owned components because they are specific to `AppLayoutComponent`.
 
 `AppInputComponent` uses Material's floating label by default. Its supported native input types are
-`text`, `date`, `email`, `number`, `password`, and `tel`. Set `floatLabel="always"` to keep
+`text`, `email`, `number`, `password`, and `tel`. Set `floatLabel="always"` to keep
 that label floated, or set `labelPlacement="outside"` for an accessible native label above the
-outlined field. Provide `inputId` when a stable DOM identifier is needed. Date inputs use the
-browser's native calendar and open it on click where the browser supports that interaction. Its
+outlined field. Provide `inputId` when a stable DOM identifier is needed. Its
 `subscriptSizing` defaults to `fixed`
 for consistent form spacing; use `dynamic` for compact fields such as a search input that does not
 show supporting feedback. Fields marked `required` automatically show a visual error-colored star
 while retaining the native required attribute for accessibility and validation.
+
+`AppDatePickerComponent` (`shared/date-picker`, `app-date-picker`) and `AppTimePickerComponent`
+(`shared/time-picker`, `app-time-picker`) wrap Angular Material's picker overlays while exposing
+the same reactive-form string values used by booking APIs: `YYYY-MM-DD` and `HH:mm`. Use them for
+staff scheduling instead of raw Material or native date/time controls. The date picker accepts
+optional `min` and `max` business-calendar dates. The time picker accepts optional `min` and `max`
+`HH:mm` values and uses a 30-minute interval by default; pass `interval="15m"` when a page needs
+15-minute choices. Both support the standard label, outside-label, hint, error, required,
+`readonly`, and `subscriptSizing` options. An `errorMessage` is announced to assistive technology
+and linked to its field.
 
 `AppButtonComponent` emits `clicked` for page-level actions such as routed navigation while keeping
 the same shared Material button styling. Use `primary` for the main action, `secondary` for neutral

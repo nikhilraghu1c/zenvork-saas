@@ -21,6 +21,9 @@
       </div>
       @if (statusActions(booking.status).length) {
         <div class="booking-header__actions">
+          @if (canEditBooking(booking)) {
+            <app-button variant="text" (clicked)="openBookingEditor(booking)">Edit booking</app-button>
+          }
           <app-action-menu
             ariaLabel="Booking status actions"
             [items]="statusActions(booking.status)"

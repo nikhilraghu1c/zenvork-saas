@@ -12,6 +12,7 @@ import {
 } from '../../../../shared/action-menu/action-menu.component';
 import { AppDataGridComponent } from '../../../../shared/data-grid/data-grid.component';
 import { AppInputComponent } from '../../../../shared/input/input.component';
+import { AppDatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
 import { BookingClientGridCellComponent } from '../../components/booking-client-grid-cell/booking-client-grid-cell.component';
 import { BookingCheckInDialogComponent } from '../../components/booking-check-in-dialog/booking-check-in-dialog.component';
@@ -43,6 +44,7 @@ interface StatusFilterOption extends AppSelectOption {
     AppButtonComponent,
     AppDataGridComponent,
     AppInputComponent,
+    AppDatePickerComponent,
     AppSelectComponent,
     BookingCheckInDialogComponent,
   ],
@@ -324,8 +326,12 @@ export class BookingListComponent implements OnInit, OnDestroy {
 
   /** Mirrors desktop lifecycle options in the mobile card menu. */
   protected statusActions(booking: BookingRecord): AppActionMenuItem[] {
+    const editAction = ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status)
+      ? [{ id: 'edit', label: 'Edit booking', icon: 'edit' }]
+      : [];
     if (booking.status === 'CHECKED_IN') {
       return [
+        ...editAction,
         booking.hasServices
           ? { id: 'COMPLETED', label: 'Mark completed', icon: 'task_alt' }
           : { id: 'add-services', label: 'Add services', icon: 'add' },
@@ -342,6 +348,7 @@ export class BookingListComponent implements OnInit, OnDestroy {
     }
     if (booking.status === 'PENDING' || booking.status === 'SCHEDULED') {
       return [
+        ...editAction,
         { id: 'CHECKED_IN', label: 'Check in', icon: 'login' },
         { id: 'NO_SHOW', label: 'Mark no-show', icon: 'person_off' },
         { id: 'CANCELLED', label: 'Cancel booking', icon: 'cancel' },
@@ -352,6 +359,10 @@ export class BookingListComponent implements OnInit, OnDestroy {
 
   /** Opens resource assignment before check-in; other status changes submit immediately. */
   protected requestBookingAction(booking: BookingRecord, actionId: string): void {
+    if (actionId === 'edit') {
+      void this.router.navigate(['/app/booking', booking._id, 'edit']);
+      return;
+    }
     if (actionId === 'add-services') {
       void this.router.navigate(['/app/booking', booking._id]);
       return;
