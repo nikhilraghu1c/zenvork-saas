@@ -30,6 +30,14 @@ export interface DashboardSummary {
   };
   noShows: { count: number; resolvedBookings: number; rate: number };
   activeStaffCount: number;
+  bookingHealth: {
+    pending: number;
+    scheduled: number;
+    checkedIn: number;
+    completed: number;
+    cancelled: number;
+    noShow: number;
+  };
   topServices: DashboardTopService[];
   topStaff: DashboardTopStaffMember[];
 }

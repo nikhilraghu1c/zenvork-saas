@@ -150,6 +150,38 @@ const getTopStaffByCompletedBookings = async (req, from, to, personTypes) => {
     .filter(Boolean);
 };
 
+// Counts the current booking state using the lifecycle timestamp that makes that state meaningful.
+const getBookingHealth = async (req, from, to) => {
+  const dateRange = { $gte: from, $lt: to };
+  const statusChangedWithinRange = (status) => ({
+    status,
+    statusHistory: { $elemMatch: { status, changedAt: dateRange } },
+  });
+
+  const [pending, scheduled, checkedIn, completed, cancelled, noShow] =
+    await Promise.all([
+      // Pending work is dated by when the request was made because it has no appointment slot.
+      Booking.countDocuments(tenantFilter(req, { status: "PENDING", createdAt: dateRange })),
+      // Planned work stays tied to its booked slot until staff check the client in.
+      Booking.countDocuments(
+        tenantFilter(req, { status: "SCHEDULED", scheduledStartAt: dateRange }),
+      ),
+      // An in-progress service belongs to the period in which staff started it.
+      Booking.countDocuments(
+        tenantFilter(req, { status: "CHECKED_IN", actualStartAt: dateRange }),
+      ),
+      // Completed work is dated by its server-recorded finish time.
+      Booking.countDocuments(
+        tenantFilter(req, { status: "COMPLETED", actualEndAt: dateRange }),
+      ),
+      // Terminal outcomes use immutable status-history timestamps rather than later record edits.
+      Booking.countDocuments(tenantFilter(req, statusChangedWithinRange("CANCELLED"))),
+      Booking.countDocuments(tenantFilter(req, statusChangedWithinRange("NO_SHOW"))),
+    ]);
+
+  return { pending, scheduled, checkedIn, completed, cancelled, noShow };
+};
+
 const getDashboardSummary = async (req, res) => {
   try {
     const period = req.query.period ?? "today";
@@ -204,6 +236,7 @@ const getDashboardSummary = async (req, res) => {
       paymentTotals,
       topServices,
       topStaff,
+      bookingHealth,
     ] = await Promise.all([
       Booking.countDocuments(scheduledFilter),
       Booking.countDocuments(completedHistoryFilter),
@@ -230,6 +263,7 @@ const getDashboardSummary = async (req, res) => {
       ]),
       getTopServicesByRevenue(req, from, to),
       getTopStaffByCompletedBookings(req, from, to, personTypes),
+      getBookingHealth(req, from, to),
     ]);
     const paidTotal =
       paymentTotals.find((total) => total._id === "paid")?.totalAmountPaise ??
@@ -257,6 +291,7 @@ const getDashboardSummary = async (req, res) => {
           rate: resolvedBookings ? noShowCount / resolvedBookings : 0,
         },
         activeStaffCount,
+        bookingHealth,
         topServices,
         topStaff,
       },

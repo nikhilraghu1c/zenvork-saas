@@ -84,6 +84,42 @@
       </dl>
     </section>
 
+    <section class="booking-health" aria-labelledby="booking-health-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Booking health</p>
+          <h2 id="booking-health-title">How did bookings progress?</h2>
+        </div>
+        <mat-icon aria-hidden="true">monitor_heart</mat-icon>
+      </div>
+      <dl>
+        <div class="pending">
+          <dt>Pending</dt>
+          <dd>{{ loading ? '…' : summary?.bookingHealth?.pending ?? 0 }}</dd>
+        </div>
+        <div class="scheduled">
+          <dt>Scheduled</dt>
+          <dd>{{ loading ? '…' : summary?.bookingHealth?.scheduled ?? 0 }}</dd>
+        </div>
+        <div class="checked-in">
+          <dt>Checked in</dt>
+          <dd>{{ loading ? '…' : summary?.bookingHealth?.checkedIn ?? 0 }}</dd>
+        </div>
+        <div class="completed">
+          <dt>Completed</dt>
+          <dd>{{ loading ? '…' : summary?.bookingHealth?.completed ?? 0 }}</dd>
+        </div>
+        <div class="cancelled">
+          <dt>Cancelled</dt>
+          <dd>{{ loading ? '…' : summary?.bookingHealth?.cancelled ?? 0 }}</dd>
+        </div>
+        <div class="no-show">
+          <dt>No-show</dt>
+          <dd>{{ loading ? '…' : summary?.bookingHealth?.noShow ?? 0 }}</dd>
+        </div>
+      </dl>
+    </section>
+
     <div class="ranking-grid">
       <section class="top-services" aria-labelledby="top-services-title">
         <div class="section-heading">

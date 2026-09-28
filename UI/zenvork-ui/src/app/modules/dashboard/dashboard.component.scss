@@ -67,6 +67,7 @@
 
   .summary-card,
   .revenue-breakdown,
+  .booking-health,
   .top-services,
   .dashboard-error {
     border: 1px solid var(--border);
@@ -183,6 +184,82 @@
     border-radius: var(--radius-lg);
     background: var(--surface);
     backdrop-filter: blur(12px);
+  }
+
+  .booking-health {
+    margin-top: 16px;
+    padding: 22px;
+
+    .section-heading {
+      margin-bottom: 16px;
+    }
+
+    dl {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin: 0;
+    }
+
+    dl div {
+      min-width: 0;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-left-width: 3px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(
+        90deg,
+        var(--health-tint, transparent),
+        var(--surface-subtle) 54%
+      );
+      box-shadow: inset 3px 0 0 var(--health-accent, transparent);
+    }
+
+    dt {
+      overflow: hidden;
+      color: var(--text-dim);
+      font-size: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    dd {
+      margin: 6px 0 0;
+      color: var(--text);
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .pending {
+      --health-accent: var(--amber);
+      --health-tint: rgba(255, 176, 32, 0.08);
+      border-left-color: var(--amber);
+    }
+
+    .scheduled {
+      --health-accent: var(--cyan);
+      --health-tint: var(--cyan-soft);
+      border-left-color: var(--cyan);
+    }
+
+    .checked-in {
+      --health-accent: var(--purple);
+      --health-tint: var(--purple-soft);
+      border-left-color: var(--purple);
+    }
+
+    .completed {
+      --health-accent: var(--green);
+      --health-tint: var(--green-soft);
+      border-left-color: var(--green);
+    }
+
+    .cancelled,
+    .no-show {
+      --health-accent: var(--mat-sys-error);
+      --health-tint: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
+      border-left-color: var(--mat-sys-error);
+    }
   }
 
   .ranking-grid {
@@ -330,6 +407,10 @@
     .summary-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .booking-health dl {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
   @media (max-width: 700px) {
@@ -352,6 +433,14 @@
 
       dl {
         width: 100%;
+      }
+    }
+
+    .booking-health {
+      padding: 18px;
+
+      dl {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
   }

@@ -30,6 +30,14 @@ range used for comparison.
     },
     "noShows": { "count": 1, "resolvedBookings": 6, "rate": 0.1666666667 },
     "activeStaffCount": 4,
+    "bookingHealth": {
+      "pending": 1,
+      "scheduled": 3,
+      "checkedIn": 1,
+      "completed": 5,
+      "cancelled": 1,
+      "noShow": 1
+    },
     "topServices": [
       {
         "serviceId": "65f123456789012345678903",
@@ -61,3 +69,7 @@ enabled resources whose configured business type marks them as people; it is not
 within the selected `period`; manual extra charges are not attributed to a service.
 `topStaff` contains at most three enabled person resources by completed-booking count in the selected
 period. Rooms, chairs, and other non-person resource types are excluded.
+
+`bookingHealth` counts the current state with its relevant lifecycle date: pending records by
+`createdAt`, scheduled records by planned start, checked-in records by actual start, completed records
+by actual end, and cancelled/no-show records by the timestamp recorded in `statusHistory`.
