@@ -56,5 +56,11 @@ The authenticated dashboard summary combines tenant-scoped booking and resource 
 accepting a business identifier. Its earned-revenue figures use completed bookings' server-recorded
 `actualEndAt`; its manual collected/outstanding split never processes a payment or changes a bill.
 
+Owner-only revenue analytics is mounted at `/api/analytics`. It aggregates only tenant-owned completed
+bookings and shares `utils/reporting-period.js` with the dashboard so business-day boundaries are
+consistent. Completed billing uses `actualEndAt`; collection reporting uses `paidAt`, written by the
+payment-status endpoint when staff mark a booking as paid. This is intentionally a reporting timestamp,
+not a payment ledger or provider transaction record.
+
 Owners manage staff through the tenant-scoped users module. Its create endpoint accepts no client
 role or `businessId`: it always creates a `STAFF` user for the authenticated owner's business.

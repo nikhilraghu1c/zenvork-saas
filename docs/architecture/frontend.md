@@ -16,7 +16,7 @@ src/app/
 
 Public and authenticated experiences use separate route-level layouts. `PublicLayoutComponent` owns
 public navigation and public routes. `AppLayoutComponent` owns authenticated navigation and guarded
-`/app` routes. Dashboard, Booking, Clients, Staff, and Resources are implemented; the remaining visible app
+`/app` routes. Dashboard, Booking, Clients, Staff, Resources, Services, and owner-only Analytics are implemented; the remaining visible app
 navigation routes use a temporary shared preview page until their workspaces are implemented. Feature
 pages are lazy-loaded. Each feature owns a `<module>.routes.ts` route array beside its code;
 `app.routes.ts` only composes the two layouts and lazy-loads those feature route arrays.
@@ -115,3 +115,9 @@ Pure standalone display pipes live in `core/pipes`. `InitialsPipe` (`name | init
 staff, resource, and sidebar avatars. It uses the first and last words, returns one uppercase initial
 for a single-word name, normalizes whitespace, and returns an empty string for missing names.
 `BusinessDatePipe` delegates date/time display to the configured business timezone.
+
+## Analytics workspace
+
+`/app/analytics` is an owner-guarded, lazy-loaded revenue workspace. It requests fixed reporting
+periods from `GET /api/analytics/revenue` and presents billed, collected, outstanding, daily, and
+service-level revenue without calculating money totals in the browser.

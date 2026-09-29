@@ -57,7 +57,9 @@ export class SidebarComponent {
     },
     {
       label: 'Insights',
-      items: [{ label: 'Analytics', icon: 'analytics', route: '/app/analytics' }],
+      items: [
+        { label: 'Analytics', icon: 'analytics', route: '/app/analytics', requiresOwner: true },
+      ],
     },
     {
       label: 'Business',

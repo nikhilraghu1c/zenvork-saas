@@ -3,59 +3,7 @@ import Business from "../business/business.model.js";
 import BusinessType from "../business/business-type.model.js";
 import Resource from "../resource/resource.model.js";
 import { tenantFilter, tenantId } from "../../utils/tenant-scope.js";
-
-const PERIODS = ["today", "week", "month"];
-const BUSINESS_TIME_ZONE = "Asia/Kolkata";
-
-// Extracts a calendar date in the business timezone instead of using the server's local timezone.
-const getDateParts = (date) => {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: BUSINESS_TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-  return Object.fromEntries(
-    parts
-      .filter((part) => part.type !== "literal")
-      .map((part) => [part.type, Number(part.value)]),
-  );
-};
-
-// Converts an India calendar day into its UTC start instant (midnight IST is 18:30 UTC the day before).
-const startOfIndianDay = (date) => {
-  const { year, month, day } = getDateParts(date);
-  // Zenvork currently operates in India; tenant time zones can replace this fixed business boundary later.
-  return new Date(Date.UTC(year, month - 1, day, -5, -30));
-};
-
-// Builds the selected reporting window and the immediately preceding equal-length comparison window.
-const getRange = (period) => {
-  const now = new Date();
-  const { year, month, day } = getDateParts(now);
-  const localCalendarDate = new Date(Date.UTC(year, month - 1, day));
-  let from = startOfIndianDay(localCalendarDate);
-  let to = new Date(from);
-
-  if (period === "today") to.setUTCDate(to.getUTCDate() + 1);
-  if (period === "week") {
-    const indiaDay = (localCalendarDate.getUTCDay() + 6) % 7;
-    localCalendarDate.setUTCDate(localCalendarDate.getUTCDate() - indiaDay);
-    from = startOfIndianDay(localCalendarDate);
-    to = new Date(from);
-    to.setUTCDate(to.getUTCDate() + 7);
-  }
-  if (period === "month") {
-    localCalendarDate.setUTCDate(1);
-    from = startOfIndianDay(localCalendarDate);
-    localCalendarDate.setUTCMonth(localCalendarDate.getUTCMonth() + 1);
-    to = startOfIndianDay(localCalendarDate);
-  }
-
-  const previousFrom = new Date(from);
-  previousFrom.setTime(from.getTime() - (to.getTime() - from.getTime()));
-  return { from, to, previousFrom, previousTo: new Date(from) };
-};
+import { REPORTING_PERIODS, getReportingRange } from "../../utils/reporting-period.js";
 
 // Aggregation lets MongoDB sum completed booking totals without loading every booking into Node.js.
 const countCompletedRevenue = async (req, from, to) => {
@@ -186,13 +134,13 @@ const getDashboardSummary = async (req, res) => {
   try {
     const period = req.query.period ?? "today";
     // Reject arrays or other malformed query values instead of treating them as the default period.
-    if (typeof period !== "string" || !PERIODS.includes(period)) {
+    if (typeof period !== "string" || !REPORTING_PERIODS.includes(period)) {
       return res
         .status(400)
         .json({ message: "Period must be today, week, or month" });
     }
 
-    const { from, to, previousFrom, previousTo } = getRange(period);
+    const { from, to, previousFrom, previousTo } = getReportingRange(period);
     // Appointment volume follows the planned calendar, even before a booking is completed.
     const scheduledFilter = tenantFilter(req, {
       scheduledStartAt: { $gte: from, $lt: to },

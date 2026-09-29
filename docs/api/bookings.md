@@ -14,7 +14,8 @@ GET /api/bookings
 ```
 
 Returns `{ bookings: [...], pagination: { page, limit, total } }`. Each booking includes its schedule,
-actual times, status, `hasServices`, `extraAmountPaise`, `totalAmountPaise`, `paymentStatus`, notes, timestamps, a populated `client`
+actual times, status, `hasServices`, `extraAmountPaise`, `totalAmountPaise`, `paymentStatus`,
+`paidAt`, notes, timestamps, a populated `client`
 (`name`, `mobile`), and populated `resources` (`name`, `resourceType`) summaries. Database reference
 names `clientId` and `resourceIds` are not returned in list responses. Line-item services are returned
 only by the detail endpoint.
@@ -121,9 +122,10 @@ PATCH /api/bookings/:id/payment-status
 { "paymentStatus": "paid" }
 ```
 
-Owners and staff can set a completed booking to `paid` or `unpaid`. This records only the manual
-settlement state: it does not create an invoice, process a payment, calculate tax, or change booking
-services and totals. A non-completed booking returns `409`.
+Owners and staff can set a completed booking to `paid` or `unpaid`. Moving from unpaid to paid records
+the server time in `paidAt`; returning to unpaid clears it. This records only the manual settlement
+state: it does not create an invoice, process a payment, calculate tax, or change booking services and
+totals. A non-completed booking returns `409`.
 
 ## Create a booking
 

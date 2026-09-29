@@ -68,6 +68,7 @@ const toPublicBooking = (booking, includeServices = false) => {
     extraAmountPaise: source.extraAmountPaise ?? 0,
     totalAmountPaise: source.totalAmountPaise ?? 0,
     paymentStatus: source.paymentStatus ?? "unpaid",
+    paidAt: source.paidAt,
     hasServices: (source.services ?? []).length > 0,
     notes: source.notes,
     createdAt: source.createdAt,
@@ -122,7 +123,7 @@ const getAllBookings = async (req, res) => {
     const [bookings, total] = await Promise.all([
       Booking.find(filter)
         .select(
-          "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt services status extraAmountPaise totalAmountPaise paymentStatus notes createdAt updatedAt",
+          "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt services status extraAmountPaise totalAmountPaise paymentStatus paidAt notes createdAt updatedAt",
         )
         .populate("clientId", "name mobile")
         .populate("resourceIds", "name resourceType")
@@ -161,7 +162,7 @@ const getBookingById = async (req, res) => {
     // Load one tenant-owned booking with the same public summaries used by the list endpoint.
     const booking = await Booking.findOne(tenantFilter(req, { _id: req.params.id }))
       .select(
-        "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt services extraAmountPaise totalAmountPaise paymentStatus status statusHistory notes createdAt updatedAt",
+        "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt services extraAmountPaise totalAmountPaise paymentStatus paidAt status statusHistory notes createdAt updatedAt",
       )
       .populate("clientId", "name mobile email")
       .populate("resourceIds", "name resourceType")
@@ -557,6 +558,11 @@ const updateBookingPaymentStatus = async (req, res) => {
     if (booking.status !== "COMPLETED") {
       return res.status(409).json({ message: "Only completed bookings can be marked paid or unpaid" });
     }
+    // The settlement timestamp changes only on a real status transition, not on repeated requests.
+    if (paymentStatus === "paid" && booking.paymentStatus !== "paid") {
+      booking.paidAt = new Date();
+    }
+    if (paymentStatus === "unpaid") booking.paidAt = null;
     booking.paymentStatus = paymentStatus;
     await booking.save();
     await booking.populate("clientId", "name mobile email");

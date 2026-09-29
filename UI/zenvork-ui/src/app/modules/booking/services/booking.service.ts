@@ -49,6 +49,7 @@ export interface BookingRecord {
   extraAmountPaise: number;
   totalAmountPaise: number;
   paymentStatus: 'unpaid' | 'paid';
+  paidAt: string | null;
   notes: string;
   createdAt: string;
   updatedAt: string;

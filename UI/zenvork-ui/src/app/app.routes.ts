@@ -37,6 +37,12 @@ export const routes: Routes = [
         loadChildren: () => import('./modules/service/service.routes').then((m) => m.serviceRoutes),
       },
       {
+        path: 'analytics',
+        canActivate: [ownerGuard],
+        loadChildren: () =>
+          import('./modules/analytics/analytics.routes').then((m) => m.ANALYTICS_ROUTES),
+      },
+      {
         path: '',
         loadChildren: () =>
           import('./modules/coming-soon/coming-soon.routes').then((m) => m.comingSoonRoutes),
