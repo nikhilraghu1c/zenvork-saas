@@ -33,6 +33,14 @@ actual end is in the range, and cancelled/no-show bookings updated in the range.
 `updatedAt` newest first with `_id` as a final tie-breaker, so a status change keeps a today booking
 visible and moves it to the top rather than making it disappear.
 
+### Modified-on migration safety
+
+`updatedAt` powers both the All bookings **Modified on** filter and its newest-activity ordering. Any
+one-off system migration that updates existing bookings must use Mongoose `{ timestamps: false }`, so
+it does not make historical bookings look newly modified. If a migration has already overwritten
+`updatedAt`, the exact prior edit time cannot be recovered unless it was separately audited; the best
+fallback is the latest lifecycle timestamp in `statusHistory`, actual start/end, or creation time.
+
 ## Get a booking
 
 ```http
