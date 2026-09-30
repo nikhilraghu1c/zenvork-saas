@@ -2,8 +2,9 @@ import jwt from "jsonwebtoken";
 import validator from "validator";
 import { environment } from "../../config/environment.js";
 import User from "../../modules/users/user.model.js";
+import { authCookieOptions } from "../../utils/auth-cookie-options.js";
 
-const { ACCESS_TKN_SECRET, ACCESS_TKN_EXPIRE, NODE_ENV } = environment;
+const { ACCESS_TKN_SECRET, ACCESS_TKN_EXPIRE } = environment;
 
 const invalidCredentials = (res) =>
   res.status(401).json({ message: "Invalid credentials" });
@@ -46,11 +47,7 @@ const login = async (req, res) => {
       { expiresIn: ACCESS_TKN_EXPIRE },
     );
 
-    res.cookie("accessToken", token, {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: NODE_ENV === "production",
-    });
+    res.cookie("accessToken", token, authCookieOptions);
 
     return res.status(200).json({
       message: "Login successful",

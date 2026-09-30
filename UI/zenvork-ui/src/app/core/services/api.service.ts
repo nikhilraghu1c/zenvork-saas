@@ -1,13 +1,14 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { runtimeConfig } from '../config/runtime-config';
 
 export type ApiQuery = Record<string, string | number | boolean | readonly string[] | null | undefined>;
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private readonly domain = 'http://localhost:4001';
-  private readonly defaultUrl = `${this.domain}/api`;
+  private readonly domain = runtimeConfig.apiUrl.replace(/\/+$/, '');
+  private readonly defaultUrl = this.domain ? `${this.domain}/api` : '/api';
 
   constructor(private readonly http: HttpClient) {}
 

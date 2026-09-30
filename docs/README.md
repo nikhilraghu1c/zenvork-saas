@@ -8,6 +8,7 @@ Documentation is maintained with the code and reviewed in the same change that a
 - [Frontend architecture](architecture/frontend.md)
 - [Backend architecture](architecture/backend.md)
 - [Authentication](architecture/authentication.md)
+- [Render deployment](setup/render-deployment.md)
 - [Material and design system](design-system/theming.md)
 - [Shared UI components](design-system/shared-components.md)
 - [Business registration API](api/business-registration.md)

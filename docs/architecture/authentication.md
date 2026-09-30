@@ -10,8 +10,9 @@ have login accounts.
 Registration creates a business and owner but does not authenticate that owner. `POST /api/login`
 accepts an email address or mobile number in `identifier`, plus a password, then sets an HttpOnly
 `accessToken` cookie. Its JWT contains the user ID, business ID, and role (`OWNER` or `STAFF`). The
-cookie uses `SameSite=Strict` and is marked `Secure` in production. `POST /api/logout` clears that
-cookie.
+cookie defaults to `SameSite=Strict` locally and is marked `Secure` in production. Deployments whose
+frontend and API use different sites configure `COOKIE_SAME_SITE=none`; they must use HTTPS and an
+explicit `CLIENT_ORIGIN` allowlist. `POST /api/logout` clears the cookie with the same attributes.
 
 Login returns only safe user data; the JWT is not included in the JSON response.
 
