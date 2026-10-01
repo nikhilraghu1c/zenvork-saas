@@ -1,6 +1,6 @@
 <section class="booking-details-page" aria-label="Booking details">
   <nav class="breadcrumb" aria-label="Breadcrumb">
-    <a routerLink="/app/booking">Bookings</a><span aria-hidden="true">/</span><span aria-current="page">Booking details</span>
+    <a routerLink="/app/booking" queryParamsHandling="preserve">Bookings</a><span aria-hidden="true">/</span><span aria-current="page">Booking details</span>
   </nav>
 
   @if (loading) {
@@ -176,6 +176,6 @@
       </aside>
     </div>
   } @else {
-    <div class="page-state is-error" role="alert"><p>{{ errorMessage }}</p><app-button variant="tertiary" routerLink="/app/booking">Back to Bookings</app-button></div>
+    <div class="page-state is-error" role="alert"><p>{{ errorMessage }}</p><app-button variant="tertiary" routerLink="/app/booking" queryParamsHandling="preserve">Back to Bookings</app-button></div>
   }
 </section>

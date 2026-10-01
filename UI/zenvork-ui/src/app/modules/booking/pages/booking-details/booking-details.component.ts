@@ -141,7 +141,7 @@ export class BookingDetailsComponent implements OnInit {
 
   /** Opens the full editor only while the booking has fields the backend permits staff to change. */
   protected openBookingEditor(booking: BookingRecord): void {
-    void this.router.navigate(['/app/booking', booking._id, 'edit']);
+    void this.router.navigate(['/app/booking', booking._id, 'edit'], { queryParamsHandling: 'preserve' });
   }
 
   protected canEditBooking(booking: BookingRecord): boolean {

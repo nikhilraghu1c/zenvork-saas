@@ -113,7 +113,11 @@
       @for (booking of bookings; track booking._id) {
         <article class="booking-card" [class.is-muted]="booking.status === 'CANCELLED'">
           <div class="booking-card__header">
-            <a class="booking-card__open" [routerLink]="['/app/booking', booking._id]">
+            <a
+              class="booking-card__open"
+              [routerLink]="['/app/booking', booking._id]"
+              queryParamsHandling="preserve"
+            >
               <span class="booking-card__avatar" aria-hidden="true">{{ clientInitial(booking) }}</span>
               <div class="booking-card__identity">
                 <h2>{{ booking.client?.name ?? 'Client unavailable' }}</h2>
@@ -134,7 +138,11 @@
               />
             }
           </div>
-          <a class="booking-card__footer" [routerLink]="['/app/booking', booking._id]">
+          <a
+            class="booking-card__footer"
+            [routerLink]="['/app/booking', booking._id]"
+            queryParamsHandling="preserve"
+          >
             <div class="booking-card__metadata">
               <div class="booking-card__schedule">
                 <span

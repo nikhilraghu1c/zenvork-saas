@@ -2,7 +2,7 @@ import { Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, inject
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ColDef } from 'ag-grid-community';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
@@ -54,6 +54,7 @@ interface StatusFilterOption extends AppSelectOption {
 export class BookingListComponent implements OnInit, OnDestroy {
   private readonly bookingService = inject(BookingService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly resourceService = inject(ResourceService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly dateTime = inject(BusinessDateTimeService);
@@ -193,14 +194,21 @@ export class BookingListComponent implements OnInit, OnDestroy {
 
   /** Loads filters and refreshes the list whenever a list control changes. */
   ngOnInit(): void {
+    this.restoreListState();
     [this.viewControl, this.statusControl, this.updatedDateControl, this.resourceControl].forEach((control) =>
       control.valueChanges
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(() => this.resetAndLoadBookings()),
+        .subscribe(() => {
+          this.persistListState();
+          this.resetAndLoadBookings();
+        }),
     );
     this.searchControl.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.resetAndLoadBookings());
+      .subscribe(() => {
+        this.persistListState();
+        this.resetAndLoadBookings();
+      });
 
     this.resourceService
       .getResources()
@@ -360,11 +368,13 @@ export class BookingListComponent implements OnInit, OnDestroy {
   /** Opens resource assignment before check-in; other status changes submit immediately. */
   protected requestBookingAction(booking: BookingRecord, actionId: string): void {
     if (actionId === 'edit') {
-      void this.router.navigate(['/app/booking', booking._id, 'edit']);
+      void this.router.navigate(['/app/booking', booking._id, 'edit'], {
+        queryParamsHandling: 'preserve',
+      });
       return;
     }
     if (actionId === 'add-services') {
-      void this.router.navigate(['/app/booking', booking._id]);
+      void this.router.navigate(['/app/booking', booking._id], { queryParamsHandling: 'preserve' });
       return;
     }
     if (actionId.startsWith('payment:')) {
@@ -476,6 +486,39 @@ export class BookingListComponent implements OnInit, OnDestroy {
     this.currentPage = 1;
     this.bookings = [];
     this.loadBookings();
+  }
+
+  /** Restores the operational context after returning from a booking detail or edit page. */
+  private restoreListState(): void {
+    const params = this.route.snapshot.queryParamMap;
+    const status = params.get('status') as BookingStatusFilter | null;
+
+    this.viewControl.setValue(params.get('view') === 'all' ? 'ALL' : 'TODAY', { emitEvent: false });
+    this.statusControl.setValue(
+      this.statusFilters.some((option) => option.value === status) ? status! : 'ALL',
+      { emitEvent: false },
+    );
+    this.searchControl.setValue(params.get('search') ?? '', { emitEvent: false });
+    this.updatedDateControl.setValue(params.get('date') ?? '', { emitEvent: false });
+    this.resourceControl.setValue(params.get('resource') ?? '', { emitEvent: false });
+  }
+
+  /** Keeps the URL aligned with visible filters without adding a browser-history entry for each edit. */
+  private persistListState(): void {
+    const queryParams = {
+      view: this.isTodayView ? null : 'all',
+      status: this.statusControl.value === 'ALL' ? null : this.statusControl.value,
+      search: this.searchControl.value.trim() || null,
+      date: this.isTodayView || !this.updatedDateControl.value ? null : this.updatedDateControl.value,
+      resource: this.resourceControl.value || null,
+    };
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   /** Mobile cards append as the sentinel becomes visible; desktop uses explicit grid pagination. */

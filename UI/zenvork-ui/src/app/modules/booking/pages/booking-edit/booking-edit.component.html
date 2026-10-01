@@ -1,8 +1,8 @@
 <section class="booking-edit-page" aria-label="Edit booking">
   <nav class="breadcrumb" aria-label="Breadcrumb">
-    <a routerLink="/app/booking">Bookings</a><span aria-hidden="true">/</span>
+    <a routerLink="/app/booking" queryParamsHandling="preserve">Bookings</a><span aria-hidden="true">/</span>
     @if (booking) {
-      <a [routerLink]="['/app/booking', booking._id]">Booking details</a
+      <a [routerLink]="['/app/booking', booking._id]" queryParamsHandling="preserve">Booking details</a
       ><span aria-hidden="true">/</span>
     }
     <span aria-current="page">Edit booking</span>
@@ -13,12 +13,12 @@
   } @else if (!booking) {
     <div class="page-state is-error" role="alert">
       <p>{{ errorMessage }}</p>
-      <app-button variant="tertiary" routerLink="/app/booking">Back to bookings</app-button>
+      <app-button variant="tertiary" routerLink="/app/booking" queryParamsHandling="preserve">Back to bookings</app-button>
     </div>
   } @else if (!canEdit) {
     <div class="page-state is-error" role="alert">
       <p>This booking can no longer be edited.</p>
-      <app-button variant="tertiary" [routerLink]="['/app/booking', booking._id]"
+      <app-button variant="tertiary" [routerLink]="['/app/booking', booking._id]" queryParamsHandling="preserve"
         >Back to booking</app-button
       >
     </div>

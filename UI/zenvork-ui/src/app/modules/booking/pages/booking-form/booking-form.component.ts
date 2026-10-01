@@ -154,10 +154,10 @@ export class BookingFormComponent implements OnInit {
             return;
           }
 
-          // Surface navigation failure instead of leaving the confirmation control in a loading state.
-          void this.router.navigate(['/app/booking', bookingId]).then((navigated) => {
+          // Return staff to the operational feed so they can continue managing bookings.
+          void this.router.navigate(['/app/booking']).then((navigated) => {
             if (!navigated)
-              this.errorMessage = 'Booking was created, but the detail page could not open.';
+              this.errorMessage = 'Booking was created, but the booking list could not open.';
           });
         },
         error: (error) => {

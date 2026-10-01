@@ -38,10 +38,18 @@ const getDailyRevenue = (filter, dateField) =>
           },
         },
         amountPaise: { $sum: "$totalAmountPaise" },
+        bookingsCount: { $sum: 1 },
       },
     },
     { $sort: { _id: 1 } },
-    { $project: { _id: 0, date: "$_id", amountPaise: 1 } },
+    {
+      $project: {
+        _id: 0,
+        date: "$_id",
+        amountPaise: 1,
+        bookingsCount: 1,
+      },
+    },
   ]);
 
 // Uses immutable line-item snapshots so catalogue edits never alter historical service revenue.
@@ -116,16 +124,21 @@ const getRevenueAnalytics = async (req, res) => {
       dailyByDate.set(day.date, {
         date: day.date,
         billedPaise: day.amountPaise,
+        billedBookingsCount: day.bookingsCount,
         collectedPaise: 0,
+        collectedBookingsCount: 0,
       });
     }
     for (const day of collectedDaily) {
       const current = dailyByDate.get(day.date) ?? {
         date: day.date,
         billedPaise: 0,
+        billedBookingsCount: 0,
         collectedPaise: 0,
+        collectedBookingsCount: 0,
       };
       current.collectedPaise = day.amountPaise;
+      current.collectedBookingsCount = day.bookingsCount;
       dailyByDate.set(day.date, current);
     }
 

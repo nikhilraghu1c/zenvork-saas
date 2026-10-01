@@ -20,6 +20,7 @@ public navigation and public routes. `AppLayoutComponent` owns authenticated nav
 navigation routes use a temporary shared preview page until their workspaces are implemented. Feature
 pages are lazy-loaded. Each feature owns a `<module>.routes.ts` route array beside its code;
 `app.routes.ts` only composes the two layouts and lazy-loads those feature route arrays.
+New route navigation scrolls to the top; browser Back and Forward restore the prior scroll position.
 The Staff module owns `/app/staff`, `/app/staff/new`, and `/app/staff/:id`. The current public routes
 are `/`, `/register`, and `/login`.
 Desktop app pages present their own primary headings. The app toolbar is shown only on mobile, where
@@ -100,6 +101,9 @@ data: client contact details, resources, planned/actual schedule, notes, lifecyc
 booking metadata. `/app/booking/new` is a lazy-loaded operational form that selects an existing
 tenant client or creates one inline, assigns only configured resource types, and creates a pending
 booking unless staff provide the complete business-local date/start/end schedule.
+The list persists its selected view and active filters in query parameters when staff open details or
+the editor, so returning restores the prior work context. New bookings and completed edit flows return
+to the booking list.
 `BookingService` also provides typed PATCH calls for booking detail edits (including scheduling and
 rescheduling) and lifecycle status transitions; the detail-page controls will use those calls as the
 editing workflow is added. The booking list action menu and detail header expose only valid next

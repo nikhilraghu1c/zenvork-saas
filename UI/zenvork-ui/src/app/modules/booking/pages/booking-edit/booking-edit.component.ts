@@ -180,7 +180,7 @@ export class BookingEditComponent implements OnInit {
     const payload = this.buildPayload();
     if (!payload) return;
     if (Object.keys(payload).length === 0) {
-      void this.router.navigate(['/app/booking', this.booking._id]);
+      void this.router.navigate(['/app/booking'], { queryParamsHandling: 'preserve' });
       return;
     }
 
@@ -192,7 +192,7 @@ export class BookingEditComponent implements OnInit {
       .subscribe({
         next: () => {
           this.saving = false;
-          void this.router.navigate(['/app/booking', this.booking?._id]);
+          void this.router.navigate(['/app/booking'], { queryParamsHandling: 'preserve' });
         },
         error: (error) => {
           this.errorMessage = error.error?.message ?? 'Unable to save booking changes.';
@@ -202,7 +202,9 @@ export class BookingEditComponent implements OnInit {
   }
 
   protected cancel(): void {
-    if (!this.saving && this.booking) void this.router.navigate(['/app/booking', this.booking._id]);
+    if (!this.saving && this.booking) {
+      void this.router.navigate(['/app/booking'], { queryParamsHandling: 'preserve' });
+    }
   }
 
   private populateForm(booking: BookingRecord): void {

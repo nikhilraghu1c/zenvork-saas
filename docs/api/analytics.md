@@ -29,7 +29,13 @@ The response has this shape:
     "outstandingBookingsCount": 3,
     "extraChargesPaise": 4000
   },
-  "daily": [{ "date": "2026-09-20", "billedPaise": 12000, "collectedPaise": 9500 }],
+  "daily": [{
+    "date": "2026-09-20",
+    "billedPaise": 12000,
+    "billedBookingsCount": 2,
+    "collectedPaise": 9500,
+    "collectedBookingsCount": 3
+  }],
   "services": [{ "serviceId": "...", "name": "Haircut", "revenuePaise": 65000, "bookingsCount": 10 }]
 }
 ```
@@ -43,6 +49,8 @@ Definitions:
 - **Service revenue** uses immutable booking service snapshots, so later catalog price/name edits do
   not rewrite reporting history. `extraChargesPaise` is reported separately because it is not tied to
   a service.
+- Each daily row includes the number of completed bookings contributing to **Billed** and the number
+  of paid bookings contributing to **Collected**.
 
 This is operational reporting, not an accounting ledger: it does not model partial payments,
 refunds, taxes, invoices, or payment-provider transactions.

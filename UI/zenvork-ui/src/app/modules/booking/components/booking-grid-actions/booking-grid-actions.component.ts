@@ -38,15 +38,17 @@ export class BookingGridActionsComponent implements ICellRendererAngularComp {
   /** Opens details or delegates a valid lifecycle action to the owning booking list. */
   protected handleAction(actionId: string): void {
     if (actionId === 'details') {
-      void this.router.navigate(['/app/booking', this.booking._id]);
+      void this.router.navigate(['/app/booking', this.booking._id], { queryParamsHandling: 'preserve' });
       return;
     }
     if (actionId === 'edit') {
-      void this.router.navigate(['/app/booking', this.booking._id, 'edit']);
+      void this.router.navigate(['/app/booking', this.booking._id, 'edit'], {
+        queryParamsHandling: 'preserve',
+      });
       return;
     }
     if (actionId === 'add-services') {
-      void this.router.navigate(['/app/booking', this.booking._id]);
+      void this.router.navigate(['/app/booking', this.booking._id], { queryParamsHandling: 'preserve' });
       return;
     }
     if (actionId.startsWith('payment:')) {

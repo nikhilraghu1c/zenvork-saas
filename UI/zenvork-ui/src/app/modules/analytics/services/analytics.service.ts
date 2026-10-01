@@ -8,7 +8,9 @@ export type AnalyticsPeriod = "today" | "week" | "month";
 export interface RevenueDailyTotal {
   date: string;
   billedPaise: number;
+  billedBookingsCount: number;
   collectedPaise: number;
+  collectedBookingsCount: number;
 }
 
 export interface ServiceRevenue {
