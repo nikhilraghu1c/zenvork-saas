@@ -7,6 +7,7 @@ Documentation is maintained with the code and reviewed in the same change that a
 
 - [Frontend architecture](architecture/frontend.md)
 - [Backend architecture](architecture/backend.md)
+- [Backend learning guide](backend/README.md)
 - [Authentication](architecture/authentication.md)
 - [Render deployment](setup/render-deployment.md)
 - [Material and design system](design-system/theming.md)
@@ -27,3 +28,6 @@ Documentation is maintained with the code and reviewed in the same change that a
 Update the relevant document whenever a code change alters an API contract, routing, authentication,
 tenant behavior, shared UI API, design token, or accepted technical decision. Avoid documenting
 short-lived implementation details.
+
+When a backend change affects an existing module's implementation logic, update its matching guide in
+[`backend/`](backend/README.md) as well as its API or architecture documentation.
