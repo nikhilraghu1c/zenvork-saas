@@ -44,11 +44,13 @@ while retaining the native required attribute for accessibility and validation.
 (`shared/time-picker`, `app-time-picker`) wrap Angular Material's picker overlays while exposing
 the same reactive-form string values used by booking APIs: `YYYY-MM-DD` and `HH:mm`. Use them for
 staff scheduling instead of raw Material or native date/time controls. The date picker accepts
-optional `min` and `max` business-calendar dates. The time picker accepts optional `min` and `max`
-`HH:mm` values and uses a 30-minute interval by default; pass `interval="15m"` when a page needs
-15-minute choices. Both support the standard label, outside-label, hint, error, required,
-`readonly`, and `subscriptSizing` options. An `errorMessage` is announced to assistive technology
-and linked to its field.
+optional `min` and `max` business-calendar dates. Pass `mode="month"` for an analytics-style
+month-only picker; it opens to the selected year's months, accepts and emits `YYYY-MM`, and closes
+once a month is selected. The time
+picker accepts optional `min` and `max` `HH:mm` values and uses a 30-minute interval by default;
+pass `interval="15m"` when a page needs 15-minute choices. Both support the standard label,
+outside-label, hint, error, required, `readonly`, and `subscriptSizing` options. An `errorMessage`
+is announced to assistive technology and linked to its field.
 
 `AppButtonComponent` emits `clicked` for page-level actions such as routed navigation while keeping
 the same shared Material button styling. Use `primary` for the main action, `secondary` for neutral

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-export type BusinessDateFormat = 'date' | 'compactDate' | 'time' | 'dateTime' | 'monthDay' | 'year';
+export type BusinessDateFormat = 'date' | 'compactDate' | 'time' | 'dateTime' | 'monthDay' | 'monthYear' | 'year';
 export type DateTimeValue = Date | number | string | null | undefined;
 
 // This becomes a tenant-configured IANA timezone once business settings are available.
@@ -54,6 +54,13 @@ export class BusinessDateTimeService {
         month: 'short',
       }).format(date);
     }
+    if (format === 'monthYear') {
+      return new Intl.DateTimeFormat(BUSINESS_LOCALE, {
+        timeZone: this.timeZone,
+        month: 'long',
+        year: 'numeric',
+      }).format(date);
+    }
     if (format === 'year') {
       return new Intl.DateTimeFormat(BUSINESS_LOCALE, {
         timeZone: this.timeZone,
@@ -73,6 +80,12 @@ export class BusinessDateTimeService {
   businessDateInputValue(value: Date = new Date()): string {
     const { year, month, day } = this.parts(value);
     return `${year}-${this.pad(month)}-${this.pad(day)}`;
+  }
+
+  /** Returns a business-calendar month in YYYY-MM form for whole-month report filters. */
+  businessMonthInputValue(value: Date = new Date()): string {
+    const { year, month } = this.parts(value);
+    return `${year}-${this.pad(month)}`;
   }
 
   /** Converts a stored UTC instant into native date and time input values for the business timezone. */

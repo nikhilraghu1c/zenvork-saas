@@ -18,6 +18,7 @@ describe('RevenueAnalyticsComponent', () => {
             getRevenue: () =>
               of({
                 period: 'month',
+                month: null,
                 range: { from: '2026-09-01T18:30:00.000Z', to: '2026-09-30T18:30:00.000Z' },
                 revenue: {
                   billedPaise: 0,

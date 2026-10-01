@@ -7,7 +7,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { MatNativeDateModule } from '@angular/material/core';
-import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDatepicker, MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
@@ -34,8 +34,17 @@ let nextDatePickerId = 0;
 })
 export class AppDatePickerComponent implements ControlValueAccessor {
   private readonly destroyRef = inject(DestroyRef);
+  private datePickerMode: 'date' | 'month' = 'date';
 
   @Input({ required: true }) label = '';
+  @Input() set mode(value: 'date' | 'month') {
+    this.datePickerMode = value;
+    this.minDate = this.toDate(this.minValue);
+    this.maxDate = this.toDate(this.maxValue);
+  }
+  get mode(): 'date' | 'month' {
+    return this.datePickerMode;
+  }
   @Input() labelPlacement: 'floating' | 'outside' = 'floating';
   @Input() subscriptSizing: 'fixed' | 'dynamic' = 'fixed';
   @Input() placeholder = '';
@@ -45,9 +54,11 @@ export class AppDatePickerComponent implements ControlValueAccessor {
   @Input() inputId = `app-date-picker-${nextDatePickerId++}`;
   @Input({ alias: 'readonly' }) isReadonly = false;
   @Input() set min(value: string) {
+    this.minValue = value;
     this.minDate = this.toDate(value);
   }
   @Input() set max(value: string) {
+    this.maxValue = value;
     this.maxDate = this.toDate(value);
   }
 
@@ -55,6 +66,8 @@ export class AppDatePickerComponent implements ControlValueAccessor {
   protected minDate: Date | null = null;
   protected maxDate: Date | null = null;
   protected disabled = false;
+  private minValue = '';
+  private maxValue = '';
   private onChange: (value: string) => void = () => undefined;
   private onTouched: () => void = () => undefined;
 
@@ -87,7 +100,23 @@ export class AppDatePickerComponent implements ControlValueAccessor {
     this.onTouched();
   }
 
+  /** Stores a month choice as its first calendar day, but emits only YYYY-MM to the parent form. */
+  protected selectMonth(value: Date, picker: MatDatepicker<Date>): void {
+    if (this.mode !== 'month') return;
+    this.control.setValue(value);
+    this.markTouched();
+    picker.close();
+  }
+
   private toDate(value: string | null | undefined): Date | null {
+    if (this.mode === 'month') {
+      const monthMatch = /^(\d{4})-(\d{2})$/.exec(value ?? '');
+      if (!monthMatch) return null;
+      const [year, month] = monthMatch.slice(1).map(Number);
+      const date = new Date(year, month - 1, 1);
+      return date.getFullYear() === year && date.getMonth() === month - 1 ? date : null;
+    }
+
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value ?? '');
     if (!match) return null;
     const [year, month, day] = match.slice(1).map(Number);
@@ -102,6 +131,7 @@ export class AppDatePickerComponent implements ControlValueAccessor {
   private toDateInputValue(value: Date | null): string {
     if (!value) return '';
     const month = String(value.getMonth() + 1).padStart(2, '0');
+    if (this.mode === 'month') return `${value.getFullYear()}-${month}`;
     const day = String(value.getDate()).padStart(2, '0');
     return `${value.getFullYear()}-${month}-${day}`;
   }

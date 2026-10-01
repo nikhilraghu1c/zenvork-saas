@@ -207,3 +207,10 @@ getDailyRevenue(collectedInRange, 'paidAt');
 
 The controller merges those two arrays by date to return one daily row. This is reporting, not a
 payment ledger: a booking has one paid/unpaid state and no partial payments yet.
+
+## Reporting ranges come before aggregation
+
+`utils/reporting-period.js` creates the `from`/`to` UTC bounds before the aggregation runs. For a
+selected historical month such as `2026-09`, it creates the India business-calendar range from 1
+September midnight to 1 October midnight. The aggregation then uses those bounds in its early `$match`
+stage. This separation keeps date validation/timezone conversion out of every aggregation pipeline.

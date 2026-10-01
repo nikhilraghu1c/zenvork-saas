@@ -22,6 +22,7 @@ export interface ServiceRevenue {
 
 export interface RevenueAnalytics {
   period: AnalyticsPeriod;
+  month: string | null;
   range: { from: string; to: string };
   revenue: {
     billedPaise: number;
@@ -42,9 +43,9 @@ export interface RevenueAnalytics {
 export class AnalyticsService {
   private readonly api = inject(ApiService);
 
-  getRevenue(period: AnalyticsPeriod): Observable<RevenueAnalytics> {
+  getRevenue(period: AnalyticsPeriod, month?: string): Observable<RevenueAnalytics> {
     return this.api
-      .query<{ analytics: RevenueAnalytics }>("analytics/revenue", { period })
+      .query<{ analytics: RevenueAnalytics }>("analytics/revenue", { period, ...(month ? { month } : {}) })
       .pipe(map((response) => response.analytics));
   }
 }

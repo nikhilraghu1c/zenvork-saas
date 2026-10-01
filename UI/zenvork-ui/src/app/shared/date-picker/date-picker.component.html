@@ -24,12 +24,18 @@
       [max]="maxDate"
       [required]="required"
       [disabled]="disabled || isReadonly"
+      [readonly]="mode === 'month'"
       [attr.aria-invalid]="errorMessage ? 'true' : null"
       [attr.aria-describedby]="errorMessage ? inputId + '-error' : null"
       (blur)="markTouched()"
     />
     <mat-datepicker-toggle matIconSuffix [for]="picker" [disabled]="disabled || isReadonly" />
-    <mat-datepicker #picker panelClass="app-date-picker-panel" />
+    <mat-datepicker
+      #picker
+      panelClass="app-date-picker-panel"
+      [startView]="mode === 'month' ? 'year' : 'month'"
+      (monthSelected)="selectMonth($event, picker)"
+    />
     @if (hint && !errorMessage) {
       <mat-hint>{{ hint }}</mat-hint>
     }

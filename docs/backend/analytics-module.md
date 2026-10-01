@@ -21,6 +21,10 @@ The parent router authenticates the caller and the analytics router adds `author
 `today`, `week`, and `month` are accepted; malformed values return `400`. Every aggregation begins with
 `tenantFilter(req, ...)`, so a caller cannot select another business with a query parameter.
 
+For historical month reporting, the client sends `period=month&month=YYYY-MM`. The controller delegates
+to `getReportingMonthRange()`, which accepts only the current month plus the previous 35 months and
+returns business-timezone bounds for that full month and the preceding calendar month for comparison.
+
 Analytics is a read model derived from booking lifecycle data:
 
 ```text

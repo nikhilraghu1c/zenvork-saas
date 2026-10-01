@@ -2,6 +2,7 @@ import Booking from "../booking/booking.model.js";
 import { tenantFilter } from "../../utils/tenant-scope.js";
 import {
   BUSINESS_TIME_ZONE,
+  getReportingMonthRange,
   REPORTING_PERIODS,
   getReportingRange,
 } from "../../utils/reporting-period.js";
@@ -72,12 +73,21 @@ const getServiceRevenue = (filter) =>
 const getRevenueAnalytics = async (req, res) => {
   try {
     const period = req.query.period ?? "month";
-    // Analytics accepts only fixed, server-defined windows until custom date-range validation is added.
+    const selectedMonth = req.query.month;
+    // Analytics accepts fixed windows or one server-validated whole calendar month.
     if (typeof period !== "string" || !REPORTING_PERIODS.includes(period)) {
       return res.status(400).json({ message: "Period must be today, week, or month" });
     }
+    if (selectedMonth !== undefined && (period !== "month" || typeof selectedMonth !== "string")) {
+      return res.status(400).json({ message: "Month can only be used with the month period" });
+    }
 
-    const { from, to, previousFrom, previousTo } = getReportingRange(period);
+    const reportingRange =
+      selectedMonth !== undefined ? getReportingMonthRange(selectedMonth) : getReportingRange(period);
+    if (!reportingRange) {
+      return res.status(400).json({ message: "Month must be within the current and previous 35 months" });
+    }
+    const { from, to, previousFrom, previousTo } = reportingRange;
     const completedFilter = (start, end) =>
       tenantFilter(req, {
         status: "COMPLETED",
@@ -145,6 +155,7 @@ const getRevenueAnalytics = async (req, res) => {
     return res.status(200).json({
       analytics: {
         period,
+        month: selectedMonth ?? null,
         range: { from, to },
         revenue: {
           billedPaise: billed.amountPaise,

@@ -12,11 +12,17 @@ GET /api/analytics/revenue?period=month
 `period` is required and accepts `today`, `week`, or `month`. Reporting ranges use the current
 business timezone (`Asia/Kolkata`) and return ISO UTC `range.from` and `range.to` bounds.
 
+For a whole historical calendar month, send `period=month&month=YYYY-MM`, for example
+`/api/analytics/revenue?period=month&month=2026-09`. The server accepts only the current month and
+previous 35 months; future and older months return `400`. Month reports compare against the preceding
+calendar month.
+
 The response has this shape:
 
 ```json
 {
   "period": "month",
+  "month": null,
   "range": { "from": "2026-09-01T18:30:00.000Z", "to": "2026-09-30T18:30:00.000Z" },
   "revenue": {
     "billedPaise": 124000,

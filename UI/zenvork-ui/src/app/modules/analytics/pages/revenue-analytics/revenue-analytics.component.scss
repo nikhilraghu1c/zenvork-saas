@@ -46,6 +46,7 @@
   &__periods {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 4px;
     margin-top: 18px;
 
@@ -56,6 +57,17 @@
         background: var(--cyan-soft);
       }
     }
+  }
+
+  .month-picker {
+    width: min(11rem, 100%);
+  }
+
+  .period-divider {
+    width: 1px;
+    height: 1.5rem;
+    margin: 0 0.35rem;
+    background: var(--border-strong);
   }
 
   &__metrics,

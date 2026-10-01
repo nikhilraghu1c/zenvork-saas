@@ -1,5 +1,6 @@
 const REPORTING_PERIODS = ["today", "week", "month"];
 const BUSINESS_TIME_ZONE = "Asia/Kolkata";
+const REPORTING_MONTH_HISTORY = 36;
 
 // Extracts a calendar date in the current business timezone rather than the server timezone.
 const getBusinessDateParts = (date) => {
@@ -50,9 +51,38 @@ const getReportingRange = (period) => {
   return { from, to, previousFrom, previousTo: new Date(from) };
 };
 
+// Validates a whole calendar month and returns business-timezone bounds plus the previous calendar month.
+const getReportingMonthRange = (monthValue) => {
+  if (typeof monthValue !== "string") return null;
+  const match = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(monthValue);
+  if (!match) return null;
+
+  const [year, month] = match.slice(1).map(Number);
+  const selectedMonth = new Date(Date.UTC(year, month - 1, 1));
+  if (selectedMonth.getUTCFullYear() !== year || selectedMonth.getUTCMonth() !== month - 1) {
+    return null;
+  }
+
+  const now = new Date();
+  const current = getBusinessDateParts(now);
+  const currentMonth = new Date(Date.UTC(current.year, current.month - 1, 1));
+  const monthsBehind =
+    (currentMonth.getUTCFullYear() - year) * 12 + currentMonth.getUTCMonth() - (month - 1);
+  if (monthsBehind < 0 || monthsBehind >= REPORTING_MONTH_HISTORY) return null;
+
+  const from = startOfBusinessDay(selectedMonth);
+  const nextMonth = new Date(Date.UTC(year, month, 1));
+  const to = startOfBusinessDay(nextMonth);
+  const previousMonth = new Date(Date.UTC(year, month - 2, 1));
+  const previousFrom = startOfBusinessDay(previousMonth);
+  return { from, to, previousFrom, previousTo: from };
+};
+
 export {
   BUSINESS_TIME_ZONE,
+  REPORTING_MONTH_HISTORY,
   REPORTING_PERIODS,
   getBusinessDateParts,
+  getReportingMonthRange,
   getReportingRange,
 };

@@ -5,10 +5,22 @@
     <p>See billed work, money collected, and the services driving your business.</p>
 
     <div class="revenue-analytics-page__periods" aria-label="Reporting period">
+      <app-date-picker
+        class="month-picker"
+        mode="month"
+        label="Month"
+        subscriptSizing="dynamic"
+        [ngModel]="selectedMonth"
+        [min]="minimumMonth"
+        [max]="maximumMonth"
+        [readonly]="isLoading"
+        (ngModelChange)="selectMonth($event)"
+      />
+      <span class="period-divider" aria-hidden="true"></span>
       @for (period of periods; track period.value) {
         <app-button
-          [variant]="selectedPeriod === period.value ? 'primary' : 'text'"
-          [class.is-selected]="selectedPeriod === period.value"
+          [variant]="isPeriodSelected(period.value) ? 'primary' : 'text'"
+          [class.is-selected]="isPeriodSelected(period.value)"
           [disabled]="isLoading"
           (clicked)="selectPeriod(period.value)"
         >
