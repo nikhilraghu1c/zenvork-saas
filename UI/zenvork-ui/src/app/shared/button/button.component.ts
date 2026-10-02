@@ -1,10 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-button',
-  imports: [MatButtonModule, MatProgressSpinnerModule],
+  imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './button.component.html',
   styleUrl: './button.component.scss',
 })
@@ -19,6 +20,18 @@ export class AppButtonComponent {
   @Input() loading = false;
   /** Makes the button occupy its container's full width. */
   @Input() fullWidth = false;
+  /** Provides an accessible name for icon-only shared buttons. */
+  @Input() ariaLabel?: string;
+  /** Uses compact square geometry for an icon-only action such as closing a dialog. */
+  @Input() iconOnly = false;
+  /** Optional Material icon rendered by the shared button before its label. */
+  @Input() icon?: string;
+  /** Optional text label for standard shared actions. */
+  @Input() label?: string;
+  /** Hides a supplied label below the mobile breakpoint while retaining its accessible name. */
+  @Input() hideLabelOnMobile = false;
+  /** Optional compact count badge, for actions such as an active filter summary. */
+  @Input() badge?: number | string | null;
   /** Emits the native click event for page-level actions such as navigation. */
   @Output() clicked = new EventEmitter<MouseEvent>();
 }

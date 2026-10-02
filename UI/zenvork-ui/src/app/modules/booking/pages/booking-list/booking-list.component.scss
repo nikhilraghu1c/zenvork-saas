@@ -89,23 +89,63 @@
     }
   }
 
-  &__filters {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 280px) minmax(220px, 280px);
+  &__filter-toolbar {
+    display: flex;
+    align-items: stretch;
     gap: 10px;
-    margin-bottom: 20px;
-    padding: 16px;
+    margin-bottom: 10px;
+    padding: 12px;
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     background: var(--surface);
     backdrop-filter: blur(12px);
 
-    > * {
+    .search-filter {
       min-width: 0;
+      flex: 1;
+    }
+  }
+
+  &__quick-filters {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin: 0 0 20px;
+    padding: 0 2px 2px;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
     }
 
-    &.has-updated-date {
-      grid-template-columns: minmax(280px, 1fr) repeat(3, minmax(180px, 240px));
+    button {
+      flex: 0 0 auto;
+      min-height: 34px;
+      padding: 0 13px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-pill);
+      background: var(--surface);
+      color: var(--text-dim);
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+
+      &:hover {
+        border-color: var(--cyan-border);
+        color: var(--text);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--cyan);
+        outline-offset: 2px;
+      }
+
+      &.is-selected {
+        border-color: var(--cyan);
+        background: var(--cyan-soft);
+        color: var(--cyan);
+      }
     }
   }
 
@@ -179,9 +219,6 @@
     }
   }
 
-  .resource-filter,
-  .status-filter,
-  .updated-date-filter,
   .search-filter {
     display: block;
     min-width: 0;
@@ -189,8 +226,9 @@
     width: 100%;
   }
 
-  .search-filter {
-    grid-column: auto;
+  .filter-trigger {
+    min-width: 124px;
+    flex: 0 0 auto;
   }
 
   .filter-guidance {
@@ -274,14 +312,6 @@
   }
 
   @media (max-width: 1100px) {
-    &__filters.has-updated-date {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-
-      .search-filter {
-        grid-column: span 2;
-      }
-    }
-
     .desktop-grid {
       display: none;
     }
@@ -528,22 +558,13 @@
   @media (max-width: 680px) {
     padding: 18px 14px;
 
-    &__filters {
-      grid-template-columns: 1fr;
-      gap: 14px;
-      padding: 12px;
-
-      &.has-updated-date {
-        grid-template-columns: 1fr;
-
-        .search-filter {
-          grid-column: auto;
-        }
-      }
+    &__filter-toolbar {
+      gap: 8px;
+      padding: 10px;
     }
 
-    .date-filter {
-      grid-column: auto;
+    .filter-trigger {
+      min-width: 0;
     }
 
     &__header-actions {
@@ -558,10 +579,6 @@
         flex: 1;
         padding: 0 10px;
       }
-    }
-
-    .search-filter {
-      grid-column: auto;
     }
 
     .booking-card {

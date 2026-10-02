@@ -2,7 +2,7 @@
   display: contents;
 }
 
-.check-in-dialog {
+.booking-filter-dialog {
   position: fixed;
   z-index: 1000;
   inset: 0;
@@ -42,6 +42,7 @@
     span {
       margin: 0;
     }
+
     p {
       margin-bottom: 6px;
       color: var(--cyan);
@@ -50,16 +51,19 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
+
     h2 {
       color: var(--text);
       font-size: 22px;
       font-weight: 600;
     }
+
     span {
       display: block;
       margin-top: 6px;
       color: var(--text-dim);
       font-size: 13px;
+      line-height: 1.45;
     }
   }
 
@@ -67,27 +71,59 @@
     flex: 0 0 auto;
   }
 
-  .resource-fields {
+  .filter-fields {
     display: grid;
-    gap: 14px;
+    gap: 18px;
   }
 
-  .state,
-  .form-error {
+  .status-options {
+    min-width: 0;
     margin: 0;
-    color: var(--text-dim);
-    font-size: 14px;
-  }
-  .is-error,
-  .form-error {
-    color: var(--mat-sys-error);
+    padding: 0;
+    border: 0;
+
+    legend {
+      padding: 0;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    &__list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    app-checkbox {
+      display: flex;
+      min-height: 42px;
+      align-items: center;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+
+      &.is-selected {
+        border-color: var(--cyan-border);
+        background: var(--cyan-soft);
+      }
+    }
   }
 
   footer {
     display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     margin-top: 24px;
+
+    .footer-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+    }
   }
 
   @media (max-width: 600px) {

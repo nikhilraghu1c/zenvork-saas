@@ -1,0 +1,62 @@
+<div class="booking-filter-dialog" role="dialog" aria-modal="true" aria-labelledby="booking-filters-title">
+  <div class="booking-filter-dialog__backdrop" aria-hidden="true" (click)="closed.emit()"></div>
+  <section class="booking-filter-dialog__panel">
+    <header>
+      <div>
+        <p>Booking filters</p>
+        <h2 id="booking-filters-title">Filter bookings</h2>
+        <span>Choose one or more statuses, then narrow the results further if needed.</span>
+      </div>
+      <app-button variant="text" [iconOnly]="true" ariaLabel="Close filters" (clicked)="closed.emit()">
+        <mat-icon aria-hidden="true">close</mat-icon>
+      </app-button>
+    </header>
+
+    <div class="filter-fields">
+      <fieldset class="status-options">
+          <legend>Status</legend>
+          <div class="status-options__list">
+            @for (status of statusOptions; track status) {
+              <app-checkbox
+                [formControl]="statusControl(status)"
+                [label]="statusLabel(status)"
+                [class.is-selected]="statusControl(status).value"
+              />
+            }
+        </div>
+      </fieldset>
+
+      <app-select
+        [formControl]="resourceControl"
+        label="Resource"
+        labelPlacement="outside"
+        subscriptSizing="dynamic"
+        [options]="resourceOptions"
+      />
+
+      @if (showModifiedDate) {
+        <app-select
+          [formControl]="dateFieldControl"
+          label="Date based on"
+          labelPlacement="outside"
+          subscriptSizing="dynamic"
+          [options]="dateFieldOptions"
+        />
+        <app-date-picker
+          [formControl]="updatedDateControl"
+          [label]="dateLabel"
+          labelPlacement="outside"
+          subscriptSizing="dynamic"
+        />
+      }
+    </div>
+
+    <footer>
+      <app-button variant="text" (clicked)="clear()">Clear all</app-button>
+      <div class="footer-actions">
+        <app-button variant="secondary" (clicked)="closed.emit()">Cancel</app-button>
+        <app-button (clicked)="apply()">Apply filters</app-button>
+      </div>
+    </footer>
+  </section>
+</div>

@@ -10,6 +10,9 @@ export type BookingStatus =
   | 'CANCELLED'
   | 'NO_SHOW';
 
+/** Chooses which booking timestamp an All bookings calendar date filters. */
+export type BookingDateField = 'modified' | 'created' | 'scheduled';
+
 export interface BookingClientSummary {
   _id: string;
   name: string;
@@ -61,7 +64,9 @@ export interface BookingListQuery extends ApiQuery {
   from?: string;
   to?: string;
   search?: string;
-  status?: BookingStatus;
+  /** Comma-separated lifecycle values; the list API combines them with MongoDB `$in`. */
+  status?: string;
+  dateField?: BookingDateField;
   resourceId?: string;
   assignment?: 'assigned' | 'unassigned';
   page?: number;

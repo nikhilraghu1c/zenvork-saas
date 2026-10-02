@@ -3,14 +3,29 @@
     [matButton]="variant === 'secondary' ? 'outlined' : variant === 'text' ? 'text' : 'filled'"
     [type]="type"
     [disabled]="disabled || loading"
+    [attr.aria-label]="ariaLabel"
     [class.app-secondary-button]="variant === 'secondary'"
     [class.app-tertiary-button]="variant === 'tertiary'"
     [class.app-text-button]="variant === 'text'"
+    [class.app-icon-button]="iconOnly"
     (click)="clicked.emit($event)"
   >
     @if (loading) {
       <mat-spinner diameter="18" aria-label="Loading" />
     } @else {
+      @if (icon || label || (badge !== undefined && badge !== null && badge !== '')) {
+        <span class="app-button__content">
+          @if (icon) {
+            <mat-icon class="app-button__icon" aria-hidden="true">{{ icon }}</mat-icon>
+          }
+          @if (label) {
+            <span class="app-button__label" [class.is-hidden-on-mobile]="hideLabelOnMobile">{{ label }}</span>
+          }
+          @if (badge !== undefined && badge !== null && badge !== '') {
+            <span class="app-button__badge">{{ badge }}</span>
+          }
+        </span>
+      }
       <ng-content />
     }
   </button>

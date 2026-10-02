@@ -20,13 +20,17 @@ actual times, status, `hasServices`, `extraAmountPaise`, `totalAmountPaise`, `pa
 names `clientId` and `resourceIds` are not returned in list responses. Line-item services are returned
 only by the detail endpoint.
 
-Optional query parameters are `view=today|all`, `status`, `from` and `to` (ISO date-times with a
-timezone), `search`, `resourceId`, `clientId`, `assignment=assigned|unassigned`, `page`, and `limit`
-(maximum 100). `status` accepts one lifecycle value, not a comma-separated list. `search` is a
-tenant-scoped, case-insensitive client-name or mobile-number search and must contain 2–100 characters.
+Optional query parameters are `view=today|all`, `status` (one or more comma-separated lifecycle
+values), `from` and `to` (ISO date-times with a timezone), `search`, `resourceId`, `clientId`,
+`assignment=assigned|unassigned`, `dateField=modified|created|scheduled`, `page`, and `limit`
+(maximum 100). Multiple `status` values are alternatives (for example, `status=PENDING,SCHEDULED`)
+and still combine with date, resource, assignment, and search filters.
+`search` is a tenant-scoped, case-insensitive client-name or mobile-number search and must contain
+2–100 characters.
 
 `view=all` is the default and returns history ordered by `updatedAt` newest first. When a date range is
-provided for that view, it applies to `updatedAt`. `view=today` requires a complete business-day
+provided for that view, it applies to `updatedAt` by default; set `dateField=created` to filter by
+booking creation or `dateField=scheduled` to filter by planned start. `view=today` requires a complete business-day
 `from`/`to` range. It includes pending bookings created in that range, scheduled bookings whose planned
 start is in the range, checked-in bookings whose actual start is in the range, completed bookings whose
 actual end is in the range, and cancelled/no-show bookings updated in the range. Both views use

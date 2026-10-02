@@ -19,7 +19,7 @@
       <span class="period-divider" aria-hidden="true"></span>
       @for (period of periods; track period.value) {
         <app-button
-          [variant]="isPeriodSelected(period.value) ? 'primary' : 'text'"
+          variant="text"
           [class.is-selected]="isPeriodSelected(period.value)"
           [disabled]="isLoading"
           (clicked)="selectPeriod(period.value)"

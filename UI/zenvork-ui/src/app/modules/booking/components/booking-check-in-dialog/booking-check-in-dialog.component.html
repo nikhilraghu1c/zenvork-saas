@@ -7,9 +7,15 @@
         <h2 id="check-in-title">Check in {{ booking.client?.name ?? 'client' }}</h2>
         <span>Choose the staff and other resources needed for this service.</span>
       </div>
-      <button type="button" class="close-button" aria-label="Close check-in" [disabled]="submitting" (click)="close()">
+      <app-button
+        variant="text"
+        [iconOnly]="true"
+        ariaLabel="Close check-in"
+        [disabled]="submitting"
+        (clicked)="close()"
+      >
         <mat-icon aria-hidden="true">close</mat-icon>
-      </button>
+      </app-button>
     </header>
 
     @if (loading) {

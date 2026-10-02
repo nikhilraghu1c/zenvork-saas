@@ -120,6 +120,55 @@ instead of `$lte` and `$gte`.
 **Requirement:** return a stable slice of matching bookings and the total matching count for desktop
 pagination or mobile infinite scroll.
 
+### Combine several lifecycle statuses
+
+**Requirement:** allow staff to view several work queues together, such as pending and scheduled,
+without making separate requests or losing a resource/date constraint.
+
+The list API accepts `status=PENDING,SCHEDULED`. Validation splits that allow-listed string into the
+local `statusValues` array, then builds this portion of the MongoDB filter:
+
+```js
+filter.status = { $in: ['PENDING', 'SCHEDULED'] };
+```
+
+`$in` means **OR within one field**: a booking may be pending *or* scheduled. It is not a replacement
+for the rest of `filter`; MongoDB combines sibling fields with **AND**. For example:
+
+```js
+{
+  businessId: tenantBusinessId,
+  status: { $in: ['PENDING', 'SCHEDULED'] },
+  resourceIds: selectedResourceId,
+  updatedAt: { $gte: from, $lt: to }
+}
+```
+
+means: tenant-owned bookings with either selected status **and** that resource **and** a modified time
+inside the chosen range. `status` is the only lifecycle list parameter; a single selected status is
+sent as one value, such as `status=SCHEDULED`.
+
+### Choose the All bookings date field
+
+**Requirement:** staff may ask different questions of the same calendar date: *what changed*, *what
+was created*, or *what is scheduled*.
+
+The `dateField` query parameter maps a validated UI value to a stored MongoDB timestamp field:
+
+```js
+const dateFieldMap = {
+  modified: 'updatedAt',
+  created: 'createdAt',
+  scheduled: 'scheduledStartAt',
+};
+filter[dateFieldMap[dateField]] = { $gte: from, $lt: to };
+```
+
+Bracket notation (`filter[fieldName]`) uses the mapped field name as a key. The allow-list is
+important: callers cannot choose an arbitrary database field. `modified` is the default, preserving
+the existing All bookings activity behavior. A scheduled-date filter naturally excludes unscheduled
+pending bookings because they have no `scheduledStartAt` value.
+
 The list controller runs two independent queries in parallel:
 
 ```js

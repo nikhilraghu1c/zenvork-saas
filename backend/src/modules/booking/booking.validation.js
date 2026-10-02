@@ -373,6 +373,7 @@ export const validateBookingListQuery = (query) => {
     "from",
     "to",
     "status",
+    "dateField",
     "resourceId",
     "assignment",
     "clientId",
@@ -396,6 +397,7 @@ export const validateBookingListQuery = (query) => {
     from,
     to,
     status,
+    dateField = "modified",
     resourceId,
     assignment,
     clientId,
@@ -412,6 +414,9 @@ export const validateBookingListQuery = (query) => {
   }
   if (!BOOKING_LIST_VIEWS.includes(view)) {
     throw new BookingValidationError("Invalid booking list view");
+  }
+  if (!["modified", "created", "scheduled"].includes(dateField)) {
+    throw new BookingValidationError("Invalid booking date filter");
   }
   if (
     search !== undefined &&
@@ -442,7 +447,15 @@ export const validateBookingListQuery = (query) => {
     );
   }
 
-  if (status !== undefined && !BOOKING_STATUSES.includes(status)) {
+  if (status !== undefined && typeof status !== "string") {
+    throw new BookingValidationError("Invalid status filter");
+  }
+  // A comma-separated query value supports multi-select UI filters without accepting arbitrary objects.
+  const statusValues = status === undefined ? [] : status.split(",");
+  if (
+    statusValues.some((value) => !value || !BOOKING_STATUSES.includes(value)) ||
+    new Set(statusValues).size !== statusValues.length
+  ) {
     throw new BookingValidationError("Invalid status filter");
   }
   // Build only allow-listed MongoDB criteria from validated query parameters.
@@ -465,10 +478,16 @@ export const validateBookingListQuery = (query) => {
       { status: "NO_SHOW", updatedAt: dateRange },
     ];
   } else if (fromDate || toDate) {
-    // Historical date filtering is consistently based on the latest booking activity.
-    filter.updatedAt = dateRange;
+    // All bookings can be narrowed by the staff-selected activity, creation, or planned-start date.
+    const dateFieldMap = {
+      modified: "updatedAt",
+      created: "createdAt",
+      scheduled: "scheduledStartAt",
+    };
+    filter[dateFieldMap[dateField]] = dateRange;
   }
-  if (status) filter.status = status;
+  // Status choices are alternatives, while they still intersect with date and resource criteria.
+  if (statusValues.length) filter.status = { $in: statusValues };
   if (resourceId) filter.resourceIds = resourceId;
   if (clientId) filter.clientId = clientId;
   if (assignment === "assigned") filter["resourceIds.0"] = { $exists: true };

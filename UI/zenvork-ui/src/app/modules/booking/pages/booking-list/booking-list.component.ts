@@ -12,10 +12,13 @@ import {
 } from '../../../../shared/action-menu/action-menu.component';
 import { AppDataGridComponent } from '../../../../shared/data-grid/data-grid.component';
 import { AppInputComponent } from '../../../../shared/input/input.component';
-import { AppDatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
-import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
+import { AppSelectOption } from '../../../../shared/select/select.component';
 import { BookingClientGridCellComponent } from '../../components/booking-client-grid-cell/booking-client-grid-cell.component';
 import { BookingCheckInDialogComponent } from '../../components/booking-check-in-dialog/booking-check-in-dialog.component';
+import {
+  BookingFilterDialogComponent,
+  BookingFilterSelection,
+} from '../../components/booking-filter-dialog/booking-filter-dialog.component';
 import { BookingGridActionsComponent } from '../../components/booking-grid-actions/booking-grid-actions.component';
 import { BookingStatusGridCellComponent } from '../../components/booking-status-grid-cell/booking-status-grid-cell.component';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
@@ -24,15 +27,11 @@ import {
   BookingListQuery,
   BookingRecord,
   BookingService,
+  BookingDateField,
   BookingStatus,
 } from '../../services/booking.service';
 
-type BookingStatusFilter = 'ALL' | BookingStatus;
 type BookingListView = 'TODAY' | 'ALL';
-
-interface StatusFilterOption extends AppSelectOption {
-  value: BookingStatusFilter;
-}
 
 @Component({
   selector: 'app-booking-list',
@@ -44,9 +43,8 @@ interface StatusFilterOption extends AppSelectOption {
     AppButtonComponent,
     AppDataGridComponent,
     AppInputComponent,
-    AppDatePickerComponent,
-    AppSelectComponent,
     BookingCheckInDialogComponent,
+    BookingFilterDialogComponent,
   ],
   templateUrl: './booking-list.component.html',
   styleUrl: './booking-list.component.scss',
@@ -63,20 +61,23 @@ export class BookingListComponent implements OnInit, OnDestroy {
   protected readonly viewControl = new FormControl<BookingListView>('TODAY', {
     nonNullable: true,
   });
-  protected readonly statusControl = new FormControl<BookingStatusFilter>('ALL', {
-    nonNullable: true,
-  });
   protected readonly searchControl = new FormControl('', { nonNullable: true });
   protected readonly updatedDateControl = new FormControl('', { nonNullable: true });
+  protected readonly dateFieldControl = new FormControl<BookingDateField>('modified', {
+    nonNullable: true,
+  });
   protected readonly resourceControl = new FormControl('', { nonNullable: true });
-  protected readonly statusFilters: StatusFilterOption[] = [
-    { value: 'ALL', label: 'All bookings' },
-    { value: 'PENDING', label: 'Pending' },
-    { value: 'SCHEDULED', label: 'Scheduled' },
-    { value: 'CHECKED_IN', label: 'Checked in' },
-    { value: 'COMPLETED', label: 'Completed' },
-    { value: 'CANCELLED', label: 'Cancelled' },
-    { value: 'NO_SHOW', label: 'No-show' },
+  /** Quick chips and the detailed filter panel share this multi-status filter state. */
+  protected selectedStatuses: BookingStatus[] = [];
+  protected filtersOpen = false;
+  protected readonly quickStatusFilters: BookingStatus[] = ['PENDING', 'SCHEDULED', 'CHECKED_IN'];
+  protected readonly allStatusFilters: BookingStatus[] = [
+    'PENDING',
+    'SCHEDULED',
+    'CHECKED_IN',
+    'COMPLETED',
+    'CANCELLED',
+    'NO_SHOW',
   ];
 
   protected resourceOptions: AppSelectOption[] = [{ value: '', label: 'All resources' }];
@@ -195,7 +196,7 @@ export class BookingListComponent implements OnInit, OnDestroy {
   /** Loads filters and refreshes the list whenever a list control changes. */
   ngOnInit(): void {
     this.restoreListState();
-    [this.viewControl, this.statusControl, this.updatedDateControl, this.resourceControl].forEach((control) =>
+    [this.viewControl, this.updatedDateControl, this.dateFieldControl, this.resourceControl].forEach((control) =>
       control.valueChanges
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(() => {
@@ -236,6 +237,15 @@ export class BookingListComponent implements OnInit, OnDestroy {
     return this.currentPage * this.pageSize < this.totalBookings;
   }
 
+  /** Counts active filter categories; selecting several statuses still counts as one filter. */
+  protected get activeFilterCount(): number {
+    return (
+      Number(this.selectedStatuses.length > 0) +
+      Number(!!this.resourceControl.value) +
+      Number(!this.isTodayView && !!this.updatedDateControl.value)
+    );
+  }
+
   protected get hasPreviousPage(): boolean {
     return this.currentPage > 1;
   }
@@ -247,6 +257,43 @@ export class BookingListComponent implements OnInit, OnDestroy {
   /** Switches between the operational daily feed and the full booking history. */
   protected setView(view: BookingListView): void {
     if (this.viewControl.value !== view) this.viewControl.setValue(view);
+  }
+
+  /** Opens a draft panel so resource and date changes are applied together. */
+  protected openFilters(): void {
+    this.filtersOpen = true;
+  }
+
+  protected closeFilters(): void {
+    this.filtersOpen = false;
+  }
+
+  /** Quick chips toggle one status without discarding any statuses selected in the filter panel. */
+  protected toggleQuickStatus(status: BookingStatus): void {
+    const nextStatuses = this.selectedStatuses.includes(status)
+      ? this.selectedStatuses.filter((value) => value !== status)
+      : [...this.selectedStatuses, status];
+    this.applyActiveFilters(
+      nextStatuses,
+      this.resourceControl.value,
+      this.updatedDateControl.value,
+      this.dateFieldControl.value,
+    );
+  }
+
+  protected isStatusSelected(status: BookingStatus): boolean {
+    return this.selectedStatuses.includes(status);
+  }
+
+  /** Receives dialog draft values only after staff chooses Apply filters. */
+  protected handleFiltersApplied(filters: BookingFilterSelection): void {
+    this.applyActiveFilters(
+      filters.statuses,
+      filters.resourceId,
+      filters.updatedDate,
+      filters.dateField,
+    );
+    this.closeFilters();
   }
 
   /** Converts UTC booking timestamps to the shared business display timezone. */
@@ -457,9 +504,10 @@ export class BookingListComponent implements OnInit, OnDestroy {
       const { from, to } = this.businessDayRange(this.updatedDateControl.value);
       query.from = from;
       query.to = to;
+      if (this.dateFieldControl.value !== 'modified') query.dateField = this.dateFieldControl.value;
     }
     if (this.resourceControl.value) query.resourceId = this.resourceControl.value;
-    if (this.statusControl.value !== 'ALL') query.status = this.statusControl.value;
+    if (this.selectedStatuses.length) query.status = this.selectedStatuses.join(',');
     const search = this.searchControl.value.trim();
     if (search.length >= 2) query.search = search;
 
@@ -488,18 +536,37 @@ export class BookingListComponent implements OnInit, OnDestroy {
     this.loadBookings();
   }
 
+  /** Applies panel values atomically so one staff action produces one list request. */
+  private applyActiveFilters(
+    statuses: BookingStatus[],
+    resourceId: string,
+    updatedDate: string,
+    dateField: BookingDateField,
+  ): void {
+    this.selectedStatuses = this.allStatusFilters.filter((status) => statuses.includes(status));
+    this.resourceControl.setValue(resourceId, { emitEvent: false });
+    this.updatedDateControl.setValue(updatedDate, { emitEvent: false });
+    this.dateFieldControl.setValue(dateField, { emitEvent: false });
+    this.persistListState();
+    this.resetAndLoadBookings();
+  }
+
   /** Restores the operational context after returning from a booking detail or edit page. */
   private restoreListState(): void {
     const params = this.route.snapshot.queryParamMap;
-    const status = params.get('status') as BookingStatusFilter | null;
+    const statuses = (params.get('status') ?? '')
+      .split(',')
+      .filter((status): status is BookingStatus => this.allStatusFilters.includes(status as BookingStatus));
 
     this.viewControl.setValue(params.get('view') === 'all' ? 'ALL' : 'TODAY', { emitEvent: false });
-    this.statusControl.setValue(
-      this.statusFilters.some((option) => option.value === status) ? status! : 'ALL',
-      { emitEvent: false },
-    );
+    this.selectedStatuses = this.allStatusFilters.filter((status) => statuses.includes(status));
     this.searchControl.setValue(params.get('search') ?? '', { emitEvent: false });
     this.updatedDateControl.setValue(params.get('date') ?? '', { emitEvent: false });
+    const dateField = params.get('dateField');
+    this.dateFieldControl.setValue(
+      dateField === 'created' || dateField === 'scheduled' ? dateField : 'modified',
+      { emitEvent: false },
+    );
     this.resourceControl.setValue(params.get('resource') ?? '', { emitEvent: false });
   }
 
@@ -507,9 +574,13 @@ export class BookingListComponent implements OnInit, OnDestroy {
   private persistListState(): void {
     const queryParams = {
       view: this.isTodayView ? null : 'all',
-      status: this.statusControl.value === 'ALL' ? null : this.statusControl.value,
+      status: this.selectedStatuses.length ? this.selectedStatuses.join(',') : null,
       search: this.searchControl.value.trim() || null,
       date: this.isTodayView || !this.updatedDateControl.value ? null : this.updatedDateControl.value,
+      dateField:
+        this.isTodayView || !this.updatedDateControl.value || this.dateFieldControl.value === 'modified'
+          ? null
+          : this.dateFieldControl.value,
       resource: this.resourceControl.value || null,
     };
 

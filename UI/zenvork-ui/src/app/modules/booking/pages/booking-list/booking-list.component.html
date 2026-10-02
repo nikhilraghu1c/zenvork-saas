@@ -46,11 +46,7 @@
     }
   </p>
 
-  <div
-    class="booking-list-page__filters"
-    [class.has-updated-date]="!isTodayView"
-    aria-label="Booking filters"
-  >
+  <div class="booking-list-page__filter-toolbar">
     <app-input
       class="search-filter"
       [formControl]="searchControl"
@@ -59,29 +55,43 @@
       prefixIcon="search"
       subscriptSizing="dynamic"
     />
-    @if (!isTodayView) {
-      <app-date-picker
-        class="updated-date-filter"
-        [formControl]="updatedDateControl"
-        label="Modified on"
-        subscriptSizing="dynamic"
-      />
-    }
-    <app-select
-      class="status-filter"
-      [formControl]="statusControl"
-      label="Status"
-      subscriptSizing="dynamic"
-      [options]="statusFilters"
-    />
-    <app-select
-      class="resource-filter"
-      [formControl]="resourceControl"
-      label="Resource"
-      subscriptSizing="dynamic"
-      [options]="resourceOptions"
+    <app-button
+      class="filter-trigger"
+      variant="secondary"
+      icon="tune"
+      label="Filters"
+      [hideLabelOnMobile]="true"
+      [badge]="activeFilterCount || null"
+      [ariaLabel]="activeFilterCount ? 'Open booking filters, ' + activeFilterCount + ' active categories' : 'Open booking filters'"
+      (clicked)="openFilters()"
     />
   </div>
+
+  <div class="booking-list-page__quick-filters" aria-label="Quick booking status filters">
+    @for (status of quickStatusFilters; track status) {
+      <button
+        type="button"
+        [class.is-selected]="isStatusSelected(status)"
+        [attr.aria-pressed]="isStatusSelected(status)"
+        (click)="toggleQuickStatus(status)"
+      >
+        {{ statusLabel(status) }}
+      </button>
+    }
+  </div>
+
+  @if (filtersOpen) {
+    <app-booking-filter-dialog
+      [statuses]="selectedStatuses"
+      [resourceOptions]="resourceOptions"
+      [resourceId]="resourceControl.value"
+      [updatedDate]="updatedDateControl.value"
+      [dateField]="dateFieldControl.value"
+      [showModifiedDate]="!isTodayView"
+      (closed)="closeFilters()"
+      (filtersApplied)="handleFiltersApplied($event)"
+    />
+  }
 
   @if (loading) {
     <p class="page-state" role="status">Loading bookings…</p>

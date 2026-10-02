@@ -55,7 +55,12 @@ is announced to assistive technology and linked to its field.
 `AppButtonComponent` emits `clicked` for page-level actions such as routed navigation while keeping
 the same shared Material button styling. Use `primary` for the main action, `secondary` for neutral
 outlined actions such as Cancel, `tertiary` only for intentional purple emphasis, and `text` for a
-borderless cyan action that should not compete with a primary control.
+borderless cyan action that should not compete with a primary control. Pass `ariaLabel` when its
+visible content is icon-only, such as a dialog close control. Set `iconOnly` for the shared compact
+icon-button geometry instead of creating a feature-local close button. Use its optional `icon`,
+`label`, `badge`, and `hideLabelOnMobile` inputs for compact responsive actions such as a filter
+trigger; this keeps their interaction and sizing inside the shared button API. Selectable quick-filter
+chips remain semantic native buttons because they expose pressed state rather than a one-off action.
 
 `AppActionMenuComponent` provides the icon-only three-dot trigger and menu overlay for record
 actions. Pass its `items` array (`id`, `label`, `icon`, optional `disabled`) and handle
