@@ -15,7 +15,7 @@
   .brand {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 2px;
     color: var(--text);
     font-family: var(--font-heading);
     font-size: 20px;
@@ -24,15 +24,13 @@
   }
 
   .brand-mark {
-    display: grid;
     width: 32px;
     height: 32px;
-    place-items: center;
-    border-radius: var(--radius-sm);
-    background: var(--gradient-brand);
-    color: var(--text-on-brand);
-    font-size: 16px;
-    font-weight: 700;
+    object-fit: contain;
+  }
+
+  .brand-wordmark {
+    margin-left: -5px;
   }
 
   .nav-links,
@@ -91,6 +89,10 @@
 
   @media (max-width: 460px) {
     gap: 12px;
+
+    .button-ghost {
+      display: none;
+    }
 
     .button {
       padding: 0 12px;

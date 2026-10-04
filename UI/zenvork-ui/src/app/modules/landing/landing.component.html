@@ -1,97 +1,192 @@
 <div class="landing-page">
-  <section class="hero" aria-labelledby="hero-title">
-    <span class="eyebrow">Booking &amp; Management, Simplified</span>
-    <h1 id="hero-title">Run your bookings. <span>Manage your business.</span></h1>
-    <p>
-      Zenvork is a private booking and management workspace for service businesses — appointments,
-      reminders, client records, and reporting, built for owners and their teams.
-    </p>
-    <div class="hero-actions">
-      <a class="cta btn-gradient" routerLink="/register">Start your free trial</a>
-      <a class="cta cta-secondary" href="#features">Explore features</a>
+  <section class="hero section-shell" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <span class="eyebrow">All-in-one business management</span>
+      <h1 id="hero-title">
+        Keep every appointment, client and payment <span>under control.</span>
+      </h1>
+      <p>
+        Bookings, clients, staff or resources, payments, and insights in one workspace—built for
+        appointment-based businesses.
+      </p>
+      <div class="hero-actions">
+        <a class="cta cta-primary" routerLink="/register"
+          >Get started <mat-icon>arrow_forward</mat-icon></a
+        >
+        <a class="cta cta-secondary" href="#how-it-works"
+          ><mat-icon>arrow_downward</mat-icon>See how it works</a
+        >
+      </div>
+    </div>
+
+    <div class="product-preview" aria-label="Example Zenvork booking workspace">
+      <aside class="preview-sidebar">
+        <span class="preview-brand"
+          ><img class="preview-mark" src="/images/brand/zenvork-mark.webp" alt="" /><span
+            class="preview-wordmark"
+            >envork</span
+          ></span
+        >
+        <span class="preview-nav is-active"><mat-icon>calendar_month</mat-icon>Calendar</span>
+        <span class="preview-nav"><mat-icon>event_note</mat-icon>Bookings</span>
+        <span class="preview-nav"><mat-icon>groups</mat-icon>Clients</span>
+        <span class="preview-nav"><mat-icon>group_work</mat-icon>Staff &amp; resources</span>
+        <span class="preview-nav"><mat-icon>account_balance_wallet</mat-icon>Payments</span>
+        <span class="preview-nav"><mat-icon>insights</mat-icon>Insights</span>
+      </aside>
+      <div class="preview-main">
+        <div class="preview-header">
+          <div><span class="preview-kicker">Calendar</span><strong>Today's bookings</strong></div>
+          <div class="view-switch"><span class="is-selected">Day</span><span>Week</span></div>
+        </div>
+        <div class="preview-date-row">
+          <span
+            ><mat-icon>chevron_left</mat-icon><strong>03 Oct 2026</strong
+            ><mat-icon>chevron_right</mat-icon></span
+          >
+          <b>Today</b>
+        </div>
+        <div class="appointment-list">
+          <div class="appointment appointment-cyan">
+            <time>9:00 AM</time
+            ><span><strong>Ananya Sharma</strong><small>Consultation</small></span
+            ><em>Scheduled</em>
+          </div>
+          <div class="appointment appointment-purple">
+            <time>10:30 AM</time><span><strong>Rohit Mehta</strong><small>Service</small></span
+            ><em>Checked in</em>
+          </div>
+          <div class="appointment appointment-green">
+            <time>12:00 PM</time><span><strong>Kavya Nair</strong><small>Follow-up</small></span
+            ><em>Scheduled</em>
+          </div>
+          <div class="appointment appointment-amber">
+            <time>2:00 PM</time><span><strong>Arjun Patel</strong><small>Service</small></span
+            ><em>Pending</em>
+          </div>
+        </div>
+        <div class="preview-metrics">
+          <div>
+            <mat-icon>event_available</mat-icon><strong>12</strong><span>Bookings today</span>
+          </div>
+          <div><mat-icon>groups</mat-icon><strong>8</strong><span>Active clients</span></div>
+          <div>
+            <mat-icon>payments</mat-icon><strong>₹24,800</strong><span>Collected this week</span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section id="business-types" class="content-section" aria-labelledby="types-title">
+  <section class="value-strip" aria-label="Zenvork benefits">
+    <div class="section-shell value-strip__grid">
+      @for (value of valueProps; track value[1]) {
+        <article class="value-item">
+          <mat-icon aria-hidden="true">{{ value[0] }}</mat-icon>
+          <div>
+            <strong>{{ value[1] }}</strong
+            ><span>{{ value[2] }}</span>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section id="how-it-works" class="workflow section-shell" aria-labelledby="workflow-title">
     <div class="section-heading">
-      <h2 id="types-title">Built for your kind of business</h2>
-      <p>One platform, configured for how your business actually books and manages clients.</p>
+      <span class="eyebrow">How it works</span>
+      <h2 id="workflow-title">Book. <span>Serve.</span> <b>Understand.</b></h2>
+      <p>A simple workflow to run your business, every day.</p>
     </div>
-    <div class="type-grid">
-      @for (type of businessTypes; track type.name) {
-        <article class="type-card" [class.is-coming-soon]="!type.available">
-          <div class="type-card-top">
-            <span class="type-icon">{{ type.abbreviation }}</span>
-            @if (type.available) {
-              <span class="status status-active"><i></i>Available now</span>
-            } @else {
-              <span class="status status-soon">Coming soon</span>
-            }
+    <div class="workflow-grid">
+      @for (step of workflow; track step.number; let index = $index) {
+        <article class="workflow-step">
+          <div class="step-heading">
+            <span>{{ step.number }}</span>
+            <div>
+              <h3>{{ step.title }}</h3>
+              <p>{{ step.description }}</p>
+            </div>
           </div>
-          <h3>{{ type.name }}</h3>
-          <p>{{ type.description }}</p>
-          <div class="tags">
-            @for (tag of type.tags; track tag) {
-              <span>{{ tag }}</span>
-            }
-          </div>
-          <div class="type-card-footer">
-            @if (type.available) {
-              <a routerLink="/register">Start free trial <span aria-hidden="true">→</span></a>
-            } @else {
-              <span>Notify me</span>
-            }
-          </div>
+          @if (index === 0) {
+            <div class="workflow-preview form-preview">
+              <strong>New appointment</strong><span>Client <b>Ananya Sharma</b></span
+              ><span>Service <b>Consultation</b></span
+              ><span>Staff / resource <b>Priya Verma</b></span>
+              <div><small>03 Oct 2026</small><small>10:00 AM</small></div>
+              <button type="button">Book appointment</button>
+            </div>
+          } @else if (index === 1) {
+            <div class="workflow-preview schedule-preview">
+              <div class="appointment appointment-cyan">
+                <time>9:00</time
+                ><span><strong>Ananya Sharma</strong><small>Consultation</small></span
+                ><em>Scheduled</em>
+              </div>
+              <div class="appointment appointment-purple">
+                <time>10:30</time><span><strong>Rohit Mehta</strong><small>Service</small></span
+                ><em>Checked in</em>
+              </div>
+              <div class="appointment appointment-green">
+                <time>12:00</time><span><strong>Kavya Nair</strong><small>Follow-up</small></span
+                ><em>Scheduled</em>
+              </div>
+            </div>
+          } @else {
+            <div class="workflow-preview insights-preview">
+              <div><strong>Business insights</strong><span>This month</span></div>
+              <div class="chart-bars" aria-hidden="true">
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              </div>
+              <div class="insight-summary">
+                <span><b>142</b>Bookings</span><span><b>96</b>Clients</span
+                ><span><b>₹2.4L</b>Collected</span>
+              </div>
+            </div>
+          }
         </article>
       }
     </div>
   </section>
 
-  <section id="about" class="content-section" aria-labelledby="value-title">
+  <section id="business-types" class="industries section-shell" aria-labelledby="industries-title">
     <div class="section-heading">
-      <h2 id="value-title">Why businesses use Zenvork</h2>
-      <p>Built around the problems that actually cost you clients and revenue.</p>
+      <span class="eyebrow">Industries</span>
+      <h2 id="industries-title">Built for appointment-based businesses</h2>
+      <p>
+        Whether you run a studio, wellness centre, clinic, or work independently, Zenvork adapts to
+        the way you work.
+      </p>
     </div>
-    <div class="value-grid">
-      @for (value of valueProps; track value[0]) {
-        <article class="value-card">
-          <h3>{{ value[0] }}</h3>
-          <p>{{ value[1] }}</p>
-        </article>
-      }
-    </div>
-    <blockquote>
-      Every missed reminder is a client who might not come back. Zenvork keeps your clients booked,
-      reminded, and coming back — without your staff chasing them down.
-    </blockquote>
-  </section>
-
-  <section id="features" class="content-section" aria-labelledby="features-title">
-    <div class="section-heading"><h2 id="features-title">Everything your front desk needs</h2></div>
-    <div class="feature-grid">
-      @for (feature of features; track feature[0]) {
-        <article class="feature-card">
-          <strong>{{ feature[0] }}</strong
-          ><span>{{ feature[1] }}</span>
+    <div class="industry-grid">
+      @for (industry of industries; track industry.name) {
+        <article class="industry-card">
+          <img [src]="industry.imagePath" [alt]="industry.name" />
+          <h3>
+            <mat-icon aria-hidden="true">{{ industry.icon }}</mat-icon
+            >{{ industry.name }}
+          </h3>
+          <p>{{ industry.description }}</p>
         </article>
       }
     </div>
   </section>
 
-  <section id="technology" class="content-section stack-section" aria-labelledby="stack-title">
-    <div class="section-heading"><h2 id="stack-title">Built with</h2></div>
-    <div class="stack-grid">
-      @for (technology of stack; track technology) {
-        <span>{{ technology }}</span>
-      }
+  <section class="closing-cta section-shell" aria-labelledby="closing-title">
+    <div>
+      <span class="eyebrow">Run a more organised business</span>
+      <h2 id="closing-title">Get started with Zenvork today.</h2>
+      <p>
+        Bring your bookings, clients, staff, payments, and insights together in one simple
+        workspace.
+      </p>
+      <a class="cta cta-primary" routerLink="/register"
+        >Get started <mat-icon>arrow_forward</mat-icon></a
+      >
     </div>
   </section>
-
-  <footer>
-    <span>© 2026 Zenvork. Built for modern service businesses.</span>
-    <span>
-      Curious how it's built?
-      <a href="#technology">Read the engineering notes <span aria-hidden="true">→</span></a>
-    </span>
+  <footer class="landing-footer">
+    <span>© 2026 Zenvork. Built for appointment-based businesses.</span
+    ><a routerLink="/login">Log in</a>
   </footer>
 </div>

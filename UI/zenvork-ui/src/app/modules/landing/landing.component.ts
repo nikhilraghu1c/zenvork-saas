@@ -1,85 +1,70 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 
-interface BusinessType {
-  abbreviation: string;
+interface Industry {
+  icon: string;
   name: string;
   description: string;
-  tags: string[];
-  available: boolean;
+  imagePath: string;
 }
 
 @Component({
   selector: 'app-landing',
-  imports: [RouterLink],
+  imports: [RouterLink, MatIconModule],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
 })
 export class LandingComponent {
-  protected readonly businessTypes: BusinessType[] = [
+  protected readonly industries: Industry[] = [
     {
-      abbreviation: 'SA',
-      name: 'Salon & Spa',
-      description: 'Stylist scheduling, reminders, and client history built in.',
-      tags: ['Booking', 'Reminders'],
-      available: true,
+      icon: 'content_cut',
+      name: 'Salons & beauty studios',
+      description: 'Manage appointments, stylists, services, and returning clients.',
+      imagePath: '/images/landing/salon-studio.webp',
     },
     {
-      abbreviation: 'CL',
-      name: 'Clinic',
-      description: 'Doctor scheduling, patient records, and visit reminders.',
-      tags: ['Booking', 'Reminders'],
-      available: true,
+      icon: 'spa',
+      name: 'Spas & wellness centres',
+      description: 'Coordinate treatments, practitioners, and resources with ease.',
+      imagePath: '/images/landing/spa-wellness.webp',
     },
     {
-      abbreviation: 'HT',
-      name: 'Hotel',
-      description: 'Room booking with date-range stays and check-in tracking.',
-      tags: ['Booking'],
-      available: false,
+      icon: 'medical_services',
+      name: 'Clinics',
+      description: 'Keep appointments, practitioners, and client visits organised.',
+      imagePath: '/images/landing/clinic.webp',
     },
     {
-      abbreviation: 'RS',
-      name: 'Restaurant',
-      description: 'Table booking with party size and turn-time handling.',
-      tags: ['Booking'],
-      available: false,
+      icon: 'person',
+      name: 'Independent professionals',
+      description: 'Run your bookings and clients as a makeup artist, therapist, or consultant.',
+      imagePath: '/images/landing/independent-professional.webp',
     },
   ];
 
   protected readonly valueProps = [
-    [
-      'Fewer no-shows',
-      'Automated reminders before every appointment mean fewer empty slots and less lost revenue.',
-    ],
-    [
-      'No double-booking',
-      'Real-time slot locking means two staff members can never accidentally book the same time.',
-    ],
-    [
-      'Know your business',
-      'See no-show rates, busy hours, and staff performance at a glance, not by guesswork.',
-    ],
-    [
-      'Clients who come back',
-      'Timely reminders and AI-drafted rebooking nudges keep clients cycling back to you.',
-    ],
+    ['event_available', 'Organise your day', 'A clear view of bookings, staff, and resources.'],
+    ['groups', 'Delight your clients', 'Keep client information together in one place.'],
+    ['account_balance_wallet', 'Get paid with ease', 'Track payments and outstanding dues.'],
+    ['insights', 'Make informed decisions', 'Simple insights to help your business grow.'],
   ];
 
-  protected readonly features = [
-    ['Booking', 'Real-time slots'],
-    ['Reminders', 'Auto SMS/WhatsApp'],
-    ['Chat', 'Client messaging'],
-    ['Analytics', 'Business insights'],
-    ['AI assistant', 'Smart drafts'],
-  ];
-  protected readonly stack = [
-    'Angular',
-    'Node.js',
-    'Express',
-    'MongoDB',
-    'Redis',
-    'BullMQ',
-    'WebSockets',
+  protected readonly workflow = [
+    {
+      number: '1',
+      title: 'Take bookings',
+      description: 'Manage appointments, services, staff, and resources in a few clicks.',
+    },
+    {
+      number: '2',
+      title: 'Deliver great service',
+      description: 'Keep the day moving with a clear schedule and client context.',
+    },
+    {
+      number: '3',
+      title: 'Understand your business',
+      description: 'Track completed work, payments, and the patterns that matter.',
+    },
   ];
 }

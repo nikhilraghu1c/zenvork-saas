@@ -52,12 +52,24 @@ invalid-credential feedback.
 
 Use component state and module services for simple, page-local state. Introduce NgRx SignalStore only
 when a feature needs shared data or UI state across multiple pages/components, such as resources,
-staff, or bookings. Keep each feature store inside its module (`modules/<feature>/store/`) and let it
-call that module's service; the service remains responsible for HTTP requests.
+staff, or bookings. Concrete adoption triggers are reusable cached records, coordinated optimistic
+updates with rollback/undo, polling or real-time updates, and long-running cross-page workflows. Keep
+each feature store inside its module (`modules/<feature>/store/`) and let it call that module's service;
+the service remains responsible for HTTP requests.
 
 Do not add NgRx preemptively or duplicate the current `AuthService` state. Before adding a store,
 propose the smallest appropriate store and obtain approval. Consider classic NgRx Store and Effects
 later for genuinely cross-feature workflows, WebSocket events, or optimistic updates.
+
+## Planned localization
+
+- Add an owner- or staff-selectable UI locale, beginning with `en-IN` and `hi-IN`.
+- Translate application labels, lifecycle display labels, validation copy, and frontend-mapped API error
+  codes using runtime translation dictionaries; do not translate user-entered client, service, or note
+  data.
+- Make `BusinessDateTimeService`, money formatting, and Angular locale data use the active locale while
+  retaining the business timezone and INR as independent settings.
+- Return stable backend error codes before translating server-originated failures in the frontend.
 
 ## Planned authentication and layout hardening
 
