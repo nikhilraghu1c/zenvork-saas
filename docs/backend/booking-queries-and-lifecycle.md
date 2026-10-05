@@ -314,3 +314,20 @@ COMPLETED, CANCELLED, NO_SHOW
 The `ALLOWED_STATUS_TRANSITIONS` object is a simple state machine. Before changing status, the
 controller verifies that `nextStatus` is in the array for the booking's current status. On check-in and
 completion, the server sets actual timestamps itself; the browser is not allowed to forge those times.
+
+## Keep appointment reminders aligned with booking lifecycle
+
+**Requirement:** a manual reminder must follow the current planned slot but must not make the booking
+look newly modified in the All bookings activity feed.
+
+After a scheduled creation, first scheduling, or reschedule, the controller calls
+`replacePendingAppointmentReminder()`. It cancels only `PENDING` Reminder documents for the booking,
+then creates a replacement for the current `scheduledStartAt`. On check-in it calls
+`closeAppointmentReminderQueue()`: an earlier `actualStartAt` shortens pending and sent reminders'
+queue expiry, while pending work is also cancelled. Sent records remain available in the Sent today log
+when they were confirmed on the current business day. Completion, cancellation, and no-show call
+`cancelPendingAppointmentReminders()`.
+
+Those helper queries update the separate Reminder collection, not the Booking document. Therefore
+Mongoose updates Reminder timestamps only; Booking `updatedAt` remains the actual staff booking edit
+time. This preserves the meaning of the All bookings Modified-on filter.

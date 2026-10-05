@@ -16,7 +16,7 @@ src/app/
 
 Public and authenticated experiences use separate route-level layouts. `PublicLayoutComponent` owns
 public navigation and public routes. `AppLayoutComponent` owns authenticated navigation and guarded
-`/app` routes. Dashboard, Booking, Clients, Staff, Resources, Services, and owner-only Analytics are implemented; the remaining visible app
+`/app` routes. Dashboard, Booking, Clients, Staff, Resources, Services, Reminders, and owner-only Analytics are implemented; the remaining visible app
 navigation routes use a temporary shared preview page until their workspaces are implemented. Feature
 pages are lazy-loaded. Each feature owns a `<module>.routes.ts` route array beside its code;
 `app.routes.ts` only composes the two layouts and lazy-loads those feature route arrays.
@@ -137,3 +137,14 @@ for a single-word name, normalizes whitespace, and returns an empty string for m
 `/app/analytics` is an owner-guarded, lazy-loaded revenue workspace. It requests fixed reporting
 periods from `GET /api/analytics/revenue` and presents billed, collected, outstanding, daily, and
 service-level revenue without calculating money totals in the browser.
+
+## Reminder workspace
+
+`/app/reminders` is a lazy-loaded manual appointment-reminder workspace for owners and staff. It shows
+three equal-width mobile-safe tabs—To send, Upcoming, and Sent today—with matching counts above them.
+Upcoming is intentionally preview-only; WhatsApp, copy, mark-sent, and skip actions appear only in To
+send. Marking a reminder sent moves it to Sent today, which is a daily confirmation log rather than an
+active queue. WhatsApp opens a prefilled client message and Copy uses the browser clipboard; neither
+action changes server state. After opening WhatsApp, a confirmation dialog asks staff whether they
+sent the message before `ReminderService` records it as sent. Staff can still explicitly mark a
+reminder sent or skipped.

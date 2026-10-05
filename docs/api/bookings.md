@@ -176,3 +176,14 @@ The request cannot provide status, actual times, `businessId`, or `createdBy`. A
 are set by the status-update endpoint.
 
 Successful creation returns `{ "message": "Booking created successfully", "bookingId": "..." }`.
+
+### Appointment reminders
+
+Creating a scheduled booking creates one pending manual appointment reminder. First scheduling through
+`PATCH /api/bookings/:id` does the same; rescheduling cancels the old pending reminder and creates a
+new one for the revised start time. Check-in, completion, cancellation, and no-show cancel pending
+reminders. An early check-in also closes a sent reminder's queue visibility at the real
+`actualStartAt`; a reminder confirmed on that business day remains visible in the separate **Sent
+today** log. These automatic Reminder writes never modify the booking's `updatedAt`, so they do not
+affect the All bookings Modified-on filter or ordering. See
+[Reminders API](reminders.md) for the staff queue and manual sent/skip actions.

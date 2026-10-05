@@ -5,6 +5,7 @@ import analyticsRouter from "../modules/analytics/analytics.routes.js";
 import clientRouter from "../modules/client/client.routes.js";
 import dashboardRouter from "../modules/dashboard/dashboard.routes.js";
 import resourceRouter from "../modules/resource/resource.routes.js";
+import reminderRouter from "../modules/reminder/reminder.routes.js";
 import serviceRouter from "../modules/service/service.routes.js";
 import userRouter from "../modules/users/user.routes.js";
 import authRouter from "./auth.routes.js";
@@ -25,6 +26,8 @@ apiRouter.use("/dashboard", userAuth, dashboardRouter);
 apiRouter.use("/analytics", userAuth, analyticsRouter);
 // Booking endpoints require authentication and are tenant-scoped by the signed-in user.
 apiRouter.use("/bookings", userAuth, bookingRouter);
+// Manual appointment reminders require authentication and derive tenant scope in the module.
+apiRouter.use("/reminders", userAuth, reminderRouter);
 // User-management endpoints require authentication before reaching the module router.
 apiRouter.use("/users", userAuth, userRouter);
 

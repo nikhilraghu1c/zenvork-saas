@@ -19,7 +19,7 @@ backend/src/
 ## Tenant model
 
 A business is the tenant boundary. Registration creates a `Business` and its `OWNER` user in one
-MongoDB transaction. `Resource`, `Client`, and `Booking` are tenant-owned models with a required
+MongoDB transaction. `Resource`, `Client`, `Booking`, and `Reminder` are tenant-owned models with a required
 `businessId`; their APIs derive that value from the authenticated user rather than accepting it from
 the client. The Resource `{ businessId, resourceType }`, Client `{ businessId, mobile }`, and Booking
 calendar/resource indexes support their tenant-scoped queries. Future business-owned records follow
@@ -34,8 +34,9 @@ permitted next status, sets actual service timestamps on check-in/completion ser
 authenticated user and time in `statusHistory`. Check-in requires active tenant resources, assigns them in
 the same operation, and prevents a resource from serving two checked-in bookings at once. A booking may select an existing client or create a new
 tenant-owned client in the same MongoDB transaction. `GET /api/bookings/:id` applies the same tenant filter
-as the list endpoint and returns populated client/resource summaries for the detail workspace; token and
-queue functionality remains deferred.
+as the list endpoint and returns populated client/resource summaries for the detail workspace; token
+functionality remains deferred. The authenticated Reminder module maintains one manual appointment
+reminder for each scheduled booking; recording a reminder outcome never changes Booking `updatedAt`.
 
 `utils/tenant-scope.js` centralizes this policy for controllers: `tenantFilter()` adds the verified
 tenant to database queries, `tenantData()` adds it to new documents, and `tenantId()` supplies it

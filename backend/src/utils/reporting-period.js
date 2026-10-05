@@ -23,6 +23,14 @@ const startOfBusinessDay = (date) => {
   return new Date(Date.UTC(year, month - 1, day, -5, -30));
 };
 
+// Reuses the business timezone when operational queues need today's calendar bounds.
+const getBusinessDayRange = (date = new Date()) => {
+  const from = startOfBusinessDay(date);
+  const to = new Date(from);
+  to.setUTCDate(to.getUTCDate() + 1);
+  return { from, to };
+};
+
 // Builds a reporting window and a previous equal-length window for safe tenant analytics comparisons.
 const getReportingRange = (period) => {
   const now = new Date();
@@ -59,7 +67,10 @@ const getReportingMonthRange = (monthValue) => {
 
   const [year, month] = match.slice(1).map(Number);
   const selectedMonth = new Date(Date.UTC(year, month - 1, 1));
-  if (selectedMonth.getUTCFullYear() !== year || selectedMonth.getUTCMonth() !== month - 1) {
+  if (
+    selectedMonth.getUTCFullYear() !== year ||
+    selectedMonth.getUTCMonth() !== month - 1
+  ) {
     return null;
   }
 
@@ -67,7 +78,9 @@ const getReportingMonthRange = (monthValue) => {
   const current = getBusinessDateParts(now);
   const currentMonth = new Date(Date.UTC(current.year, current.month - 1, 1));
   const monthsBehind =
-    (currentMonth.getUTCFullYear() - year) * 12 + currentMonth.getUTCMonth() - (month - 1);
+    (currentMonth.getUTCFullYear() - year) * 12 +
+    currentMonth.getUTCMonth() -
+    (month - 1);
   if (monthsBehind < 0 || monthsBehind >= REPORTING_MONTH_HISTORY) return null;
 
   const from = startOfBusinessDay(selectedMonth);
@@ -82,6 +95,7 @@ export {
   BUSINESS_TIME_ZONE,
   REPORTING_MONTH_HISTORY,
   REPORTING_PERIODS,
+  getBusinessDayRange,
   getBusinessDateParts,
   getReportingMonthRange,
   getReportingRange,

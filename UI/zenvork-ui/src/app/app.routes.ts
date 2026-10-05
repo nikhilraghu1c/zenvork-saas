@@ -43,6 +43,11 @@ export const routes: Routes = [
           import('./modules/analytics/analytics.routes').then((m) => m.ANALYTICS_ROUTES),
       },
       {
+        path: 'reminders',
+        loadChildren: () =>
+          import('./modules/reminder/reminder.routes').then((m) => m.reminderRoutes),
+      },
+      {
         path: '',
         loadChildren: () =>
           import('./modules/coming-soon/coming-soon.routes').then((m) => m.comingSoonRoutes),

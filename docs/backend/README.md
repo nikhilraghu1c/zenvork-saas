@@ -11,6 +11,9 @@ MongoDB implement it.
    availability, lifecycle changes, and pagination.
 3. [MongoDB aggregation](mongodb-aggregation.md) — how dashboard and revenue totals are calculated.
 4. [Tenant security patterns](tenant-security.md) — why every business-owned query uses a tenant scope.
+5. [Reminder module](reminder-module.md) — manual reminder lifecycle, queue filters, and TTL retention.
+6. [Reminder flow chart](reminder-flow.md) — visual map of queue tabs, staff actions, booking events,
+   and cleanup.
 
 ## Module guides
 
@@ -23,6 +26,8 @@ MongoDB implement it.
 - [Booking module](booking-queries-and-lifecycle.md)
 - [Dashboard module](dashboard-module.md)
 - [Analytics module](analytics-module.md)
+- [Reminder module](reminder-module.md)
+- [Reminder flow chart](reminder-flow.md)
 
 ## Keep learning guides current
 

@@ -3,6 +3,11 @@ import Booking from "./booking.model.js";
 import Client from "../client/client.model.js";
 import Resource from "../resource/resource.model.js";
 import Service from "../service/service.model.js";
+import {
+  cancelPendingAppointmentReminders,
+  closeAppointmentReminderQueue,
+  replacePendingAppointmentReminder,
+} from "../reminder/reminder.lifecycle.js";
 import { tenantData, tenantFilter } from "../../utils/tenant-scope.js";
 import {
   BookingValidationError,
@@ -309,6 +314,17 @@ const updateBooking = async (req, res) => {
     }
     await booking.save();
 
+    if (updateData.hasSchedule && booking.status === "SCHEDULED") {
+      // A new slot invalidates the previous pending reminder and creates one for the revised start.
+      await replacePendingAppointmentReminder({
+        businessId: booking.businessId,
+        bookingId: booking._id,
+        clientId: booking.clientId,
+        scheduledStartAt: booking.scheduledStartAt,
+        resolvedBy: req.user._id,
+      });
+    }
+
     await booking.populate("clientId", "name mobile email");
     await booking.populate("resourceIds", "name resourceType");
     return res.status(200).json({
@@ -411,6 +427,23 @@ const updateBookingStatus = async (req, res) => {
       changedBy: req.user._id,
     });
     await booking.save();
+
+    if (nextStatus === "CHECKED_IN") {
+      // The real start wins when it occurs before the planned appointment time.
+      await closeAppointmentReminderQueue({
+        businessId: booking.businessId,
+        bookingId: booking._id,
+        actualStartAt: booking.actualStartAt,
+        resolvedBy: req.user._id,
+      });
+    } else {
+      // Terminal booking states remove only unsent reminder work.
+      await cancelPendingAppointmentReminders({
+        businessId: booking.businessId,
+        bookingId: booking._id,
+        resolvedBy: req.user._id,
+      });
+    }
 
     await booking.populate("clientId", "name mobile email");
     await booking.populate("resourceIds", "name resourceType");
@@ -517,6 +550,17 @@ const createBooking = async (req, res) => {
             ],
             { session },
           );
+          if (createdBooking.status === "SCHEDULED") {
+            // Keep a newly created client, its booking, and its first reminder in one transaction.
+            await replacePendingAppointmentReminder({
+              businessId: createdBooking.businessId,
+              bookingId: createdBooking._id,
+              clientId: createdBooking.clientId,
+              scheduledStartAt: createdBooking.scheduledStartAt,
+              resolvedBy: req.user._id,
+              session,
+            });
+          }
         });
       } finally {
         await session.endSession();
@@ -530,6 +574,16 @@ const createBooking = async (req, res) => {
           createdBy: req.user._id,
         }),
       );
+      if (createdBooking.status === "SCHEDULED") {
+        // Every newly scheduled appointment receives one pending 24-hour reminder.
+        await replacePendingAppointmentReminder({
+          businessId: createdBooking.businessId,
+          bookingId: createdBooking._id,
+          clientId: createdBooking.clientId,
+          scheduledStartAt: createdBooking.scheduledStartAt,
+          resolvedBy: req.user._id,
+        });
+      }
     }
 
     return res.status(201).json({

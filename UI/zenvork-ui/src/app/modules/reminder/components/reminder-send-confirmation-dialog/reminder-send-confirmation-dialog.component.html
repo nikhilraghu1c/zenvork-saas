@@ -1,0 +1,24 @@
+<div
+  class="reminder-send-confirmation-dialog"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="send-confirmation-title"
+>
+  <div
+    class="reminder-send-confirmation-dialog__backdrop"
+    aria-hidden="true"
+    (click)="close()"
+  ></div>
+  <section class="reminder-send-confirmation-dialog__panel">
+    <h2 id="send-confirmation-title">Did you send the reminder to {{ clientName }}?</h2>
+
+    @if (errorMessage) {
+      <p class="reminder-send-confirmation-dialog__error" role="alert">{{ errorMessage }}</p>
+    }
+
+    <footer>
+      <app-button variant="secondary" [disabled]="submitting" (clicked)="close()">No</app-button>
+      <app-button [loading]="submitting" (clicked)="confirmed.emit()">Yes</app-button>
+    </footer>
+  </section>
+</div>
