@@ -6,7 +6,7 @@ import Service from "../service/service.model.js";
 import {
   cancelPendingAppointmentReminders,
   closeAppointmentReminderQueue,
-  replacePendingAppointmentReminder,
+  upsertPendingAppointmentReminder,
 } from "../reminder/reminder.lifecycle.js";
 import { tenantData, tenantFilter } from "../../utils/tenant-scope.js";
 import {
@@ -315,13 +315,12 @@ const updateBooking = async (req, res) => {
     await booking.save();
 
     if (updateData.hasSchedule && booking.status === "SCHEDULED") {
-      // A new slot invalidates the previous pending reminder and creates one for the revised start.
-      await replacePendingAppointmentReminder({
+      // Keep unsent reminder work aligned with the revised slot without creating a duplicate.
+      await upsertPendingAppointmentReminder({
         businessId: booking.businessId,
         bookingId: booking._id,
         clientId: booking.clientId,
         scheduledStartAt: booking.scheduledStartAt,
-        resolvedBy: req.user._id,
       });
     }
 
@@ -552,12 +551,11 @@ const createBooking = async (req, res) => {
           );
           if (createdBooking.status === "SCHEDULED") {
             // Keep a newly created client, its booking, and its first reminder in one transaction.
-            await replacePendingAppointmentReminder({
+            await upsertPendingAppointmentReminder({
               businessId: createdBooking.businessId,
               bookingId: createdBooking._id,
               clientId: createdBooking.clientId,
               scheduledStartAt: createdBooking.scheduledStartAt,
-              resolvedBy: req.user._id,
               session,
             });
           }
@@ -576,12 +574,11 @@ const createBooking = async (req, res) => {
       );
       if (createdBooking.status === "SCHEDULED") {
         // Every newly scheduled appointment receives one pending 24-hour reminder.
-        await replacePendingAppointmentReminder({
+        await upsertPendingAppointmentReminder({
           businessId: createdBooking.businessId,
           bookingId: createdBooking._id,
           clientId: createdBooking.clientId,
           scheduledStartAt: createdBooking.scheduledStartAt,
-          resolvedBy: req.user._id,
         });
       }
     }

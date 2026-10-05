@@ -41,7 +41,8 @@ const toPublicReminder = (reminder) => ({
   booking: reminder.bookingId
     ? {
         _id: reminder.bookingId._id,
-        scheduledStartAt: reminder.bookingId.scheduledStartAt,
+        // Old records use the current booking time until they age out; new records use this snapshot.
+        scheduledStartAt: reminder.scheduledStartAt ?? reminder.bookingId.scheduledStartAt,
         services: (reminder.bookingId.services ?? []).map(({ name }) => ({
           name,
         })),

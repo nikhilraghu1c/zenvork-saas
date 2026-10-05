@@ -13,38 +13,31 @@ const terminalUpdate = (status, now, resolvedBy = null) => ({
   purgeAt: retentionDate(now),
 });
 
-// Replaces the active reminder whenever a scheduled slot is first assigned or rescheduled.
-const replacePendingAppointmentReminder = async ({
+// Refreshes the unsent reminder for a revised slot, while preserving terminal reminder history.
+const upsertPendingAppointmentReminder = async ({
   businessId,
   bookingId,
   clientId,
   scheduledStartAt,
-  resolvedBy,
   session,
 }) => {
   const now = new Date();
-  const queryOptions = session ? { session } : undefined;
-  await Reminder.updateMany(
-    { businessId, bookingId, status: "PENDING" },
-    { $set: terminalUpdate("CANCELLED", now, resolvedBy) },
-    queryOptions,
-  );
-
   // Appointments created less than a day ahead become actionable immediately, never early.
   const dueAt = new Date(
     Math.max(scheduledStartAt.getTime() - REMINDER_LEAD_TIME_MS, now.getTime()),
   );
-  await Reminder.create(
-    [
-      {
-        businessId,
-        bookingId,
+  await Reminder.findOneAndUpdate(
+    { businessId, bookingId, type: "APPOINTMENT", status: "PENDING" },
+    {
+      $set: {
         clientId,
+        scheduledStartAt,
         dueAt,
         expiresAt: scheduledStartAt,
       },
-    ],
-    queryOptions,
+      $setOnInsert: { businessId, bookingId, type: "APPOINTMENT", status: "PENDING" },
+    },
+    { new: true, upsert: true, ...(session ? { session } : {}) },
   );
 };
 
@@ -101,7 +94,7 @@ export {
   cancelPendingAppointmentReminders,
   closeAppointmentReminderQueue,
   expirePendingReminders,
-  replacePendingAppointmentReminder,
   retentionDate,
   terminalUpdate,
+  upsertPendingAppointmentReminder,
 };

@@ -321,8 +321,10 @@ completion, the server sets actual timestamps itself; the browser is not allowed
 look newly modified in the All bookings activity feed.
 
 After a scheduled creation, first scheduling, or reschedule, the controller calls
-`replacePendingAppointmentReminder()`. It cancels only `PENDING` Reminder documents for the booking,
-then creates a replacement for the current `scheduledStartAt`. On check-in it calls
+`upsertPendingAppointmentReminder()`. It updates the one `PENDING` Reminder document for the booking
+with the new `scheduledStartAt` snapshot, `dueAt`, and `expiresAt`; if no pending document exists, it
+creates one. Sent and skipped records are never rewritten, so rescheduling after an outcome preserves
+that history and starts a new pending reminder for the revised slot. On check-in it calls
 `closeAppointmentReminderQueue()`: an earlier `actualStartAt` shortens pending and sent reminders'
 queue expiry, while pending work is also cancelled. Sent records remain available in the Sent today log
 when they were confirmed on the current business day. Completion, cancellation, and no-show call

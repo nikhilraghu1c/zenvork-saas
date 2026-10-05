@@ -31,6 +31,11 @@ const reminderSchema = new mongoose.Schema(
       required: true,
       default: "APPOINTMENT",
     },
+    // Preserves the exact appointment time communicated by this reminder after later reschedules.
+    scheduledStartAt: {
+      type: Date,
+      required: true,
+    },
     dueAt: {
       type: Date,
       required: true,

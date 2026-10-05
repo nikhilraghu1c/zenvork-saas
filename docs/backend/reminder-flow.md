@@ -7,10 +7,9 @@ testing a booking or explaining why a reminder is visible in a particular tab.
 
 ```mermaid
 flowchart TD
-    A[Scheduled booking is created or first scheduled] --> B[Replace pending reminder]
-    R[Booking is rescheduled] --> C[Cancel its old PENDING reminder]
-    C --> B
-    B --> D[Create one PENDING appointment reminder]
+    A[Scheduled booking is created or first scheduled] --> B[Upsert one PENDING reminder]
+    R[Booking is rescheduled] --> B
+    B --> D[Store or refresh its scheduledStartAt snapshot]
     D --> E[dueAt is later of scheduled start minus 24 hours and creation time]
     E --> F[expiresAt is scheduled start]
 
@@ -29,7 +28,9 @@ flowchart TD
 
 `dueAt` separates **Upcoming** from **To send**. `expiresAt` ends the actionable queue at the
 appointment's effective start time. Both operational tabs contain only `PENDING` reminders where
-`expiresAt > now`.
+`expiresAt > now`. On a reschedule, an existing pending reminder is refreshed in place. A sent or
+skipped reminder is historical, so a reschedule creates a fresh pending reminder and retains the old
+time snapshot for audit.
 
 ## 2. Staff actions from a To send row
 
@@ -100,7 +101,7 @@ actionable at 9:00 AM. The original planned time remains on the booking for plan
 | `PENDING` with `dueAt <= now` | Yes | To send while `expiresAt > now` | The reminder window has opened. |
 | `SENT` | No | Sent today when `resolvedAt` falls in the current business day | Staff confirmed they sent the message. |
 | `SKIPPED` | No | Not shown | Staff intentionally skipped it. |
-| `CANCELLED` | No | Not shown | Booking changed, checked in, cancelled, completed, or became no-show before sending. |
+| `CANCELLED` | No | Not shown | Booking checked in, cancelled, completed, or became no-show before sending. |
 | `EXPIRED` | No | Not shown | Queue API found a pending reminder after its effective appointment start. |
 
 ## 5. Cleanup without a background job
@@ -132,4 +133,18 @@ terminal history.
                    -> no pending reminder can be actioned
                    -> the sent row was already a 5 Oct entry, so it is no longer in Sent today
                    -> SENT history remains until about 45 days later
+```
+
+## Reschedule after sending example
+
+```text
+6 Oct, 9:00 AM: Reminder for an 11:00 AM slot was already sent
+                   -> this SENT record keeps scheduledStartAt = 11:00 AM
+
+6 Oct, 9:30 AM: Booking is rescheduled to 4:00 PM
+                   -> a new PENDING reminder is created for 4:00 PM
+                   -> the old sent reminder is not overwritten
+
+6 Oct, 10:00 AM: Staff sends the revised reminder
+                   -> Sent today shows two rows: one for 11:00 AM and one for 4:00 PM
 ```

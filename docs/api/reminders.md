@@ -24,8 +24,11 @@ Before returning a list, the backend changes pending reminders whose appointment
 `sentToday`, and pagination. Marking a reminder sent moves it from To send to Sent today. Sent today
 is a daily confirmation log, so it can show a sent reminder even after that appointment has started.
 
-Each reminder exposes only client name/mobile and the booking's planned start, service names, and
-resource summaries. It never exposes `businessId` or `resolvedBy`.
+Each reminder exposes only client name/mobile, its own planned-start snapshot, service names, and
+resource summaries. The snapshot means a sent reminder keeps the appointment time that was
+communicated even when the booking is later rescheduled. It is returned as
+`booking.scheduledStartAt` to preserve the response shape. It never exposes `businessId` or
+`resolvedBy`.
 
 ## Record a manual outcome
 

@@ -17,9 +17,10 @@ Validation allows only `tab`, `page`, and `limit` on queue reads, and only `{ ac
 
 ## Model and indexes
 
-Each `Reminder` belongs to one business, booking, and client. `dueAt` is when staff should act;
-`expiresAt` is the appointment start. The states are `PENDING`, `SENT`, `SKIPPED`, `CANCELLED`, and
-`EXPIRED`.
+Each `Reminder` belongs to one business, booking, and client. `scheduledStartAt` is a snapshot of the
+appointment time communicated by that reminder; it never follows a later booking reschedule. `dueAt`
+is when staff should act, while `expiresAt` is the operational queue end and can shorten for early
+check-in. The states are `PENDING`, `SENT`, `SKIPPED`, `CANCELLED`, and `EXPIRED`.
 
 ```js
 reminderSchema.index({ businessId: 1, status: 1, dueAt: 1 });
@@ -40,22 +41,29 @@ This is a MongoDB TTL index, not merely a faster-search index. A terminal record
 Date in `purgeAt`; MongoDB's TTL monitor removes it after that date. Pending records keep `purgeAt`
 as `null`, so they are not deleted. TTL cleanup is approximate rather than exact and needs no cron job.
 
-## Create or replace a pending reminder
+## Create or refresh a pending reminder
 
-**Requirement:** a scheduled booking must have one reminder for its current slot, never one for an
-old rescheduled time.
+**Requirement:** a scheduled booking must have one pending reminder for its current slot, without
+creating extra history for repeated reschedules before it is sent.
 
 ```js
-await Reminder.updateMany(
-  { businessId, bookingId, status: 'PENDING' },
-  { $set: terminalUpdate('CANCELLED', now, resolvedBy) },
+await Reminder.findOneAndUpdate(
+  { businessId, bookingId, type: 'APPOINTMENT', status: 'PENDING' },
+  {
+    $set: { clientId, scheduledStartAt, dueAt, expiresAt: scheduledStartAt },
+    $setOnInsert: { businessId, bookingId, type: 'APPOINTMENT', status: 'PENDING' },
+  },
+  { new: true, upsert: true },
 );
 ```
 
-`updateMany()` changes every pending reminder for that booking. Its filter means **this business AND
-this booking AND pending state**. Historical sent/skipped records are never rewritten. The helper then
-creates a new reminder with `dueAt = max(scheduledStartAt - 24 hours, now)`, so an appointment made
-less than a day ahead is due immediately rather than sent early or omitted.
+`findOneAndUpdate()` first looks for **this business AND this booking AND this appointment type AND a
+pending status**. If found, `$set` refreshes the same reminder for the revised slot. If none is found,
+`upsert: true` inserts one using `$setOnInsert`. The partial unique index still prevents two pending
+appointment reminders for one booking. Historical sent/skipped records do not match the filter, so they
+are never rewritten; a reschedule after either outcome creates a new pending reminder. The helper uses
+`dueAt = max(scheduledStartAt - 24 hours, now)`, so an appointment made less than a day ahead is due
+immediately rather than sent early or omitted.
 
 The booking controller calls this helper after a scheduled booking is created, first scheduled, or
 rescheduled. New client/booking/reminder creation uses the existing MongoDB transaction.
