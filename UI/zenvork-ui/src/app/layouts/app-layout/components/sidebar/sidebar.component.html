@@ -6,18 +6,20 @@
 
   <mat-nav-list>
     @for (group of navigationGroups; track group.label) {
-      <p class="nav-group-label">{{ group.label }}</p>
-      @for (item of group.items; track item.label) {
-        @if (canView(item)) {
-          <a
-            mat-list-item
-            [routerLink]="item.route"
-            routerLinkActive="is-active"
-            (click)="selectNavigation()"
-          >
-            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-            <span matListItemTitle>{{ item.label }}</span>
-          </a>
+      @if (canViewGroup(group)) {
+        <p class="nav-group-label">{{ group.label }}</p>
+        @for (item of group.items; track item.label) {
+          @if (canView(item)) {
+            <a
+              mat-list-item
+              [routerLink]="item.route"
+              routerLinkActive="is-active"
+              (click)="selectNavigation()"
+            >
+              <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+              <span matListItemTitle>{{ item.label }}</span>
+            </a>
+          }
         }
       }
     }

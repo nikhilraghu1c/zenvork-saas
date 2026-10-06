@@ -20,4 +20,18 @@ describe('SidebarComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('makes the resource workspace available to staff', () => {
+    const resources = component['navigationGroups']
+      .flatMap((group) => group.items)
+      .find((item) => item.route === '/app/resources');
+
+    expect(resources?.requiresOwner).not.toBeTrue();
+  });
+
+  it('does not include the retired chat workspace', () => {
+    const routes = component['navigationGroups'].flatMap((group) => group.items.map((item) => item.route));
+
+    expect(routes).not.toContain('/app/chat');
+  });
 });

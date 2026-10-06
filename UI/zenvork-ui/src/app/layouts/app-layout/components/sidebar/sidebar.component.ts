@@ -48,10 +48,9 @@ export class SidebarComponent {
         { label: 'Booking', icon: 'calendar_month', route: '/app/booking' },
         { label: 'Clients', icon: 'groups', route: '/app/clients' },
         { label: 'Staff', icon: 'badge', route: '/app/staff', requiresOwner: true },
-        { label: 'Resources', icon: 'inventory_2', route: '/app/resources', requiresOwner: true },
+        { label: 'Resources', icon: 'inventory_2', route: '/app/resources' },
         { label: 'Services', icon: 'miscellaneous_services', route: '/app/services' },
         { label: 'Reminders', icon: 'notifications', route: '/app/reminders' },
-        { label: 'Chat', icon: 'chat', route: '/app/chat' },
         { label: 'AI Assistant', icon: 'auto_awesome', route: '/app/ai-assistant' },
       ],
     },
@@ -83,6 +82,11 @@ export class SidebarComponent {
   /** Hides owner-only workspaces from staff navigation. */
   protected canView(item: NavigationItem): boolean {
     return !item.requiresOwner || this.auth.getCurrentUser()?.role === 'OWNER';
+  }
+
+  /** Avoids presenting an empty navigation section when every item is role-restricted. */
+  protected canViewGroup(group: NavigationGroup): boolean {
+    return group.items.some((item) => this.canView(item));
   }
 
   /** Ends the cookie session, then returns the user to the public login page. */
