@@ -26,3 +26,10 @@ pair.
 - Use `--mat-sys-*` variables for semantic, light/dark-theme-aware styling and Material integration.
 - Do not use legacy M2 `color="accent"` APIs with M3 components; create an M3 component variant or
   use a semantic system variable instead.
+
+## Native scrollbars
+
+Global styles render thin dark scrollbars: `--bg` is the track and `--text-mute` is the thumb, with
+`--text-dim` on hover. Firefox uses its standard scrollbar properties; Chromium/Safari use the WebKit
+scrollbar pseudo-elements. This prevents bright operating-system scroll tracks from clashing with the
+dark application shell.

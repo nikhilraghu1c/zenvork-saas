@@ -15,6 +15,31 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+// Keep native scrolling visually consistent with the dark application surface, including on Windows.
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-mute) var(--bg);
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid var(--bg);
+  border-radius: var(--radius-pill);
+  background: var(--text-mute);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
+}
+
 // iOS Safari zooms focused text controls whose computed font size is below 16px.
 // Preserve the compact desktop design while keeping mobile form entry at a stable viewport scale.
 @media (max-width: 767px) {

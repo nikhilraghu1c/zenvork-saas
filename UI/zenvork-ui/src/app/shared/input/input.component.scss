@@ -29,6 +29,10 @@
     font-size: 18px;
   }
 
+  input::placeholder {
+    color: var(--text-mute);
+  }
+
   .input-error {
     margin: -12px 0 8px;
     color: var(--mat-sys-error);

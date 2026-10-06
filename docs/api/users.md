@@ -41,3 +41,9 @@ The endpoint returns HTTP `201` with a success message only.
 ```json
 { "message": "Staff user created successfully" }
 ```
+
+If either login identifier is already registered, it returns HTTP `409`:
+
+```json
+{ "message": "This mobile number or email is already used by another account" }
+```

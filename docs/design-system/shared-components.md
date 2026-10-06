@@ -33,8 +33,9 @@ topbar remain layout-owned components because they are specific to `AppLayoutCom
 
 `AppInputComponent` uses Material's floating label by default. Its supported native input types are
 `text`, `email`, `number`, `password`, and `tel`. Set `floatLabel="always"` to keep
-that label floated, or set `labelPlacement="outside"` for an accessible native label above the
-outlined field. Provide `inputId` when a stable DOM identifier is needed. Its
+that label floated, set `labelPlacement="outside"` for an accessible native label above the
+outlined field, or use `labelPlacement="hidden"` for compact search fields that need only an
+accessible `aria-label`. Provide `inputId` when a stable DOM identifier is needed. Its
 `subscriptSizing` defaults to `fixed`
 for consistent form spacing; use `dynamic` for compact fields such as a search input that does not
 show supporting feedback. Fields marked `required` automatically show a visual error-colored star

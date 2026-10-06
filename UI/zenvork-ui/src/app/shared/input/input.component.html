@@ -22,6 +22,7 @@
       [value]="value"
       [placeholder]="placeholder"
       [autocomplete]="autocomplete"
+      [attr.aria-label]="labelPlacement === 'hidden' ? label : null"
       [required]="required"
       [disabled]="disabled"
       (input)="updateValue($event)"

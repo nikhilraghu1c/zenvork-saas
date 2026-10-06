@@ -5,6 +5,9 @@ import {
   validateStaffCreation,
 } from "./user.validation.js";
 
+const duplicateStaffCredentialMessage =
+  "This mobile number or email is already used by another account";
+
 const getStaffUsers = async (req, res) => {
   try {
     // Every staff list is constrained to the authenticated owner's business.
@@ -39,7 +42,7 @@ const createStaffUser = async (req, res) => {
     if (existingUser) {
       return res
         .status(409)
-        .json({ message: "Unable to create staff account" });
+        .json({ message: duplicateStaffCredentialMessage });
     }
 
     await User.create(
@@ -58,11 +61,11 @@ const createStaffUser = async (req, res) => {
       return res.status(400).json({ message: error.message });
     }
 
-    // A concurrent request can pass the pre-check, so preserve a generic conflict response.
+    // A concurrent request can pass the pre-check, so return the same safe duplicate credential message.
     if (error?.code === 11000) {
       return res
         .status(409)
-        .json({ message: "Unable to create staff account" });
+        .json({ message: duplicateStaffCredentialMessage });
     }
 
     console.error("Staff user creation failed:", error);

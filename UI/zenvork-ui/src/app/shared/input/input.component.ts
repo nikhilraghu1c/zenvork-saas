@@ -23,7 +23,7 @@ export class AppInputComponent implements ControlValueAccessor {
   /** Label displayed inside the field or above it. */
   @Input({ required: true }) label = '';
   /** Chooses whether the label is Material-floating or rendered above the field. */
-  @Input() labelPlacement: 'floating' | 'outside' = 'floating';
+  @Input() labelPlacement: 'floating' | 'outside' | 'hidden' = 'floating';
   /** Controls Material's floating-label behavior. */
   @Input() floatLabel: 'auto' | 'always' = 'auto';
   /** Controls whether Material reserves hint and error space below the field. */

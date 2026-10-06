@@ -64,7 +64,8 @@ The controller first checks likely duplicate mobile/email values for a friendly 
 handles MongoDB error `11000`, because two requests can pass the check at the same moment before either
 has saved. The database unique index is the final authority.
 
-The returned conflict text deliberately does not reveal whether an email or mobile already exists.
+The returned conflict text says that the mobile number **or** email is already used, but does not reveal
+which identifier or account caused the conflict.
 
 ## Lifecycle and current boundary
 
