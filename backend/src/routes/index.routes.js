@@ -9,6 +9,7 @@ import reminderRouter from "../modules/reminder/reminder.routes.js";
 import serviceRouter from "../modules/service/service.routes.js";
 import userRouter from "../modules/users/user.routes.js";
 import authRouter from "./auth.routes.js";
+import assistantRouter from "../modules/assistant/assistant.routes.js";
 
 const apiRouter = Router();
 
@@ -28,6 +29,8 @@ apiRouter.use("/analytics", userAuth, analyticsRouter);
 apiRouter.use("/bookings", userAuth, bookingRouter);
 // Manual appointment reminders require authentication and derive tenant scope in the module.
 apiRouter.use("/reminders", userAuth, reminderRouter);
+// Assistant sessions are private to the authenticated user and tenant inside the module.
+apiRouter.use("/assistant", userAuth, assistantRouter);
 // User-management endpoints require authentication before reaching the module router.
 apiRouter.use("/users", userAuth, userRouter);
 

@@ -1,0 +1,142 @@
+.assistant-history-sheet {
+  box-sizing: border-box;
+  display: flex;
+  height: min(68dvh, 620px);
+  min-height: 0;
+  flex-direction: column;
+  padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 24px 24px 0 0;
+  background: var(--bg);
+  color: var(--text);
+
+  .sheet-handle {
+    width: 38px;
+    height: 4px;
+    margin: 0 auto 16px;
+    border-radius: var(--radius-pill);
+    background: var(--border-strong);
+  }
+
+  header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  .add-button-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    mat-icon {
+      width: 18px;
+      height: 18px;
+      font-size: 18px;
+    }
+  }
+
+  .add-button {
+    --mat-button-filled-container-height: 40px;
+    --mat-button-filled-horizontal-padding: 16px;
+  }
+
+  .conversation-list {
+    display: grid;
+    align-content: start;
+    min-height: 0;
+    flex: 1 1 auto;
+    gap: 6px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+  }
+
+  .conversation-item {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+
+    &:hover,
+    &.is-selected {
+      border-color: var(--cyan-border);
+      background: var(--cyan-soft);
+    }
+  }
+
+  .conversation-select {
+    display: grid;
+    min-width: 0;
+    flex: 1 1 auto;
+    grid-template-columns: 20px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 12px;
+    padding: 9px 0 9px 12px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+
+    mat-icon {
+      width: 20px;
+      height: 20px;
+      color: var(--cyan);
+      font-size: 20px;
+    }
+
+    span {
+      min-width: 0;
+      flex: 1 1 auto;
+      overflow: hidden;
+    }
+
+    strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    strong {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+  }
+
+  app-action-menu { flex: 0 0 auto; }
+
+  @media (hover: hover) {
+    .conversation-item app-action-menu {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease;
+    }
+
+    .conversation-item:hover app-action-menu,
+    .conversation-item:focus-within app-action-menu {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  .empty-history {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+}

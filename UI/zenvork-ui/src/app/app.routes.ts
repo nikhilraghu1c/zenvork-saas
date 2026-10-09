@@ -48,6 +48,11 @@ export const routes: Routes = [
           import('./modules/reminder/reminder.routes').then((m) => m.reminderRoutes),
       },
       {
+        path: 'ai-assistant',
+        loadChildren: () =>
+          import('./modules/assistant/assistant.routes').then((m) => m.assistantRoutes),
+      },
+      {
         path: '',
         loadChildren: () =>
           import('./modules/coming-soon/coming-soon.routes').then((m) => m.comingSoonRoutes),

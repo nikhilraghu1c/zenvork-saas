@@ -1,0 +1,27 @@
+<div class="assistant-conversation-dialog" role="dialog" aria-modal="true" aria-labelledby="conversation-dialog-title">
+  <div class="assistant-conversation-dialog__backdrop" aria-hidden="true" (click)="close()"></div>
+  <section class="assistant-conversation-dialog__panel">
+    @if (mode === 'rename') {
+      <h2 id="conversation-dialog-title">Rename conversation</h2>
+      <p>Choose a clear name so you can find this conversation later.</p>
+      <label for="conversation-title">Conversation name</label>
+      <input id="conversation-title" [formControl]="titleControl" maxlength="100" autocomplete="off" (keydown.enter)="confirmRename()" />
+    } @else {
+      <h2 id="conversation-dialog-title">Delete conversation?</h2>
+      <p>This permanently deletes this conversation and all of its messages. This cannot be undone.</p>
+    }
+
+    @if (errorMessage) {
+      <p class="assistant-conversation-dialog__error" role="alert">{{ errorMessage }}</p>
+    }
+
+    <footer>
+      <app-button variant="secondary" [disabled]="submitting" (clicked)="close()">Cancel</app-button>
+      @if (mode === 'rename') {
+        <app-button [loading]="submitting" [disabled]="!titleControl.value.trim()" (clicked)="confirmRename()">Save</app-button>
+      } @else {
+        <app-button class="delete-button" [loading]="submitting" (clicked)="confirmDelete()">Delete</app-button>
+      }
+    </footer>
+  </section>
+</div>

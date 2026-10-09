@@ -1,0 +1,25 @@
+<section class="assistant-history-sheet" aria-labelledby="conversation-sheet-title">
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <header>
+    <h2 id="conversation-sheet-title">Conversations</h2>
+    <app-button class="add-button" (clicked)="startConversation()">
+      <span class="add-button-content"><mat-icon>add</mat-icon><span>Add</span></span>
+    </app-button>
+  </header>
+
+  @if (data.conversations.length) {
+    <div class="conversation-list" role="list">
+      @for (conversation of data.conversations; track conversation._id) {
+        <div class="conversation-item" role="listitem" [class.is-selected]="isSelected(conversation._id)">
+          <button type="button" class="conversation-select" (click)="selectConversation(conversation._id)">
+            <mat-icon aria-hidden="true">chat_bubble_outline</mat-icon>
+            <span><strong>{{ conversation.title }}</strong></span>
+          </button>
+          <app-action-menu ariaLabel="Conversation actions" [items]="conversationActions" (actionSelected)="selectAction(conversation, $event)" />
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="empty-history">Your conversations will appear here.</p>
+  }
+</section>

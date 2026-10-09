@@ -7,8 +7,5 @@ const comingSoonRoute = (path: string, title: string): Routes[number] => ({
 });
 
 export const comingSoonRoutes: Routes = [
-  comingSoonRoute('reminders', 'Reminders'),
-  comingSoonRoute('chat', 'Chat'),
-  comingSoonRoute('ai-assistant', 'AI Assistant'),
   comingSoonRoute('settings', 'Settings'),
 ];

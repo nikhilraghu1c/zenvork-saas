@@ -1,0 +1,142 @@
+<section class="assistant-workspace" aria-labelledby="assistant-title">
+  <div class="assistant-shell">
+    <aside class="conversation-panel" aria-label="Conversation history">
+      <header class="conversation-panel-header">
+        <h2>Conversations</h2>
+        <app-button class="add-button" (clicked)="startConversation()">
+          <span class="add-button-content"><mat-icon>add</mat-icon><span>Add</span></span>
+        </app-button>
+      </header>
+
+      @if (loadingConversations) {
+        <p class="history-status">Loading conversations…</p>
+      } @else if (conversations.length) {
+        <div class="conversation-list" role="list">
+          @for (conversation of conversations; track conversation._id) {
+            <div class="conversation-item" role="listitem" [class.is-selected]="isSelected(conversation._id)">
+              <button type="button" class="conversation-select" (click)="selectConversation(conversation._id)">
+                <mat-icon aria-hidden="true">chat_bubble_outline</mat-icon>
+                <span><strong>{{ conversation.title }}</strong></span>
+              </button>
+              <app-action-menu ariaLabel="Conversation actions" [items]="conversationActions" (actionSelected)="requestConversationAction(conversation, $event)" />
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="history-status">Start a conversation to see it here.</p>
+      }
+    </aside>
+
+    <div class="chat-pane">
+      <header class="assistant-header">
+        <div>
+          <p class="eyebrow">YOUR BUSINESS COPILOT</p>
+          <h1 id="assistant-title">
+            <mat-icon aria-hidden="true">auto_awesome</mat-icon> AI Assistant
+          </h1>
+          <p><mat-icon aria-hidden="true">lock</mat-icon> Private to you</p>
+        </div>
+        <app-button
+          icon="history"
+          ariaLabel="Open conversation history"
+          [iconOnly]="true"
+          variant="secondary"
+          (clicked)="openHistory()"
+        />
+      </header>
+
+      @if (errorMessage) {
+        <p class="assistant-error" role="alert">{{ errorMessage }}</p>
+      }
+
+      <div #chatScroll class="chat-scroll" [attr.aria-busy]="loadingConversation || sending">
+        @if (loadingConversation) {
+          <p class="chat-status">Loading conversation…</p>
+        } @else if (!activeConversation?.messages?.length && !sending) {
+          <div class="welcome-state">
+            <span class="assistant-mark"><mat-icon aria-hidden="true">auto_awesome</mat-icon></span>
+            <h2>Ask anything about running your business</h2>
+            <p>
+              Start with a prompt below. Business data stays protected while richer answers arrive
+              in the next phase.
+            </p>
+          </div>
+        } @else {
+          <div class="message-thread">
+            @for (message of activeConversation?.messages ?? []; track message._id) {
+              <article class="message" [class.is-user]="message.role === 'USER'">
+                @if (message.role === 'ASSISTANT') {
+                  <span class="message-avatar" aria-hidden="true"
+                    ><mat-icon>auto_awesome</mat-icon></span
+                  >
+                }
+                <div>
+                  <p>{{ message.content }}</p>
+                  <time>{{ messageTime(message) }}</time>
+                </div>
+              </article>
+            }
+            @if (sending && pendingMessage) {
+              <article class="message is-user pending-message">
+                <div>
+                  <p>{{ pendingMessage }}</p>
+                </div>
+              </article>
+            }
+            @if (sending) {
+              <article class="message thinking" aria-label="Assistant is thinking">
+                <span class="message-avatar" aria-hidden="true"
+                  ><mat-icon>auto_awesome</mat-icon></span
+                >
+                <div><span></span><span></span><span></span><b>Thinking…</b></div>
+              </article>
+            }
+          </div>
+        }
+      </div>
+
+      @if (!loadingConversation && !sending && !activeConversation?.messages?.length) {
+        <section class="suggestion-section" aria-label="Suggested prompts">
+          <div class="suggestions">
+            @for (suggestion of suggestions; track suggestion.label) {
+              <button type="button" (click)="useSuggestion(suggestion)">
+                <mat-icon aria-hidden="true">{{ suggestion.icon }}</mat-icon>
+                {{ suggestion.label }}
+                <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+              </button>
+            }
+          </div>
+        </section>
+      }
+
+      <form class="composer" (submit)="sendMessage(); $event.preventDefault()">
+        <mat-icon aria-hidden="true">edit</mat-icon>
+        <textarea
+          [formControl]="promptControl"
+          aria-label="Ask the AI Assistant"
+          placeholder="Ask anything about your business…"
+          rows="1"
+          [disabled]="sending"
+          (keydown.enter)="handleComposerKeydown($event)"
+        ></textarea>
+        <button
+          type="submit"
+          [disabled]="sending || !promptControl.value.trim()"
+          aria-label="Send message"
+        >
+          <mat-icon aria-hidden="true">send</mat-icon>
+        </button>
+      </form>
+    </div>
+  </div>
+  @if (actionConversation && actionMode) {
+    <app-assistant-conversation-dialog
+      [mode]="actionMode"
+      [conversationTitle]="actionConversation.title"
+      [submitting]="actionSubmitting"
+      [errorMessage]="actionError"
+      (closed)="closeConversationDialog()"
+      (confirmed)="confirmConversationDialog($event)"
+    />
+  }
+</section>

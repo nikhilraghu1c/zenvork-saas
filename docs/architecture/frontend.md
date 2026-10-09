@@ -16,7 +16,7 @@ src/app/
 
 Public and authenticated experiences use separate route-level layouts. `PublicLayoutComponent` owns
 public navigation and public routes. `AppLayoutComponent` owns authenticated navigation and guarded
-`/app` routes. Dashboard, Booking, Clients, Staff, Resources, Services, Reminders, and owner-only Analytics are implemented; the remaining visible app
+`/app` routes. Dashboard, Booking, Clients, Staff, Resources, Services, Reminders, AI Assistant, and owner-only Analytics are implemented; the remaining visible app
 navigation routes use a temporary shared preview page until their workspaces are implemented. Feature
 pages are lazy-loaded. Each feature owns a `<module>.routes.ts` route array beside its code;
 `app.routes.ts` only composes the two layouts and lazy-loads those feature route arrays.
@@ -148,3 +148,21 @@ active queue. WhatsApp opens a prefilled client message and Copy uses the browse
 action changes server state. After opening WhatsApp, a confirmation dialog asks staff whether they
 sent the message before `ReminderService` records it as sent. Staff can still explicitly mark a
 reminder sent or skipped.
+
+## AI Assistant workspace
+
+`/app/ai-assistant` is a lazy-loaded workspace available to authenticated owners and staff. Its
+desktop layout keeps conversation history inside the assistant workspace; on mobile, that same
+history opens in a bottom sheet while the chat remains full-width. Conversations are private to the
+signed-in user and tenant. Phase 1 uses backend-controlled replies only and does not send business
+records to an external model. Inactive conversations, including their embedded messages, expire after
+seven days; paid retention tiers can extend that policy later.
+
+### Planned conversation scaling
+
+The initial assistant API returns a complete short-lived conversation after a message is sent. Before
+supporting high-volume conversations, change message retrieval to cursor pagination, return only the
+newly persisted user/assistant messages from the send endpoint, and use a virtualized message list in
+the frontend. This avoids repeatedly transferring and rendering an entire long conversation while
+preserving the existing conversation summary list. The virtualized message list should also render a
+date separator (for example, `21 Sept`) before each day's messages.
