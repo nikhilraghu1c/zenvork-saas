@@ -3,7 +3,7 @@
     <aside class="conversation-panel" aria-label="Conversation history">
       <header class="conversation-panel-header">
         <h2>Conversations</h2>
-        <app-button class="add-button" (clicked)="startConversation()">
+        <app-button class="add-button" [disabled]="sending" (clicked)="startConversation()">
           <span class="add-button-content"><mat-icon>add</mat-icon><span>Add</span></span>
         </app-button>
       </header>
@@ -14,11 +14,11 @@
         <div class="conversation-list" role="list">
           @for (conversation of conversations; track conversation._id) {
             <div class="conversation-item" role="listitem" [class.is-selected]="isSelected(conversation._id)">
-              <button type="button" class="conversation-select" (click)="selectConversation(conversation._id)">
+              <button type="button" class="conversation-select" [disabled]="sending" (click)="selectConversation(conversation._id)">
                 <mat-icon aria-hidden="true">chat_bubble_outline</mat-icon>
                 <span><strong>{{ conversation.title }}</strong></span>
               </button>
-              <app-action-menu ariaLabel="Conversation actions" [items]="conversationActions" (actionSelected)="requestConversationAction(conversation, $event)" />
+              <app-action-menu ariaLabel="Conversation actions" [items]="conversationActions" [disabled]="sending" (actionSelected)="requestConversationAction(conversation, $event)" />
             </div>
           }
         </div>
@@ -28,26 +28,29 @@
     </aside>
 
     <div class="chat-pane">
-      <header class="assistant-header">
-        <div>
-          <p class="eyebrow">YOUR BUSINESS COPILOT</p>
-          <h1 id="assistant-title">
-            <mat-icon aria-hidden="true">auto_awesome</mat-icon> AI Assistant
-          </h1>
-          <p><mat-icon aria-hidden="true">lock</mat-icon> Private to you</p>
-        </div>
-        <app-button
-          icon="history"
-          ariaLabel="Open conversation history"
-          [iconOnly]="true"
-          variant="secondary"
-          (clicked)="openHistory()"
-        />
-      </header>
+      <div class="assistant-top">
+        <header class="assistant-header">
+          <div>
+            <p class="eyebrow">YOUR BUSINESS COPILOT</p>
+            <h1 id="assistant-title">
+              <mat-icon aria-hidden="true">auto_awesome</mat-icon> AI Assistant
+            </h1>
+            <p><mat-icon aria-hidden="true">lock</mat-icon> Private to you</p>
+          </div>
+          <app-button
+            icon="history"
+            ariaLabel="Open conversation history"
+            [iconOnly]="true"
+            variant="secondary"
+            [disabled]="sending"
+            (clicked)="openHistory()"
+          />
+        </header>
 
-      @if (errorMessage) {
-        <p class="assistant-error" role="alert">{{ errorMessage }}</p>
-      }
+        @if (errorMessage) {
+          <p class="assistant-error" role="alert">{{ errorMessage }}</p>
+        }
+      </div>
 
       <div #chatScroll class="chat-scroll" [attr.aria-busy]="loadingConversation || sending">
         @if (loadingConversation) {
@@ -116,7 +119,6 @@
           aria-label="Ask the AI Assistant"
           placeholder="Ask anything about your business…"
           rows="1"
-          [disabled]="sending"
           (keydown.enter)="handleComposerKeydown($event)"
         ></textarea>
         <button

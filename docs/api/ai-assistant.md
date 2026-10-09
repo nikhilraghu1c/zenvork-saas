@@ -30,7 +30,9 @@ another user's IDs return `404`.
 
 Accepts `{ "content": "..." }`, stores the user message, then stores a controlled Phase 1 response.
 The server extends the seven-day retention timestamp only when a message is persisted. Phase 1 does
-not send tenant business data to an external AI provider.
+not send tenant business data to an external AI provider. The default `mock` provider remains
+offline; when an administrator explicitly enables the Gemini provider, only the private conversation
+text is sent to it.
 
 ### `PATCH /api/assistant/conversations/:id`
 

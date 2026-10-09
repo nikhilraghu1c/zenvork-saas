@@ -62,6 +62,7 @@ export class AssistantWorkspaceComponent implements OnInit {
 
   /** Opens the same private-session list as a bottom sheet when the desktop panel is unavailable. */
   protected openHistory(): void {
+    if (this.sending) return;
     const sheet = this.bottomSheet.open(AssistantHistorySheetComponent, {
       data: {
         conversations: this.conversations,
@@ -96,7 +97,7 @@ export class AssistantWorkspaceComponent implements OnInit {
 
   /** Loads one private conversation after checking its server-derived tenant and user ownership. */
   protected selectConversation(id: string): void {
-    if (this.activeConversation?._id === id || this.loadingConversation) return;
+    if (this.activeConversation?._id === id || this.loadingConversation || this.sending) return;
     this.errorMessage = '';
     this.loadingConversation = true;
     this.assistant.getConversation(id).subscribe({
@@ -124,8 +125,10 @@ export class AssistantWorkspaceComponent implements OnInit {
     const content = this.promptControl.value.trim();
     if (!content || this.sending) return;
     this.errorMessage = '';
-    this.sending = true;
     this.pendingMessage = content;
+    this.promptControl.setValue('');
+    this.setSending(true);
+    this.scrollToLatest();
 
     if (this.activeConversation) {
       this.sendToConversation(this.activeConversation._id, content);
@@ -135,8 +138,8 @@ export class AssistantWorkspaceComponent implements OnInit {
     this.assistant.createConversation().subscribe({
       next: ({ conversation }) => this.sendToConversation(conversation._id, content),
       error: (error: { error?: { message?: string } }) => {
-        this.sending = false;
-        this.pendingMessage = '';
+        this.restoreFailedPrompt();
+        this.setSending(false);
         this.errorMessage = error.error?.message ?? 'Unable to start a conversation.';
       },
     });
@@ -159,14 +162,13 @@ export class AssistantWorkspaceComponent implements OnInit {
           this.toSummary(conversation),
           ...this.conversations.filter((item) => item._id !== conversation._id),
         ];
-        this.promptControl.setValue('');
-        this.sending = false;
+        this.setSending(false);
         this.pendingMessage = '';
         this.scrollToLatest();
       },
       error: (error: { error?: { message?: string } }) => {
-        this.sending = false;
-        this.pendingMessage = '';
+        this.restoreFailedPrompt();
+        this.setSending(false);
         this.errorMessage = error.error?.message ?? 'Unable to send the message.';
       },
     });
@@ -191,7 +193,7 @@ export class AssistantWorkspaceComponent implements OnInit {
 
   /** Opens the local confirmation dialog; server ownership is still enforced on submission. */
   protected requestConversationAction(conversation: AssistantConversationSummary, action: string): void {
-    if (action !== 'rename' && action !== 'delete') return;
+    if (this.sending || (action !== 'rename' && action !== 'delete')) return;
     this.actionConversation = conversation;
     this.actionMode = action as AssistantConversationAction;
     this.actionError = '';
@@ -242,6 +244,19 @@ export class AssistantWorkspaceComponent implements OnInit {
     return new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit' }).format(
       new Date(message.createdAt),
     );
+  }
+
+  /** Keeps the composer DOM state owned by its reactive form control while a reply is pending. */
+  private setSending(sending: boolean): void {
+    this.sending = sending;
+    if (sending) this.promptControl.disable({ emitEvent: false });
+    else this.promptControl.enable({ emitEvent: false });
+  }
+
+  /** Restores an unsaved prompt after a failed request so the user can retry without retyping. */
+  private restoreFailedPrompt(): void {
+    this.promptControl.setValue(this.pendingMessage);
+    this.pendingMessage = '';
   }
 
   private toSummary(conversation: AssistantConversation): AssistantConversationSummary {

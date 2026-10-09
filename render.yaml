@@ -18,6 +18,12 @@ services:
         generateValue: true
       - key: ACCESS_TKN_EXPIRE
         value: 7d
+      - key: AI_PROVIDER
+        value: gemini
+      - key: AI_MODEL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
       - key: CLIENT_ORIGIN
         fromService:
           name: zenvork

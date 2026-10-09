@@ -65,3 +65,9 @@ not a payment ledger or provider transaction record.
 
 Owners manage staff through the tenant-scoped users module. Its create endpoint accepts no client
 role or `businessId`: it always creates a `STAFF` user for the authenticated owner's business.
+
+The Assistant module keeps HTTP/database orchestration in its controller and routes generated replies
+through `assistant.service.js`. Phase 1 uses an in-module mock provider with the same
+`generateReply({ messages })` contract used by the mock and Gemini adapters. The default remains
+mock; Gemini is enabled only by server environment configuration. No tenant business records are sent
+to a provider—only the authenticated user's private conversation text.

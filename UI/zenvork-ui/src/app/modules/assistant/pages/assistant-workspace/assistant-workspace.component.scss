@@ -221,13 +221,17 @@
   }
 
   .assistant-error {
-    margin: 0 0 12px;
-    padding: 10px 12px;
+    display: flex;
+    min-height: 20px;
+    align-items: center;
+    margin: 0 0 14px;
+    padding: 9px 12px;
     border: 1px solid color-mix(in srgb, var(--mat-sys-error) 35%, transparent);
     border-radius: var(--radius-sm);
     background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
     color: var(--mat-sys-error);
     font-size: 13px;
+    line-height: 1.4;
   }
 
   .chat-scroll {

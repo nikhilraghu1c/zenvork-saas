@@ -22,6 +22,8 @@ export class AppActionMenuComponent {
   @Input({ required: true }) ariaLabel!: string;
   /** Reusable list of actions displayed in the menu. */
   @Input({ required: true }) items: AppActionMenuItem[] = [];
+  /** Prevents opening the menu while its parent record is unavailable for changes. */
+  @Input() disabled = false;
   /** Emits the identifier of the selected available action. */
   @Output() actionSelected = new EventEmitter<string>();
 }

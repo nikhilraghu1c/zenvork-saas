@@ -10,4 +10,7 @@ export const environment = {
   COOKIE_SAME_SITE: process.env.COOKIE_SAME_SITE || "strict",
   ACCESS_TKN_SECRET: process.env.ACCESS_TKN_SECRET,
   ACCESS_TKN_EXPIRE: process.env.ACCESS_TKN_EXPIRE,
+  AI_PROVIDER: (process.env.AI_PROVIDER || "mock").toLowerCase(),
+  AI_MODEL: process.env.AI_MODEL || "",
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY,
 };

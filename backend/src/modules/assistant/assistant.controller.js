@@ -5,6 +5,11 @@ import {
   validateConversationTitle,
   validateMessage,
 } from "./assistant.validation.js";
+import {
+  AssistantProviderConfigurationError,
+  generateAssistantReply,
+} from "./assistant.service.js";
+import { AssistantProviderRequestError } from "./providers/assistant-provider.errors.js";
 import { tenantFilter, tenantId } from "../../utils/tenant-scope.js";
 
 const INACTIVITY_DAYS = 7;
@@ -30,18 +35,6 @@ const toConversation = (conversation) => ({
     createdAt: message.createdAt,
   })),
 });
-
-// Provides safe Phase 1 responses without sending tenant records to an external AI provider.
-const controlledReply = (content) => {
-  const question = content.toLowerCase();
-  if (/revenue|earnings?|collected?|income|sales/.test(question)) {
-    return "Revenue questions will be available once owner-only reporting is connected. For now, use Analytics for your current revenue summary.";
-  }
-  if (/reminder|appointment|draft.*message|message.*draft/.test(question)) {
-    return "I can help draft a reminder. Tell me the appointment details and the tone you would like to use.";
-  }
-  return "I currently support guided planning, reminder drafting, and revenue-reporting guidance. Try: “What should I focus on today?”, “Draft a reminder message”, or “How much revenue did I get yesterday?”";
-};
 
 const isValidId = (id) => mongoose.isObjectIdOrHexString(id);
 
@@ -147,12 +140,16 @@ const addMessage = async (req, res) => {
     }
     const content = validateMessage(req.body);
     const now = new Date();
-    const reply = controlledReply(content);
     const conversation = await AssistantConversation.findOne(
       conversationFilter(req, req.params.id),
     );
     if (!conversation)
       return res.status(404).json({ message: "Conversation not found" });
+
+    // The provider receives only this private conversation's messages, never tenant records.
+    const reply = await generateAssistantReply({
+      messages: [...conversation.messages, { role: "USER", content }],
+    });
 
     conversation.messages.push({ role: "USER", content, createdAt: now });
     conversation.messages.push({
@@ -174,6 +171,12 @@ const addMessage = async (req, res) => {
   } catch (error) {
     if (error instanceof AssistantValidationError) {
       return res.status(400).json({ message: error.message });
+    }
+    if (error instanceof AssistantProviderConfigurationError) {
+      return res.status(503).json({ message: "AI Assistant is not configured" });
+    }
+    if (error instanceof AssistantProviderRequestError) {
+      return res.status(503).json({ message: "AI Assistant is temporarily unavailable" });
     }
     console.error("Failed to add assistant message:", error);
     return res.status(500).json({ message: "Unable to send message" });

@@ -65,7 +65,8 @@ chips remain semantic native buttons because they expose pressed state rather th
 
 `AppActionMenuComponent` provides the icon-only three-dot trigger and menu overlay for record
 actions. Pass its `items` array (`id`, `label`, `icon`, optional `disabled`) and handle
-`actionSelected` in the feature. The wrapper owns the Material menu and its overlay styling.
+`actionSelected` in the feature. Set its `disabled` input when the parent record cannot be changed;
+this disables the trigger itself. The wrapper owns the Material menu and its overlay styling.
 
 `AppDataGridComponent` wraps AG Grid Community for dense desktop data. Features provide their rows
 and column definitions; the wrapper owns the shared dark grid theme, default sortable/resizable
