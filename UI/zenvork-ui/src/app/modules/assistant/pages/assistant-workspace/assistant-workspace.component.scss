@@ -310,6 +310,91 @@
       white-space: pre-wrap;
     }
 
+    markdown.assistant-message-content {
+      display: block;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.65;
+
+      &::ng-deep {
+        > :first-child {
+          margin-top: 0;
+        }
+
+        > :last-child {
+          margin-bottom: 0;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+          margin: 14px 0 5px;
+          color: var(--text);
+          font-size: 15px;
+          line-height: 1.45;
+        }
+
+        p {
+          margin: 7px 0 0;
+          white-space: pre-wrap;
+        }
+
+        ul,
+        ol {
+          margin: 7px 0 0;
+          padding-left: 21px;
+        }
+
+        li + li {
+          margin-top: 4px;
+        }
+
+        hr {
+          height: 1px;
+          margin: 14px 0;
+          border: 0;
+          background: var(--border);
+        }
+
+        blockquote {
+          margin: 10px 0;
+          padding-left: 11px;
+          border-left: 2px solid var(--cyan-border);
+          color: var(--text-dim);
+        }
+
+        pre {
+          overflow-x: auto;
+          margin: 10px 0;
+          padding: 11px;
+          border-radius: var(--radius-sm);
+          background: var(--surface-subtle);
+        }
+
+        code {
+          padding: 1px 4px;
+          border-radius: 4px;
+          background: var(--surface-subtle);
+          color: var(--cyan);
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size: 0.9em;
+        }
+
+        pre code {
+          padding: 0;
+          background: transparent;
+          color: inherit;
+        }
+
+        a {
+          color: var(--cyan);
+        }
+      }
+    }
+
     time {
       display: block;
       margin-top: 8px;

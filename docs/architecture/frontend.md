@@ -154,9 +154,10 @@ reminder sent or skipped.
 `/app/ai-assistant` is a lazy-loaded workspace available to authenticated owners and staff. Its
 desktop layout keeps conversation history inside the assistant workspace; on mobile, that same
 history opens in a bottom sheet while the chat remains full-width. Conversations are private to the
-signed-in user and tenant. Phase 1 uses backend-controlled replies only and does not send business
-records to an external model. Inactive conversations, including their embedded messages, expire after
-seven days; paid retention tiers can extend that policy later.
+signed-in user and tenant. The backend chooses the configured reply provider and never sends tenant
+business records to it in this phase. Assistant Markdown is rendered by `ngx-markdown` and sanitized
+through a narrow DOMPurify allow-list before it reaches the DOM. Inactive conversations, including
+their embedded messages, expire after seven days; paid retention tiers can extend that policy later.
 
 ### Planned conversation scaling
 

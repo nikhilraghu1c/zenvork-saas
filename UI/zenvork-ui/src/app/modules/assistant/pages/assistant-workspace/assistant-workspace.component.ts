@@ -3,6 +3,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatIconModule } from '@angular/material/icon';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MarkdownComponent } from 'ngx-markdown';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppActionMenuComponent, AppActionMenuItem } from '../../../../shared/action-menu/action-menu.component';
 import { AssistantConversationDialogComponent, AssistantConversationDialogMode } from '../../components/assistant-conversation-dialog/assistant-conversation-dialog.component';
@@ -26,7 +27,7 @@ const CONVERSATION_ACTIONS: AppActionMenuItem[] = [
 
 @Component({
   selector: 'app-assistant-workspace',
-  imports: [AppActionMenuComponent, AppButtonComponent, AssistantConversationDialogComponent, MatBottomSheetModule, MatIconModule, ReactiveFormsModule],
+  imports: [AppActionMenuComponent, AppButtonComponent, AssistantConversationDialogComponent, MarkdownComponent, MatBottomSheetModule, MatIconModule, ReactiveFormsModule],
   templateUrl: './assistant-workspace.component.html',
   styleUrl: './assistant-workspace.component.scss',
 })

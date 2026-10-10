@@ -28,11 +28,11 @@ another user's IDs return `404`.
 
 ### `POST /api/assistant/conversations/:id/messages`
 
-Accepts `{ "content": "..." }`, stores the user message, then stores a controlled Phase 1 response.
-The server extends the seven-day retention timestamp only when a message is persisted. Phase 1 does
-not send tenant business data to an external AI provider. The default `mock` provider remains
-offline; when an administrator explicitly enables the Gemini provider, only the private conversation
-text is sent to it.
+Accepts `{ "content": "..." }`, generates a reply, then persists the user and assistant messages.
+The server extends the seven-day retention timestamp only when messages are persisted. The default
+`mock` provider remains offline; when an administrator explicitly enables Gemini, only the current
+user's most recent 20 conversation messages and Zenvork's server-defined behavior instructions are
+sent to it. Tenant business records are never sent to a provider in this phase.
 
 ### `PATCH /api/assistant/conversations/:id`
 

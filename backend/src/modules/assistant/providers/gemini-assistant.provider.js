@@ -31,8 +31,8 @@ const withTimeout = async (request) => {
   }
 };
 
-// Sends only the authenticated user's conversation text; tenant records are never included here.
-const generateReply = async ({ messages }) => {
+// Sends only the authenticated user's recent conversation text; tenant records are never included here.
+const generateReply = async ({ messages, systemInstruction }) => {
   if (!environment.GEMINI_API_KEY) {
     throw new AssistantProviderConfigurationError("GEMINI_API_KEY is required");
   }
@@ -46,6 +46,7 @@ const generateReply = async ({ messages }) => {
       client.models.generateContent({
         model: environment.AI_MODEL,
         contents: toGeminiContents(messages),
+        config: { systemInstruction },
       }),
     );
     const reply = response.text?.trim();

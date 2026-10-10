@@ -74,7 +74,11 @@
                   >
                 }
                 <div>
-                  <p>{{ message.content }}</p>
+                  @if (message.role === 'ASSISTANT') {
+                    <markdown class="assistant-message-content" [data]="message.content" />
+                  } @else {
+                    <p>{{ message.content }}</p>
+                  }
                   <time>{{ messageTime(message) }}</time>
                 </div>
               </article>
