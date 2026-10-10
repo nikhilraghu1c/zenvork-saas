@@ -134,7 +134,6 @@ const zenvorkFeatureCatalog = [
       "service catalogue",
       "service catalog",
       "duration",
-      "price",
       "retire service",
       "deactivate service",
     ],

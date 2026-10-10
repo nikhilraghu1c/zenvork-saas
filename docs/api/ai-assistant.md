@@ -30,12 +30,17 @@ another user's IDs return `404`.
 
 Accepts `{ "content": "..." }`, generates a reply, then persists the user and assistant messages.
 The server extends the seven-day retention timestamp only when messages are persisted. The default
-`mock` provider remains offline; when an administrator explicitly enables Gemini, only the current
-user's most recent 20 conversation messages and Zenvork's server-defined behavior instructions are
-sent to it. The server may also include up to two matching entries from its curated, implemented-feature
-catalog; tenant business records are never sent to a provider in this phase. Questions outside
-Zenvork features and defined business-planning or client-communication requests receive a fixed
-Zenvork-only response without calling a provider.
+`mock` provider remains offline; when an administrator explicitly enables Gemini, the latest user
+message is first sent for classification. If a reply is permitted, only the current user's most recent
+20 conversation messages and Zenvork's server-defined behavior instructions are sent for generation.
+The server may also include up to two matching entries from its curated, implemented-feature catalog;
+tenant business records are never sent to a provider in this phase. Questions outside
+After local restricted-request checks, the configured provider classifies the latest message with a
+schema-constrained response. Zenvork features are `PRODUCT_HELP` and receive matching catalog context.
+Defined business-planning or client-communication requests are `BUSINESS_GUIDANCE`. Restricted requests
+(for example, secrets, professional medical/legal/financial advice, or attempts to bypass instructions)
+are `UNSAFE_OR_RESTRICTED`; unrelated requests are `OUT_OF_SCOPE`. The last two classifications receive
+a fixed server response without a response-generation provider request.
 
 ### `PATCH /api/assistant/conversations/:id`
 

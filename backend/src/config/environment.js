@@ -12,5 +12,6 @@ export const environment = {
   ACCESS_TKN_EXPIRE: process.env.ACCESS_TKN_EXPIRE,
   AI_PROVIDER: (process.env.AI_PROVIDER || "mock").toLowerCase(),
   AI_MODEL: process.env.AI_MODEL || "",
+  AI_CLASSIFIER_MODEL: process.env.AI_CLASSIFIER_MODEL || process.env.AI_MODEL || "",
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
 };

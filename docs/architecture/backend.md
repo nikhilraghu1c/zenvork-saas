@@ -78,6 +78,13 @@ Gemini is enabled only by server environment configuration. No tenant business r
 provider—only the authenticated user's private conversation text and server-owned feature guidance.
 `instructions/assistant-system-instruction.js` owns the provider-facing behavior instructions, including
 privacy, unsupported-data, and urgent-health response rules.
-Before selecting a provider, `assistant-knowledge.service.js` permits only catalog topics and narrowly
-defined business-planning or client-communication requests; unrelated questions receive a fixed local
-reply and do not incur a provider request.
+Before generating a reply, `classification/assistant-request-classifier.service.js` applies local safety
+checks and asks the configured provider for a schema-constrained classification:
+`PRODUCT_HELP`, `BUSINESS_GUIDANCE`, `UNSAFE_OR_RESTRICTED`, or `OUT_OF_SCOPE`.
+`instructions/assistant-classification-instruction.js` owns the classification contract. Product help
+receives catalog context and business guidance receives the base behavior instruction. Restricted and
+unrelated requests receive local replies without a response-generation provider request. The classifier
+intentionally does not yet support data-query or action-request classifications; those will be added
+alongside controlled business tools.
+`AI_CLASSIFIER_MODEL` can select a separate compatible classification model and falls back to
+`AI_MODEL` when it is unset.

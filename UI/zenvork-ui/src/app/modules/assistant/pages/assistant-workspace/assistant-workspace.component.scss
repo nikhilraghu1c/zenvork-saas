@@ -662,5 +662,17 @@
         padding: 9px 11px;
       }
     }
+
+    .composer {
+      gap: 8px;
+      padding: 6px 8px 6px 12px;
+
+      textarea::placeholder {
+        overflow: hidden;
+        color: var(--text-mute);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
   }
 }

@@ -15,6 +15,10 @@ The Assistant defaults to `AI_PROVIDER=mock`, which needs no API key. When a rea
 is enabled, configure its server-only key (for the planned Gemini adapter, `GEMINI_API_KEY`) in
 Render's environment settings; never add it to frontend configuration or Git.
 
+`AI_MODEL` selects the reply-generation model. `AI_CLASSIFIER_MODEL` is optional and otherwise falls
+back to `AI_MODEL`; set it only when a lower-cost compatible model should classify requests before
+reply generation.
+
 The build command uses `npm ci --include=dev` because Angular CLI is a build-time dev dependency,
 even though the running service uses `NODE_ENV=production`.
 

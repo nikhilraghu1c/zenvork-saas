@@ -4,8 +4,12 @@ import {
   AssistantProviderConfigurationError,
   AssistantProviderRequestError,
 } from "./assistant-provider.errors.js";
+import {
+  ASSISTANT_CLASSIFICATION_INSTRUCTION,
+  assistantClassificationSchema,
+} from "../instructions/assistant-classification-instruction.js";
 
-const REQUEST_TIMEOUT_MS = 30_000;
+const REQUEST_TIMEOUT_MS = 60_000;
 
 const toGeminiContents = (messages) =>
   messages.map((message) => ({
@@ -64,4 +68,43 @@ const generateReply = async ({ messages, systemInstruction }) => {
   }
 };
 
-export { generateReply };
+// Uses schema-constrained output so application policy receives an enum, not free-form model text.
+const classifyRequest = async ({ message }) => {
+  if (!environment.GEMINI_API_KEY) {
+    throw new AssistantProviderConfigurationError("GEMINI_API_KEY is required");
+  }
+  if (!environment.AI_CLASSIFIER_MODEL) {
+    throw new AssistantProviderConfigurationError("AI_CLASSIFIER_MODEL or AI_MODEL is required");
+  }
+
+  try {
+    const client = new GoogleGenAI({ apiKey: environment.GEMINI_API_KEY });
+    const response = await withTimeout(
+      client.models.generateContent({
+        model: environment.AI_CLASSIFIER_MODEL,
+        contents: [{ role: "user", parts: [{ text: message }] }],
+        config: {
+          systemInstruction: ASSISTANT_CLASSIFICATION_INSTRUCTION,
+          responseMimeType: "application/json",
+          responseJsonSchema: assistantClassificationSchema,
+        },
+      }),
+    );
+    const result = JSON.parse(response.text ?? "");
+    if (typeof result.classification !== "string" || !Number.isFinite(result.confidence)) {
+      throw new AssistantProviderRequestError("Gemini returned an invalid classification");
+    }
+    return result;
+  } catch (error) {
+    if (
+      error instanceof AssistantProviderConfigurationError ||
+      error instanceof AssistantProviderRequestError
+    ) {
+      throw error;
+    }
+    console.error("Gemini assistant classification failed:", error.message);
+    throw new AssistantProviderRequestError("Gemini classification failed");
+  }
+};
+
+export { classifyRequest, generateReply };
