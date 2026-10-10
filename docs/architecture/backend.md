@@ -68,7 +68,16 @@ role or `businessId`: it always creates a `STAFF` user for the authenticated own
 
 The Assistant module keeps HTTP/database orchestration in its controller and routes generated replies
 through `assistant.service.js`. The service provides every adapter with server-defined behavior
-instructions and a bounded recent-message context (20 messages), while the mock and Gemini adapters
+instructions, a bounded recent-message context (20 messages), and at most two matching entries from
+the in-module curated feature catalog. The catalog is the Phase 1 source of truth for implemented
+Zenvork product guidance. It covers account access, registration/business types, dashboard, bookings,
+payment status, clients, staff, resources, services, analytics, reminders, and Assistant conversation
+history; it is selected by `knowledge/assistant-knowledge.service.js`. The mock and Gemini adapters
 share the same `generateReply({ messages, systemInstruction })` contract. The default remains mock;
 Gemini is enabled only by server environment configuration. No tenant business records are sent to a
-provider—only the authenticated user's private conversation text.
+provider—only the authenticated user's private conversation text and server-owned feature guidance.
+`instructions/assistant-system-instruction.js` owns the provider-facing behavior instructions, including
+privacy, unsupported-data, and urgent-health response rules.
+Before selecting a provider, `assistant-knowledge.service.js` permits only catalog topics and narrowly
+defined business-planning or client-communication requests; unrelated questions receive a fixed local
+reply and do not incur a provider request.

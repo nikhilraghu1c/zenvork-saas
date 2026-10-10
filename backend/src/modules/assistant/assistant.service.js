@@ -2,16 +2,15 @@ import { generateReply as generateMockReply } from "./providers/mock-assistant.p
 import { generateReply as generateGeminiReply } from "./providers/gemini-assistant.provider.js";
 import { environment } from "../../config/environment.js";
 import { AssistantProviderConfigurationError } from "./providers/assistant-provider.errors.js";
+import {
+  getRelevantZenvorkKnowledge,
+  isAssistantScopedQuestion,
+} from "./knowledge/assistant-knowledge.service.js";
+import { buildAssistantSystemInstruction } from "./instructions/assistant-system-instruction.js";
 
 const MAX_CONTEXT_MESSAGES = 20;
-
-const ASSISTANT_SYSTEM_INSTRUCTION = `You are Zenvork AI Assistant for business owners and staff.
-
-Help users plan their work, draft client communication, and understand Zenvork features. Keep replies clear, practical, and concise.
-
-Do not claim to have access to bookings, revenue, clients, staff, analytics, or any other business data unless it is supplied through an authorized tool or context. No business-data tools are available yet, so never invent figures, appointments, client details, or app actions. State the limitation briefly and suggest a useful next action.
-
-Protect privacy: do not request passwords, API keys, payment-card details, or other secrets. Do not provide professional medical, legal, or financial advice; suggest an appropriate qualified professional where needed.`;
+const OUT_OF_SCOPE_REPLY =
+  "I’m Zenvork’s business assistant. I can help with Zenvork features, booking workflows, client communication, reminders, and planning your business day.";
 
 const providers = {
   mock: { generateReply: generateMockReply },
@@ -26,6 +25,9 @@ const recentConversationContext = (messages) => {
     : recentMessages;
 };
 
+const latestUserMessage = (messages) =>
+  [...messages].reverse().find((message) => message.role === "USER")?.content ?? "";
+
 // Provider boundary: future Gemini, OpenAI, or Groq adapters implement the same generateReply contract.
 const generateAssistantReply = async ({ messages }) => {
   const provider = providers[environment.AI_PROVIDER];
@@ -34,9 +36,13 @@ const generateAssistantReply = async ({ messages }) => {
       `AI provider "${environment.AI_PROVIDER}" is not configured`,
     );
   }
+  const userMessage = latestUserMessage(messages);
+  const knowledge = getRelevantZenvorkKnowledge(userMessage);
+  // Unrelated questions do not consume a provider request or receive a general-knowledge answer.
+  if (!isAssistantScopedQuestion(userMessage, knowledge)) return OUT_OF_SCOPE_REPLY;
   return provider.generateReply({
     messages: recentConversationContext(messages),
-    systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION,
+    systemInstruction: buildAssistantSystemInstruction(knowledge),
   });
 };
 

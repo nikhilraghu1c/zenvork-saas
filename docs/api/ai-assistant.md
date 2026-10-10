@@ -32,7 +32,10 @@ Accepts `{ "content": "..." }`, generates a reply, then persists the user and as
 The server extends the seven-day retention timestamp only when messages are persisted. The default
 `mock` provider remains offline; when an administrator explicitly enables Gemini, only the current
 user's most recent 20 conversation messages and Zenvork's server-defined behavior instructions are
-sent to it. Tenant business records are never sent to a provider in this phase.
+sent to it. The server may also include up to two matching entries from its curated, implemented-feature
+catalog; tenant business records are never sent to a provider in this phase. Questions outside
+Zenvork features and defined business-planning or client-communication requests receive a fixed
+Zenvork-only response without calling a provider.
 
 ### `PATCH /api/assistant/conversations/:id`
 
