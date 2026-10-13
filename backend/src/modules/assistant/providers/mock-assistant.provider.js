@@ -38,7 +38,30 @@ const classifyRequest = async ({ message }) => {
   if (/\b(what did you (?:say|tell me)|last|previous|earlier|summari[sz]e).{0,60}\b(message|reply|answer|revenue|conversation|chat)\b/.test(message)) {
     return { classification: "CONVERSATION_REFERENCE", confidence: 0.9 };
   }
+  if (/\b(revenue|earnings?|income|sales|billed|collected|pending payments?)\b/.test(message)) {
+    return { classification: "DATA_QUERY", confidence: 0.9 };
+  }
   return { classification: "OUT_OF_SCOPE", confidence: 0.9 };
 };
 
-export { classifyRequest, generateReply };
+const formatDate = (date) => date.toISOString().slice(0, 10);
+
+// Supports a small offline subset so the mock provider keeps the same structured-tool contract.
+const extractRevenueQuery = async ({ message, currentBusinessDate }) => {
+  const explicitDates = message.match(/\b\d{4}-\d{2}-\d{2}\b/g) ?? [];
+  if (explicitDates.length >= 2) {
+    return { fromDate: explicitDates[0], toDate: explicitDates[1] };
+  }
+  if (explicitDates.length === 1) {
+    return { fromDate: explicitDates[0], toDate: explicitDates[0] };
+  }
+
+  const currentDate = new Date(`${currentBusinessDate}T00:00:00.000Z`);
+  if (/\byesterday\b/.test(message)) {
+    currentDate.setUTCDate(currentDate.getUTCDate() - 1);
+  }
+  const date = formatDate(currentDate);
+  return { fromDate: date, toDate: date };
+};
+
+export { classifyRequest, extractRevenueQuery, generateReply };

@@ -149,6 +149,8 @@ const addMessage = async (req, res) => {
     // The provider receives only this private conversation's messages, never tenant records.
     const reply = await generateAssistantReply({
       messages: [...conversation.messages, { role: "USER", content }],
+      businessId: tenantId(req),
+      userRole: req.user.role,
     });
 
     conversation.messages.push({ role: "USER", content, createdAt: now });

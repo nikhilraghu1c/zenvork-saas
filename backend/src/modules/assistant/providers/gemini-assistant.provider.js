@@ -8,6 +8,10 @@ import {
   ASSISTANT_CLASSIFICATION_INSTRUCTION,
   assistantClassificationSchema,
 } from "../instructions/assistant-classification-instruction.js";
+import {
+  assistantRevenueQuerySchema,
+  buildRevenueQueryInstruction,
+} from "../instructions/assistant-revenue-query-instruction.js";
 
 const REQUEST_TIMEOUT_MS = 60_000;
 
@@ -107,4 +111,43 @@ const classifyRequest = async ({ message }) => {
   }
 };
 
-export { classifyRequest, generateReply };
+// Uses a schema-constrained, non-generative request to turn natural-language revenue dates into tool input.
+const extractRevenueQuery = async ({ message, currentBusinessDate }) => {
+  if (!environment.GEMINI_API_KEY) {
+    throw new AssistantProviderConfigurationError("GEMINI_API_KEY is required");
+  }
+  if (!environment.AI_CLASSIFIER_MODEL) {
+    throw new AssistantProviderConfigurationError("AI_CLASSIFIER_MODEL or AI_MODEL is required");
+  }
+
+  try {
+    const client = new GoogleGenAI({ apiKey: environment.GEMINI_API_KEY });
+    const response = await withTimeout(
+      client.models.generateContent({
+        model: environment.AI_CLASSIFIER_MODEL,
+        contents: [{ role: "user", parts: [{ text: message }] }],
+        config: {
+          systemInstruction: buildRevenueQueryInstruction({ currentBusinessDate }),
+          responseMimeType: "application/json",
+          responseJsonSchema: assistantRevenueQuerySchema,
+        },
+      }),
+    );
+    const result = JSON.parse(response.text ?? "");
+    if (typeof result.fromDate !== "string" || typeof result.toDate !== "string") {
+      throw new AssistantProviderRequestError("Gemini returned an invalid revenue query");
+    }
+    return result;
+  } catch (error) {
+    if (
+      error instanceof AssistantProviderConfigurationError ||
+      error instanceof AssistantProviderRequestError
+    ) {
+      throw error;
+    }
+    console.error("Gemini revenue query extraction failed:", error.message);
+    throw new AssistantProviderRequestError("Gemini revenue query extraction failed");
+  }
+};
+
+export { classifyRequest, extractRevenueQuery, generateReply };

@@ -68,6 +68,9 @@ server-validated reporting range so future internal consumers can reuse the same
 server-validated inclusive `YYYY-MM-DD` start/end dates, rejects future dates, limits history to the
 same 36-month reporting window, and caps a single request at 366 days. The public Analytics API
 continues to expose only today, week, and month.
+The Assistant's internal `getRevenueSummary` tool accepts only server-derived tenant and actor data,
+requires the `OWNER` role, validates the dates through that shared utility, and returns only aggregate
+revenue facts. It is not exposed to an AI provider or an HTTP endpoint until a later tool-routing step.
 
 Owners manage staff through the tenant-scoped users module. Its create endpoint accepts no client
 role or `businessId`: it always creates a `STAFF` user for the authenticated owner's business.
@@ -86,13 +89,15 @@ provider—only the authenticated user's private conversation text and server-ow
 privacy, unsupported-data, and urgent-health response rules.
 Before generating a reply, `classification/assistant-request-classifier.service.js` applies local safety
 checks and asks the configured provider for a schema-constrained classification:
-`PRODUCT_HELP`, `BUSINESS_GUIDANCE`, `CONVERSATION_REFERENCE`, `UNSAFE_OR_RESTRICTED`, or
-`OUT_OF_SCOPE`.
+`PRODUCT_HELP`, `BUSINESS_GUIDANCE`, `CONVERSATION_REFERENCE`, `DATA_QUERY`,
+`UNSAFE_OR_RESTRICTED`, or `OUT_OF_SCOPE`.
 `instructions/assistant-classification-instruction.js` owns the classification contract. Product help
 receives catalog context and business guidance receives the base behavior instruction.
 Conversation references can only use the retained private conversation context and cannot refresh data.
 Restricted and unrelated requests receive local replies without a response-generation provider request.
-The classifier intentionally does not yet support data-query or action-request classifications; those
-will be added alongside controlled business tools.
+`DATA_QUERY` currently identifies revenue questions only; it is routed to the controlled owner-only
+revenue tool after a separate schema-constrained date extraction request. The tool result is
+formatted locally, so a response model cannot change reported figures. Action-request classifications
+are not supported yet.
 `AI_CLASSIFIER_MODEL` can select a separate compatible classification model and falls back to
 `AI_MODEL` when it is unset.

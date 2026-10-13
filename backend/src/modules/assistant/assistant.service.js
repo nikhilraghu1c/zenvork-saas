@@ -1,9 +1,11 @@
 import {
   classifyRequest as classifyMockRequest,
+  extractRevenueQuery as extractMockRevenueQuery,
   generateReply as generateMockReply,
 } from "./providers/mock-assistant.provider.js";
 import {
   classifyRequest as classifyGeminiRequest,
+  extractRevenueQuery as extractGeminiRevenueQuery,
   generateReply as generateGeminiReply,
 } from "./providers/gemini-assistant.provider.js";
 import { environment } from "../../config/environment.js";
@@ -14,14 +16,29 @@ import {
 } from "./classification/assistant-request-classifier.service.js";
 import { getRelevantZenvorkKnowledge } from "./knowledge/assistant-knowledge.service.js";
 import { buildAssistantSystemInstruction } from "./instructions/assistant-system-instruction.js";
+import { getBusinessDateParts } from "../../utils/reporting-period.js";
+import { getRevenueSummary } from "./tools/revenue-summary.tool.js";
+import { formatRevenueSummary } from "./tools/revenue-summary.formatter.js";
+import {
+  AssistantToolAuthorizationError,
+  AssistantToolValidationError,
+} from "./tools/assistant-tool.errors.js";
 
 const MAX_CONTEXT_MESSAGES = 20;
 const OUT_OF_SCOPE_REPLY =
   "I’m Zenvork’s business assistant. I can help with Zenvork features, booking workflows, client communication, reminders, and planning your business day.";
 
 const providers = {
-  mock: { classifyRequest: classifyMockRequest, generateReply: generateMockReply },
-  gemini: { classifyRequest: classifyGeminiRequest, generateReply: generateGeminiReply },
+  mock: {
+    classifyRequest: classifyMockRequest,
+    extractRevenueQuery: extractMockRevenueQuery,
+    generateReply: generateMockReply,
+  },
+  gemini: {
+    classifyRequest: classifyGeminiRequest,
+    extractRevenueQuery: extractGeminiRevenueQuery,
+    generateReply: generateGeminiReply,
+  },
 };
 
 // Limits provider context while ensuring a retained history starts with a user message.
@@ -35,8 +52,13 @@ const recentConversationContext = (messages) => {
 const latestUserMessage = (messages) =>
   [...messages].reverse().find((message) => message.role === "USER")?.content ?? "";
 
+const currentBusinessDate = () => {
+  const { year, month, day } = getBusinessDateParts(new Date());
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+};
+
 // Provider boundary: future adapters implement the same classifyRequest and generateReply contract.
-const generateAssistantReply = async ({ messages }) => {
+const generateAssistantReply = async ({ messages, businessId, userRole }) => {
   const provider = providers[environment.AI_PROVIDER];
   if (!provider) {
     throw new AssistantProviderConfigurationError(
@@ -52,6 +74,30 @@ const generateAssistantReply = async ({ messages }) => {
   // Local policy replies never expose restricted requests or unrelated prompts to an AI provider.
   if (request.type === AssistantRequestClassification.UNSAFE_OR_RESTRICTED) return request.reply;
   if (request.type === AssistantRequestClassification.OUT_OF_SCOPE) return OUT_OF_SCOPE_REPLY;
+
+  if (request.type === AssistantRequestClassification.DATA_QUERY) {
+    try {
+      const dates = await provider.extractRevenueQuery({
+        message: userMessage,
+        currentBusinessDate: currentBusinessDate(),
+      });
+      console.info("Assistant revenue date extraction:", dates);
+      const summary = await getRevenueSummary({
+        businessId,
+        userRole,
+        ...dates,
+      });
+      return formatRevenueSummary(summary);
+    } catch (error) {
+      if (error instanceof AssistantToolAuthorizationError) {
+        return "Revenue information is available only to the business owner.";
+      }
+      if (error instanceof AssistantToolValidationError) {
+        return "I couldn’t resolve a valid past reporting date. Please try a date such as “1 October 2026” or a range such as “1 October to 10 October 2026”.";
+      }
+      throw error;
+    }
+  }
 
   const knowledge =
     request.type === AssistantRequestClassification.PRODUCT_HELP

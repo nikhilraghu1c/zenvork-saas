@@ -2,6 +2,7 @@ const AssistantRequestClassification = Object.freeze({
   PRODUCT_HELP: "PRODUCT_HELP",
   BUSINESS_GUIDANCE: "BUSINESS_GUIDANCE",
   CONVERSATION_REFERENCE: "CONVERSATION_REFERENCE",
+  DATA_QUERY: "DATA_QUERY",
   UNSAFE_OR_RESTRICTED: "UNSAFE_OR_RESTRICTED",
   OUT_OF_SCOPE: "OUT_OF_SCOPE",
 });
@@ -54,10 +55,10 @@ const classifyAssistantRequest = async ({ message, classifyWithProvider }) => {
   }
 
   const result = await classifyWithProvider({ message: normalizedMessage });
-  // console.info("Assistant request classification:", {
-  //   classification: result?.classification,
-  //   confidence: result?.confidence,
-  // });
+  console.info("Assistant request classification:", {
+    classification: result?.classification,
+    confidence: result?.confidence,
+  });
   if (!isClassification(result?.classification) || !Number.isFinite(result.confidence)) {
     return { type: AssistantRequestClassification.OUT_OF_SCOPE, knowledge: "" };
   }
@@ -76,6 +77,7 @@ const classifyAssistantRequest = async ({ message, classifyWithProvider }) => {
       AssistantRequestClassification.PRODUCT_HELP,
       AssistantRequestClassification.BUSINESS_GUIDANCE,
       AssistantRequestClassification.CONVERSATION_REFERENCE,
+      AssistantRequestClassification.DATA_QUERY,
     ].includes(result.classification)
   ) {
     return { type: result.classification, knowledge: "" };
