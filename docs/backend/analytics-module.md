@@ -33,6 +33,10 @@ Completed + paidAt + paid → collected revenue
 Completed + unpaid → pending payment for its completion period
 ```
 
+`services/revenue-reporting.service.js` owns these tenant-scoped aggregations. The HTTP controller
+validates a reporting period and passes its authenticated business ID and validated date range to the
+service; internal consumers use the same service rather than duplicating report queries.
+
 Payment transactions, refunds, or partial payments would require a ledger-based reporting model later.
 
 ## Why filters are functions

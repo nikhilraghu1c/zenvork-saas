@@ -61,7 +61,13 @@ Owner-only revenue analytics is mounted at `/api/analytics`. It aggregates only 
 bookings and shares `utils/reporting-period.js` with the dashboard so business-day boundaries are
 consistent. Completed billing uses `actualEndAt`; collection reporting uses `paidAt`, written by the
 payment-status endpoint when staff mark a booking as paid. This is intentionally a reporting timestamp,
-not a payment ledger or provider transaction record.
+not a payment ledger or provider transaction record. Its aggregation resides in
+`analytics/services/revenue-reporting.service.js`, which accepts only a server-derived tenant ID and a
+server-validated reporting range so future internal consumers can reuse the same reporting rules.
+`getReportingDateRange()` is the internal foundation for future Assistant reporting tools. It accepts
+server-validated inclusive `YYYY-MM-DD` start/end dates, rejects future dates, limits history to the
+same 36-month reporting window, and caps a single request at 366 days. The public Analytics API
+continues to expose only today, week, and month.
 
 Owners manage staff through the tenant-scoped users module. Its create endpoint accepts no client
 role or `businessId`: it always creates a `STAFF` user for the authenticated owner's business.

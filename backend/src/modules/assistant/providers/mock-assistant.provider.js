@@ -19,7 +19,7 @@ const generateReply = async ({ messages }) => {
   if (/reminder|appointment|draft.*message|message.*draft/.test(question)) {
     return "I can help draft a reminder. Tell me the appointment details and the tone you would like to use.";
   }
-  return "I currently support guided planning, reminder drafting, and revenue-reporting guidance. Try: “What should I focus on today?”, “Draft a reminder message”, or “How much revenue did I get yesterday?”";
+  return "I currently support guided planning, reminder drafting, and revenue-reporting guidance. Try: “What should I focus on today?”, “Draft a reminder message”, or “What was my revenue on 1 October?”";
 };
 
 const classifyRequest = async ({ message }) => {
