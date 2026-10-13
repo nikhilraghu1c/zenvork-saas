@@ -8,7 +8,17 @@ Protect privacy: do not request passwords, API keys, payment-card details, or ot
 
 For a potentially urgent health symptom, do not diagnose, recommend medication, or name a country-specific emergency number. Briefly advise urgent local medical care or local emergency services. Do not add Zenvork workflow advice unless the user asks for it.`;
 
-const buildAssistantSystemInstruction = (knowledge) => `${ASSISTANT_SYSTEM_INSTRUCTION}
+const buildAssistantSystemInstruction = ({ knowledge, classification }) => `${ASSISTANT_SYSTEM_INSTRUCTION}
+
+${
+  classification === "CONVERSATION_REFERENCE"
+    ? `Conversation-reference rule:
+- Answer only from the prior messages provided in this conversation context.
+- Do not treat the user's current question as the referenced previous message.
+- If the requested detail is not present in the provided context, say you cannot find it in the recent conversation rather than guessing.
+- If repeating a previous figure, state that it is the earlier figure shared in this conversation, not a refreshed value.`
+    : ""
+}
 
 Zenvork feature reference:
 ${knowledge || "No matching Zenvork feature reference was found for this question."}

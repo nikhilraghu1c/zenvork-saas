@@ -1,6 +1,7 @@
 const AssistantRequestClassification = Object.freeze({
   PRODUCT_HELP: "PRODUCT_HELP",
   BUSINESS_GUIDANCE: "BUSINESS_GUIDANCE",
+  CONVERSATION_REFERENCE: "CONVERSATION_REFERENCE",
   UNSAFE_OR_RESTRICTED: "UNSAFE_OR_RESTRICTED",
   OUT_OF_SCOPE: "OUT_OF_SCOPE",
 });
@@ -74,6 +75,7 @@ const classifyAssistantRequest = async ({ message, classifyWithProvider }) => {
     [
       AssistantRequestClassification.PRODUCT_HELP,
       AssistantRequestClassification.BUSINESS_GUIDANCE,
+      AssistantRequestClassification.CONVERSATION_REFERENCE,
     ].includes(result.classification)
   ) {
     return { type: result.classification, knowledge: "" };

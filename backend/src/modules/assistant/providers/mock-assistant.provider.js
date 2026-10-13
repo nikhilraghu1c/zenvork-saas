@@ -5,6 +5,14 @@ const generateReply = async ({ messages }) => {
     .find((message) => message.role === "USER");
   const question = latestUserMessage?.content?.toLowerCase() ?? "";
 
+  if (/\b(last|previous|before|earlier|summari[sz]e).{0,60}\b(message|reply|answer|revenue|conversation|chat)\b/.test(question)) {
+    const previousAssistantMessage = messages
+      .slice(0, -1)
+      .reverse()
+      .find((message) => message.role === "ASSISTANT");
+    return previousAssistantMessage?.content ?? "I can’t find that detail in the recent conversation.";
+  }
+
   if (/revenue|earnings?|collected?|income|sales/.test(question)) {
     return "Revenue questions will be available once owner-only reporting is connected. For now, use Analytics for your current revenue summary.";
   }
@@ -26,6 +34,9 @@ const classifyRequest = async ({ message }) => {
   }
   if (/\b(plan (my|the) (business )?(day|work)|what should i focus|draft.*(?:message|reply))\b/.test(message)) {
     return { classification: "BUSINESS_GUIDANCE", confidence: 0.9 };
+  }
+  if (/\b(what did you (?:say|tell me)|last|previous|earlier|summari[sz]e).{0,60}\b(message|reply|answer|revenue|conversation|chat)\b/.test(message)) {
+    return { classification: "CONVERSATION_REFERENCE", confidence: 0.9 };
   }
   return { classification: "OUT_OF_SCOPE", confidence: 0.9 };
 };

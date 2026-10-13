@@ -34,13 +34,15 @@ The server extends the seven-day retention timestamp only when messages are pers
 message is first sent for classification. If a reply is permitted, only the current user's most recent
 20 conversation messages and Zenvork's server-defined behavior instructions are sent for generation.
 The server may also include up to two matching entries from its curated, implemented-feature catalog;
-tenant business records are never sent to a provider in this phase. Questions outside
+tenant business records are never sent to a provider in this phase.
 After local restricted-request checks, the configured provider classifies the latest message with a
 schema-constrained response. Zenvork features are `PRODUCT_HELP` and receive matching catalog context.
 Defined business-planning or client-communication requests are `BUSINESS_GUIDANCE`. Restricted requests
 (for example, secrets, professional medical/legal/financial advice, or attempts to bypass instructions)
 are `UNSAFE_OR_RESTRICTED`; unrelated requests are `OUT_OF_SCOPE`. The last two classifications receive
 a fixed server response without a response-generation provider request.
+`CONVERSATION_REFERENCE` uses only the private recent conversation context already selected for the
+current conversation; it does not query business records or refresh previously stated figures.
 
 ### `PATCH /api/assistant/conversations/:id`
 

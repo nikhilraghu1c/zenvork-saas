@@ -80,11 +80,13 @@ provider—only the authenticated user's private conversation text and server-ow
 privacy, unsupported-data, and urgent-health response rules.
 Before generating a reply, `classification/assistant-request-classifier.service.js` applies local safety
 checks and asks the configured provider for a schema-constrained classification:
-`PRODUCT_HELP`, `BUSINESS_GUIDANCE`, `UNSAFE_OR_RESTRICTED`, or `OUT_OF_SCOPE`.
+`PRODUCT_HELP`, `BUSINESS_GUIDANCE`, `CONVERSATION_REFERENCE`, `UNSAFE_OR_RESTRICTED`, or
+`OUT_OF_SCOPE`.
 `instructions/assistant-classification-instruction.js` owns the classification contract. Product help
-receives catalog context and business guidance receives the base behavior instruction. Restricted and
-unrelated requests receive local replies without a response-generation provider request. The classifier
-intentionally does not yet support data-query or action-request classifications; those will be added
-alongside controlled business tools.
+receives catalog context and business guidance receives the base behavior instruction.
+Conversation references can only use the retained private conversation context and cannot refresh data.
+Restricted and unrelated requests receive local replies without a response-generation provider request.
+The classifier intentionally does not yet support data-query or action-request classifications; those
+will be added alongside controlled business tools.
 `AI_CLASSIFIER_MODEL` can select a separate compatible classification model and falls back to
 `AI_MODEL` when it is unset.

@@ -60,7 +60,10 @@ const generateAssistantReply = async ({ messages }) => {
 
   return provider.generateReply({
     messages: recentConversationContext(messages),
-    systemInstruction: buildAssistantSystemInstruction(knowledge),
+    systemInstruction: buildAssistantSystemInstruction({
+      knowledge,
+      classification: request.type,
+    }),
   });
 };
 
