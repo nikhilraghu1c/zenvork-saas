@@ -64,10 +64,10 @@
       <article class="metric-card metric-card--outstanding">
         <div class="metric-card__heading">
           <span class="metric-card__icon" aria-hidden="true"><mat-icon>account_balance_wallet</mat-icon></span>
-          <p class="metric-card__label">Outstanding</p>
+          <p class="metric-card__label">Pending payment</p>
         </div>
         <strong>{{ formatMoney(report.revenue.outstandingPaise) }}</strong>
-        <span>{{ report.revenue.outstandingBookingsCount }} completed booking{{ report.revenue.outstandingBookingsCount === 1 ? '' : 's' }} unpaid</span>
+        <span>{{ report.revenue.outstandingBookingsCount }} completed booking{{ report.revenue.outstandingBookingsCount === 1 ? '' : 's' }} pending payment</span>
         <small>Completed in this period and not yet paid</small>
       </article>
     </section>

@@ -50,8 +50,8 @@ Definitions:
 
 - **Billed** is the total of completed bookings by `actualEndAt` in the selected period.
 - **Collected** is the total of completed bookings marked `paid` by `paidAt` in the selected period.
-- **Outstanding** is the total of bookings completed in the selected period that are currently
-  `unpaid`.
+- **Pending payment** is the total of bookings completed in the selected period that are currently
+  `unpaid`. It is returned in the existing `outstandingPaise` and `outstandingBookingsCount` fields.
 - **Service revenue** uses immutable booking service snapshots, so later catalog price/name edits do
   not rewrite reporting history. `extraChargesPaise` is reported separately because it is not tied to
   a service.

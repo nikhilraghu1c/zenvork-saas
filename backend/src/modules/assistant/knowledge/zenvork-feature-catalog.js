@@ -46,8 +46,8 @@ const zenvorkFeatureCatalog = [
     ],
     content: `Dashboard summary:
 - The Dashboard is available to signed-in owners and staff for today, week, or month.
-- It shows scheduled-booking count, earned, collected, and outstanding revenue, booking-health counts, no-show rate, active staff count, top services, and top staff.
-- Earned revenue uses completed bookings by actual end time. Collected and outstanding split that completed revenue by current manual payment status.
+- It shows scheduled-booking count, earned, collected, and pending-payment revenue, booking-health counts, no-show rate, active staff count, top services, and top staff.
+- Earned revenue uses completed bookings by actual end time. Collected and pending payment split that completed revenue by current manual payment status.
 - Active staff count means enabled person resources; it is not an attendance count.
 - This Assistant cannot view your current dashboard figures yet.`,
   },
@@ -168,12 +168,13 @@ const zenvorkFeatureCatalog = [
       "collection",
       "collections",
       "outstanding",
+      "pending payment",
       "billed",
       "collected",
     ],
     content: `Revenue Analytics:
 - Revenue Analytics is available only to owners.
-- It shows billed, collected, outstanding, daily, and service-level revenue from completed bookings.
+- It shows billed, collected, pending-payment, daily, and service-level revenue from completed bookings.
 - This Assistant cannot view your actual revenue figures yet.`,
   },
   {

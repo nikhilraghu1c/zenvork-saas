@@ -46,7 +46,7 @@ export class LandingComponent {
   protected readonly valueProps = [
     ['event_available', 'Organise your day', 'A clear view of bookings, staff, and resources.'],
     ['groups', 'Delight your clients', 'Keep client information together in one place.'],
-    ['account_balance_wallet', 'Get paid with ease', 'Track payments and outstanding dues.'],
+    ['account_balance_wallet', 'Get paid with ease', 'Track payments and see which bookings are pending payment.'],
     ['insights', 'Make informed decisions', 'Simple insights to help your business grow.'],
   ];
 

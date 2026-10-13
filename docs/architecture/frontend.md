@@ -135,7 +135,7 @@ for a single-word name, normalizes whitespace, and returns an empty string for m
 ## Analytics workspace
 
 `/app/analytics` is an owner-guarded, lazy-loaded revenue workspace. It requests fixed reporting
-periods from `GET /api/analytics/revenue` and presents billed, collected, outstanding, daily, and
+periods from `GET /api/analytics/revenue` and presents billed, collected, pending-payment, daily, and
 service-level revenue without calculating money totals in the browser.
 
 ## Reminder workspace

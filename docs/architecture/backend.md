@@ -55,7 +55,7 @@ applies authentication before mounting protected module routes; `app.js` mounts 
 
 The authenticated dashboard summary combines tenant-scoped booking and resource counts without
 accepting a business identifier. Its earned-revenue figures use completed bookings' server-recorded
-`actualEndAt`; its manual collected/outstanding split never processes a payment or changes a bill.
+`actualEndAt`; its manual collected/pending-payment split never processes a payment or changes a bill.
 
 Owner-only revenue analytics is mounted at `/api/analytics`. It aggregates only tenant-owned completed
 bookings and shares `utils/reporting-period.js` with the dashboard so business-day boundaries are

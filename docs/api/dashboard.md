@@ -60,8 +60,8 @@ range used for comparison.
 
 `bookingsCount` counts scheduled appointments whose planned start is within the selected period.
 Revenue includes only bookings completed within the period, based on their server-recorded
-`actualEndAt`. `collectedPaise` and `outstandingPaise` split that same earned revenue by its current
-manual payment status. The no-show rate is `NO_SHOW / (COMPLETED + NO_SHOW)` for outcomes recorded
+`actualEndAt`. `collectedPaise` and `outstandingPaise` (pending payment) split that same earned revenue
+by its current manual payment status. The no-show rate is `NO_SHOW / (COMPLETED + NO_SHOW)` for outcomes recorded
 within the period, so unresolved upcoming appointments do not distort it. `activeStaffCount` counts
 enabled resources whose configured business type marks them as people; it is not an attendance count.
 

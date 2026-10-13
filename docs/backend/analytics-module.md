@@ -9,7 +9,7 @@
 ```text
 Billed      completed work grouped by actualEndAt
 Collected   completed paid bookings grouped by paidAt
-Outstanding completed unpaid bookings grouped by actualEndAt
+Pending payment  completed unpaid bookings grouped by actualEndAt
 ```
 
 This is operational reporting, not a payment ledger. A booking has one paid/unpaid state; there are no
@@ -30,7 +30,7 @@ Analytics is a read model derived from booking lifecycle data:
 ```text
 Completed + actualEndAt → billed/service revenue
 Completed + paidAt + paid → collected revenue
-Completed + unpaid → outstanding for its completion period
+Completed + unpaid → pending payment for its completion period
 ```
 
 Payment transactions, refunds, or partial payments would require a ledger-based reporting model later.
