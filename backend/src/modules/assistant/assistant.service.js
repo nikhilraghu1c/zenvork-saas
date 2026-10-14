@@ -23,6 +23,7 @@ import {
   AssistantToolAuthorizationError,
   AssistantToolValidationError,
 } from "./tools/assistant-tool.errors.js";
+import { AssistantToolRoute } from "./tools/assistant-tool-route.js";
 
 const MAX_CONTEXT_MESSAGES = 20;
 const OUT_OF_SCOPE_REPLY =
@@ -76,6 +77,13 @@ const generateAssistantReply = async ({ messages, businessId, userRole }) => {
   if (request.type === AssistantRequestClassification.OUT_OF_SCOPE) return OUT_OF_SCOPE_REPLY;
 
   if (request.type === AssistantRequestClassification.DATA_QUERY) {
+    if (request.tool === AssistantToolRoute.UNSUPPORTED_DATA_QUERY) {
+      return "I don’t support that live business-data question yet. Right now I can provide aggregate revenue summaries.";
+    }
+    if (request.tool !== AssistantToolRoute.GET_REVENUE_SUMMARY) {
+      return OUT_OF_SCOPE_REPLY;
+    }
+
     try {
       const dates = await provider.extractRevenueQuery({
         message: userMessage,

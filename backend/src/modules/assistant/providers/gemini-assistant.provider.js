@@ -95,7 +95,11 @@ const classifyRequest = async ({ message }) => {
       }),
     );
     const result = JSON.parse(response.text ?? "");
-    if (typeof result.classification !== "string" || !Number.isFinite(result.confidence)) {
+    if (
+      typeof result.classification !== "string" ||
+      typeof result.tool !== "string" ||
+      !Number.isFinite(result.confidence)
+    ) {
       throw new AssistantProviderRequestError("Gemini returned an invalid classification");
     }
     return result;

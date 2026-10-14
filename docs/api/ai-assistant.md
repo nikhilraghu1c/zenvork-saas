@@ -43,10 +43,12 @@ are `UNSAFE_OR_RESTRICTED`; unrelated requests are `OUT_OF_SCOPE`. The last two 
 a fixed server response without a response-generation provider request.
 `CONVERSATION_REFERENCE` uses only the private recent conversation context already selected for the
 current conversation; it does not query business records or refresh previously stated figures.
-`DATA_QUERY` identifies requests for the authenticated business's aggregate revenue data. The server
-uses a separate schema-constrained extraction request to resolve an inclusive date range, validates it,
-then calls its internal owner-only revenue tool. The tool returns only aggregate billed, collected, and
-pending-payment facts; those figures are formatted locally rather than being sent to a response model.
+Every provider classification also contains one allowlisted tool route. `DATA_QUERY` with
+`GET_REVENUE_SUMMARY` triggers a separate schema-constrained date extraction request; the server
+validates it and calls its internal owner-only revenue tool. The tool returns only aggregate billed,
+collected, and pending-payment facts, which are formatted locally rather than being sent to a response
+model. Other live-data requests receive `UNSUPPORTED_DATA_QUERY` and a fixed unavailable reply until a
+corresponding server-owned tool is implemented.
 
 ### `PATCH /api/assistant/conversations/:id`
 

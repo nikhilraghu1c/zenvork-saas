@@ -1,3 +1,5 @@
+import { AssistantToolRoute, isAssistantToolRoute } from "../tools/assistant-tool-route.js";
+
 const AssistantRequestClassification = Object.freeze({
   PRODUCT_HELP: "PRODUCT_HELP",
   BUSINESS_GUIDANCE: "BUSINESS_GUIDANCE",
@@ -37,6 +39,17 @@ const unsafeReply = (message) => {
 const isClassification = (value) =>
   Object.values(AssistantRequestClassification).includes(value);
 
+const hasValidToolRoute = ({ classification, tool }) => {
+  if (!isAssistantToolRoute(tool)) return false;
+  if (classification === AssistantRequestClassification.DATA_QUERY) {
+    return [
+      AssistantToolRoute.GET_REVENUE_SUMMARY,
+      AssistantToolRoute.UNSUPPORTED_DATA_QUERY,
+    ].includes(tool);
+  }
+  return tool === AssistantToolRoute.NONE;
+};
+
 // Applies local safety policy first, then validates the configured provider's semantic classification.
 const classifyAssistantRequest = async ({ message, classifyWithProvider }) => {
   const normalizedMessage = message.trim().toLowerCase();
@@ -50,6 +63,7 @@ const classifyAssistantRequest = async ({ message, classifyWithProvider }) => {
     return {
       type: AssistantRequestClassification.UNSAFE_OR_RESTRICTED,
       reply: unsafeReply(normalizedMessage),
+      tool: AssistantToolRoute.NONE,
       knowledge: "",
     };
   }
@@ -57,16 +71,26 @@ const classifyAssistantRequest = async ({ message, classifyWithProvider }) => {
   const result = await classifyWithProvider({ message: normalizedMessage });
   console.info("Assistant request classification:", {
     classification: result?.classification,
+    tool: result?.tool,
     confidence: result?.confidence,
   });
-  if (!isClassification(result?.classification) || !Number.isFinite(result.confidence)) {
-    return { type: AssistantRequestClassification.OUT_OF_SCOPE, knowledge: "" };
+  if (
+    !isClassification(result?.classification) ||
+    !hasValidToolRoute(result) ||
+    !Number.isFinite(result.confidence)
+  ) {
+    return {
+      type: AssistantRequestClassification.OUT_OF_SCOPE,
+      tool: AssistantToolRoute.NONE,
+      knowledge: "",
+    };
   }
 
   if (result.classification === AssistantRequestClassification.UNSAFE_OR_RESTRICTED) {
     return {
       type: AssistantRequestClassification.UNSAFE_OR_RESTRICTED,
       reply: unsafeReply(normalizedMessage),
+      tool: AssistantToolRoute.NONE,
       knowledge: "",
     };
   }
@@ -80,10 +104,14 @@ const classifyAssistantRequest = async ({ message, classifyWithProvider }) => {
       AssistantRequestClassification.DATA_QUERY,
     ].includes(result.classification)
   ) {
-    return { type: result.classification, knowledge: "" };
+    return { type: result.classification, tool: result.tool, knowledge: "" };
   }
 
-  return { type: AssistantRequestClassification.OUT_OF_SCOPE, knowledge: "" };
+  return {
+    type: AssistantRequestClassification.OUT_OF_SCOPE,
+    tool: AssistantToolRoute.NONE,
+    knowledge: "",
+  };
 };
 
 export { AssistantRequestClassification, classifyAssistantRequest };

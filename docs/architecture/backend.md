@@ -95,9 +95,12 @@ checks and asks the configured provider for a schema-constrained classification:
 receives catalog context and business guidance receives the base behavior instruction.
 Conversation references can only use the retained private conversation context and cannot refresh data.
 Restricted and unrelated requests receive local replies without a response-generation provider request.
-`DATA_QUERY` currently identifies revenue questions only; it is routed to the controlled owner-only
-revenue tool after a separate schema-constrained date extraction request. The tool result is
-formatted locally, so a response model cannot change reported figures. Action-request classifications
-are not supported yet.
+`DATA_QUERY` can identify supported and unsupported live business-data questions. Only the revenue
+route is sent to the controlled owner-only revenue tool after a separate schema-constrained date
+extraction request. The tool result is
+formatted locally, so a response model cannot change reported figures. The classifier returns only a
+fixed tool-route enum: `GET_REVENUE_SUMMARY`, `UNSUPPORTED_DATA_QUERY`, or `NONE`. The server validates
+the route and permits only `GET_REVENUE_SUMMARY`; unsupported booking or other live-data requests fail
+closed until their own controlled tools exist. Action-request classifications are not supported yet.
 `AI_CLASSIFIER_MODEL` can select a separate compatible classification model and falls back to
 `AI_MODEL` when it is unset.
