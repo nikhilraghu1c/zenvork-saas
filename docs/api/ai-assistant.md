@@ -47,8 +47,11 @@ Every provider classification also contains one allowlisted tool route. `DATA_QU
 `GET_REVENUE_SUMMARY` triggers a separate schema-constrained date extraction request; the server
 validates it and calls its internal owner-only revenue tool. The tool returns only aggregate billed,
 collected, and pending-payment facts, which are formatted locally rather than being sent to a response
-model. Other live-data requests receive `UNSUPPORTED_DATA_QUERY` and a fixed unavailable reply until a
-corresponding server-owned tool is implemented.
+model. `GET_APPOINTMENT_AGENDA` extracts one business-calendar day, then lets an owner or staff member
+view up to 20 tenant appointments scheduled that day. The locally formatted agenda contains only
+appointment time, client name, service names, status, and resource names. Appointment date ranges are
+not supported yet. Other live-data requests receive `UNSUPPORTED_DATA_QUERY` and a fixed unavailable
+reply until a corresponding server-owned tool is implemented.
 
 ### `PATCH /api/assistant/conversations/:id`
 

@@ -1,10 +1,12 @@
 import {
   classifyRequest as classifyMockRequest,
+  extractAppointmentAgendaQuery as extractMockAppointmentAgendaQuery,
   extractRevenueQuery as extractMockRevenueQuery,
   generateReply as generateMockReply,
 } from "./providers/mock-assistant.provider.js";
 import {
   classifyRequest as classifyGeminiRequest,
+  extractAppointmentAgendaQuery as extractGeminiAppointmentAgendaQuery,
   extractRevenueQuery as extractGeminiRevenueQuery,
   generateReply as generateGeminiReply,
 } from "./providers/gemini-assistant.provider.js";
@@ -19,6 +21,8 @@ import { buildAssistantSystemInstruction } from "./instructions/assistant-system
 import { getBusinessDateParts } from "../../utils/reporting-period.js";
 import { getRevenueSummary } from "./tools/revenue-summary.tool.js";
 import { formatRevenueSummary } from "./tools/revenue-summary.formatter.js";
+import { getAppointmentAgenda } from "./tools/appointment-agenda.tool.js";
+import { formatAppointmentAgenda } from "./tools/appointment-agenda.formatter.js";
 import {
   AssistantToolAuthorizationError,
   AssistantToolValidationError,
@@ -32,11 +36,13 @@ const OUT_OF_SCOPE_REPLY =
 const providers = {
   mock: {
     classifyRequest: classifyMockRequest,
+    extractAppointmentAgendaQuery: extractMockAppointmentAgendaQuery,
     extractRevenueQuery: extractMockRevenueQuery,
     generateReply: generateMockReply,
   },
   gemini: {
     classifyRequest: classifyGeminiRequest,
+    extractAppointmentAgendaQuery: extractGeminiAppointmentAgendaQuery,
     extractRevenueQuery: extractGeminiRevenueQuery,
     generateReply: generateGeminiReply,
   },
@@ -78,7 +84,36 @@ const generateAssistantReply = async ({ messages, businessId, userRole }) => {
 
   if (request.type === AssistantRequestClassification.DATA_QUERY) {
     if (request.tool === AssistantToolRoute.UNSUPPORTED_DATA_QUERY) {
-      return "I don’t support that live business-data question yet. Right now I can provide aggregate revenue summaries.";
+      return "I don’t support that live business-data question yet. Right now I can provide aggregate revenue summaries and show appointments for one day.";
+    }
+    if (request.tool === AssistantToolRoute.GET_APPOINTMENT_AGENDA) {
+      try {
+        const agendaQuery = await provider.extractAppointmentAgendaQuery({
+          message: userMessage,
+          currentBusinessDate: currentBusinessDate(),
+        });
+        console.info("Assistant appointment agenda date extraction:", agendaQuery);
+        if (agendaQuery.type === "DATE_RANGE") {
+          return "I can show appointments for one day at a time. Try “What appointments do I have today?”";
+        }
+        if (agendaQuery.type !== "ONE_DAY") {
+          return "Please ask for appointments on one day, such as “What appointments do I have today?”";
+        }
+        const agenda = await getAppointmentAgenda({
+          businessId,
+          userRole,
+          date: agendaQuery.date,
+        });
+        return formatAppointmentAgenda(agenda);
+      } catch (error) {
+        if (error instanceof AssistantToolAuthorizationError) {
+          return "You do not have access to appointment information.";
+        }
+        if (error instanceof AssistantToolValidationError) {
+          return "Please ask for appointments on a valid day, such as “What appointments do I have today?”";
+        }
+        throw error;
+      }
     }
     if (request.tool !== AssistantToolRoute.GET_REVENUE_SUMMARY) {
       return OUT_OF_SCOPE_REPLY;

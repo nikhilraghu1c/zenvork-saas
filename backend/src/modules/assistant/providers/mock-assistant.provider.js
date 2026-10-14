@@ -28,11 +28,17 @@ const classifyRequest = async ({ message }) => {
     /\bservices?\b.{0,30}\b(?:price|duration|active|deactivate|retire)\b/.test(message);
   const isUnsupportedDataQuestion =
     /\b(?:how many|how much|count|left|remaining|show|list|who|which)\b.{0,50}\b(?:bookings?|appointments?|clients?|staff|services?|resources?)\b/.test(message);
+  const isAppointmentAgendaQuestion =
+    /\b(?:show|list|what|which|agenda|schedule)\b.{0,50}\b(?:bookings?|appointments?)\b/.test(message) &&
+    !/\b(?:how many|how much|count|left|remaining)\b/.test(message);
   if (/\b(what did you (?:say|tell me)|last|previous|earlier|summari[sz]e).{0,60}\b(message|reply|answer|revenue|conversation|chat)\b/.test(message)) {
     return { classification: "CONVERSATION_REFERENCE", tool: "NONE", confidence: 0.9 };
   }
   if (/\b(revenue|earnings?|income|sales|billed|collected|pending payments?)\b/.test(message)) {
     return { classification: "DATA_QUERY", tool: "GET_REVENUE_SUMMARY", confidence: 0.9 };
+  }
+  if (isAppointmentAgendaQuestion) {
+    return { classification: "DATA_QUERY", tool: "GET_APPOINTMENT_AGENDA", confidence: 0.9 };
   }
   if (isUnsupportedDataQuestion) {
     return { classification: "DATA_QUERY", tool: "UNSUPPORTED_DATA_QUERY", confidence: 0.9 };
@@ -69,4 +75,25 @@ const extractRevenueQuery = async ({ message, currentBusinessDate }) => {
   return { fromDate: date, toDate: date };
 };
 
-export { classifyRequest, extractRevenueQuery, generateReply };
+// Keeps local development aligned with the constrained appointment-date contract.
+const extractAppointmentAgendaQuery = async ({ message, currentBusinessDate }) => {
+  if (/\b(?:week|month|from\b.{0,40}\bto|between)\b/.test(message)) {
+    return { type: "DATE_RANGE", date: "" };
+  }
+
+  const explicitDates = message.match(/\b\d{4}-\d{2}-\d{2}\b/g) ?? [];
+  if (explicitDates.length === 1) {
+    return { type: "ONE_DAY", date: explicitDates[0] };
+  }
+  if (explicitDates.length > 1) {
+    return { type: "DATE_RANGE", date: "" };
+  }
+
+  const currentDate = new Date(`${currentBusinessDate}T00:00:00.000Z`);
+  if (/\btomorrow\b/.test(message)) {
+    currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+  }
+  return { type: "ONE_DAY", date: formatDate(currentDate) };
+};
+
+export { classifyRequest, extractAppointmentAgendaQuery, extractRevenueQuery, generateReply };

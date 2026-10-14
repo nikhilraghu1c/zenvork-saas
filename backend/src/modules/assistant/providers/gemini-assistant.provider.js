@@ -12,6 +12,10 @@ import {
   assistantRevenueQuerySchema,
   buildRevenueQueryInstruction,
 } from "../instructions/assistant-revenue-query-instruction.js";
+import {
+  assistantAppointmentAgendaQuerySchema,
+  buildAppointmentAgendaQueryInstruction,
+} from "../instructions/assistant-appointment-agenda-query-instruction.js";
 
 const REQUEST_TIMEOUT_MS = 60_000;
 
@@ -154,4 +158,46 @@ const extractRevenueQuery = async ({ message, currentBusinessDate }) => {
   }
 };
 
-export { classifyRequest, extractRevenueQuery, generateReply };
+// Converts agenda wording into a constrained date intent before any booking data is queried.
+const extractAppointmentAgendaQuery = async ({ message, currentBusinessDate }) => {
+  if (!environment.GEMINI_API_KEY) {
+    throw new AssistantProviderConfigurationError("GEMINI_API_KEY is required");
+  }
+  if (!environment.AI_CLASSIFIER_MODEL) {
+    throw new AssistantProviderConfigurationError("AI_CLASSIFIER_MODEL or AI_MODEL is required");
+  }
+
+  try {
+    const client = new GoogleGenAI({ apiKey: environment.GEMINI_API_KEY });
+    const response = await withTimeout(
+      client.models.generateContent({
+        model: environment.AI_CLASSIFIER_MODEL,
+        contents: [{ role: "user", parts: [{ text: message }] }],
+        config: {
+          systemInstruction: buildAppointmentAgendaQueryInstruction({ currentBusinessDate }),
+          responseMimeType: "application/json",
+          responseJsonSchema: assistantAppointmentAgendaQuerySchema,
+        },
+      }),
+    );
+    const result = JSON.parse(response.text ?? "");
+    if (
+      !["ONE_DAY", "DATE_RANGE", "UNCLEAR"].includes(result.type) ||
+      typeof result.date !== "string"
+    ) {
+      throw new AssistantProviderRequestError("Gemini returned an invalid appointment agenda query");
+    }
+    return result;
+  } catch (error) {
+    if (
+      error instanceof AssistantProviderConfigurationError ||
+      error instanceof AssistantProviderRequestError
+    ) {
+      throw error;
+    }
+    console.error("Gemini appointment agenda query extraction failed:", error.message);
+    throw new AssistantProviderRequestError("Gemini appointment agenda query extraction failed");
+  }
+};
+
+export { classifyRequest, extractAppointmentAgendaQuery, extractRevenueQuery, generateReply };

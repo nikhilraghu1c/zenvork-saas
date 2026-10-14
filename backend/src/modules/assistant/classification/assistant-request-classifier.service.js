@@ -44,6 +44,7 @@ const hasValidToolRoute = ({ classification, tool }) => {
   if (classification === AssistantRequestClassification.DATA_QUERY) {
     return [
       AssistantToolRoute.GET_REVENUE_SUMMARY,
+      AssistantToolRoute.GET_APPOINTMENT_AGENDA,
       AssistantToolRoute.UNSUPPORTED_DATA_QUERY,
     ].includes(tool);
   }
