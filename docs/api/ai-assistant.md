@@ -50,8 +50,12 @@ collected, and pending-payment facts, which are formatted locally rather than be
 model. `GET_APPOINTMENT_AGENDA` extracts one business-calendar day, then lets an owner or staff member
 view up to 20 tenant appointments scheduled that day. The locally formatted agenda contains only
 appointment time, client name, service names, status, and resource names. Appointment date ranges are
-not supported yet. Other live-data requests receive `UNSUPPORTED_DATA_QUERY` and a fixed unavailable
-reply until a corresponding server-owned tool is implemented.
+not supported yet. `GET_REMAINING_APPOINTMENTS` lets an owner or staff member retrieve a current-day
+count of pending or scheduled appointments whose scheduled start time has not passed; checked-in work is
+separate from that remaining count. `GET_DAILY_APPOINTMENT_STATUS_SUMMARY` returns a current-day
+tenant-scoped count of upcoming, in-progress, completed, cancelled, and no-show appointments. Other
+live-data requests receive `UNSUPPORTED_DATA_QUERY` and a fixed unavailable reply until a corresponding
+server-owned tool is implemented.
 
 ### `PATCH /api/assistant/conversations/:id`
 

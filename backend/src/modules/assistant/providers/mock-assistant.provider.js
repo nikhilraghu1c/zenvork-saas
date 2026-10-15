@@ -31,11 +31,28 @@ const classifyRequest = async ({ message }) => {
   const isAppointmentAgendaQuestion =
     /\b(?:show|list|what|which|agenda|schedule)\b.{0,50}\b(?:bookings?|appointments?)\b/.test(message) &&
     !/\b(?:how many|how much|count|left|remaining)\b/.test(message);
+  const isRemainingAppointmentsTodayQuestion =
+    /\b(?:left|remaining|upcoming)\b.{0,50}\b(?:bookings?|appointments?)\b|\b(?:bookings?|appointments?)\b.{0,50}\b(?:left|remaining|upcoming)\b/.test(message) &&
+    !/\b(?:tomorrow|yesterday|week|month|20\d{2}-\d{2}-\d{2})\b/.test(message);
+  const isDailyAppointmentStatusSummaryQuestion =
+    /\b(?:bookings?|appointments?)\b/.test(message) &&
+    /\b(?:summary|overview|status|completed|cancelled|no[ -]?show|checked[ -]?in)\b/.test(message) &&
+    !/\b(?:tomorrow|yesterday|week|month|20\d{2}-\d{2}-\d{2})\b/.test(message);
   if (/\b(what did you (?:say|tell me)|last|previous|earlier|summari[sz]e).{0,60}\b(message|reply|answer|revenue|conversation|chat)\b/.test(message)) {
     return { classification: "CONVERSATION_REFERENCE", tool: "NONE", confidence: 0.9 };
   }
   if (/\b(revenue|earnings?|income|sales|billed|collected|pending payments?)\b/.test(message)) {
     return { classification: "DATA_QUERY", tool: "GET_REVENUE_SUMMARY", confidence: 0.9 };
+  }
+  if (isRemainingAppointmentsTodayQuestion) {
+    return { classification: "DATA_QUERY", tool: "GET_REMAINING_APPOINTMENTS", confidence: 0.9 };
+  }
+  if (isDailyAppointmentStatusSummaryQuestion) {
+    return {
+      classification: "DATA_QUERY",
+      tool: "GET_DAILY_APPOINTMENT_STATUS_SUMMARY",
+      confidence: 0.9,
+    };
   }
   if (isAppointmentAgendaQuestion) {
     return { classification: "DATA_QUERY", tool: "GET_APPOINTMENT_AGENDA", confidence: 0.9 };

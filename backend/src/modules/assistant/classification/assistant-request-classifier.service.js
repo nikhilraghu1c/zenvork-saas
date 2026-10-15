@@ -45,6 +45,8 @@ const hasValidToolRoute = ({ classification, tool }) => {
     return [
       AssistantToolRoute.GET_REVENUE_SUMMARY,
       AssistantToolRoute.GET_APPOINTMENT_AGENDA,
+      AssistantToolRoute.GET_REMAINING_APPOINTMENTS,
+      AssistantToolRoute.GET_DAILY_APPOINTMENT_STATUS_SUMMARY,
       AssistantToolRoute.UNSUPPORTED_DATA_QUERY,
     ].includes(tool);
   }

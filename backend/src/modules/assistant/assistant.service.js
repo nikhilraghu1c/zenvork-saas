@@ -23,6 +23,10 @@ import { getRevenueSummary } from "./tools/revenue-summary.tool.js";
 import { formatRevenueSummary } from "./tools/revenue-summary.formatter.js";
 import { getAppointmentAgenda } from "./tools/appointment-agenda.tool.js";
 import { formatAppointmentAgenda } from "./tools/appointment-agenda.formatter.js";
+import { getRemainingAppointmentsToday } from "./tools/remaining-appointments.tool.js";
+import { formatRemainingAppointmentsToday } from "./tools/remaining-appointments.formatter.js";
+import { getTodayAppointmentSummary } from "./tools/today-appointment-summary.tool.js";
+import { formatDailyAppointmentStatusSummary } from "./tools/daily-appointment-status-summary.formatter.js";
 import {
   AssistantToolAuthorizationError,
   AssistantToolValidationError,
@@ -84,7 +88,29 @@ const generateAssistantReply = async ({ messages, businessId, userRole }) => {
 
   if (request.type === AssistantRequestClassification.DATA_QUERY) {
     if (request.tool === AssistantToolRoute.UNSUPPORTED_DATA_QUERY) {
-      return "I don’t support that live business-data question yet. Right now I can provide aggregate revenue summaries and show appointments for one day.";
+      return "I don’t support that live business-data question yet. Right now I can provide aggregate revenue summaries, show appointments for one day, and count appointments remaining today.";
+    }
+    if (request.tool === AssistantToolRoute.GET_REMAINING_APPOINTMENTS) {
+      try {
+        const summary = await getRemainingAppointmentsToday({ businessId, userRole });
+        return formatRemainingAppointmentsToday(summary);
+      } catch (error) {
+        if (error instanceof AssistantToolAuthorizationError) {
+          return "You do not have access to appointment information.";
+        }
+        throw error;
+      }
+    }
+    if (request.tool === AssistantToolRoute.GET_DAILY_APPOINTMENT_STATUS_SUMMARY) {
+      try {
+        const summary = await getTodayAppointmentSummary({ businessId, userRole });
+        return formatDailyAppointmentStatusSummary(summary);
+      } catch (error) {
+        if (error instanceof AssistantToolAuthorizationError) {
+          return "You do not have access to appointment information.";
+        }
+        throw error;
+      }
     }
     if (request.tool === AssistantToolRoute.GET_APPOINTMENT_AGENDA) {
       try {

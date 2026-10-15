@@ -14,6 +14,8 @@ MongoDB implement it.
 5. [Reminder module](reminder-module.md) — manual reminder lifecycle, queue filters, and TTL retention.
 6. [Reminder flow chart](reminder-flow.md) — visual map of queue tabs, staff actions, booking events,
    and cleanup.
+7. [AI Assistant module](assistant-module.md) — private conversation lifecycle, provider safety, and
+   controlled business-data tools.
 
 ## Module guides
 
@@ -28,6 +30,7 @@ MongoDB implement it.
 - [Analytics module](analytics-module.md)
 - [Reminder module](reminder-module.md)
 - [Reminder flow chart](reminder-flow.md)
+- [AI Assistant module](assistant-module.md)
 
 ## Keep learning guides current
 

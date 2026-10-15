@@ -99,10 +99,14 @@ Restricted and unrelated requests receive local replies without a response-gener
 controlled owner-only revenue tool after a separate schema-constrained date extraction request. The
 appointment-agenda route extracts a separate one-day date intent, then reads at most 20 scheduled
 tenant appointments for an owner or staff member. Tool results are formatted locally, so a response
-model cannot change reported figures or appointment details. The classifier returns only a fixed
-tool-route enum: `GET_REVENUE_SUMMARY`, `GET_APPOINTMENT_AGENDA`, `UNSUPPORTED_DATA_QUERY`, or `NONE`.
-The server validates the route and permits only the named tools; unsupported booking or other live-data
-requests fail closed until their own controlled tools exist. Action-request classifications are not
-supported yet.
+model cannot change reported figures or appointment details. A current-day remaining-appointments tool
+counts only scheduled or pending appointments that are still due to start after the current instant;
+checked-in work is intentionally separate. A daily appointment-status tool reuses the same scoped
+aggregate query to return upcoming, in-progress, completed, cancelled, and no-show counts. The
+classifier returns only a fixed tool-route enum:
+`GET_REVENUE_SUMMARY`, `GET_APPOINTMENT_AGENDA`, `GET_REMAINING_APPOINTMENTS`,
+`GET_DAILY_APPOINTMENT_STATUS_SUMMARY`, `UNSUPPORTED_DATA_QUERY`, or `NONE`. The server validates the
+route and permits only the named tools; unsupported booking or other live-data requests fail closed
+until their own controlled tools exist. Action-request classifications are not supported yet.
 `AI_CLASSIFIER_MODEL` can select a separate compatible classification model and falls back to
 `AI_MODEL` when it is unset.
