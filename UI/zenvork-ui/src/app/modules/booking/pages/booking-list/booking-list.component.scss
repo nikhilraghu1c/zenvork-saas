@@ -322,11 +322,18 @@
 
     .mobile-bookings {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      min-width: 0;
+      max-width: 100%;
       gap: 12px;
     }
 
     .booking-card {
       display: block;
+      box-sizing: border-box;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
       padding: 16px;
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
@@ -349,7 +356,8 @@
       }
 
       &__header {
-        display: flex;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
         min-width: 0;
         align-items: center;
         gap: 12px;
