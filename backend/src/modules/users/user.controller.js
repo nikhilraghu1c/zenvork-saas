@@ -1,8 +1,10 @@
 import User from "./user.model.js";
+import mongoose from "mongoose";
 import { tenantData, tenantFilter } from "../../utils/tenant-scope.js";
 import {
   UserValidationError,
   validateStaffCreation,
+  validateStaffStatusUpdate,
 } from "./user.validation.js";
 
 const duplicateStaffCredentialMessage =
@@ -16,12 +18,15 @@ const getStaffUsers = async (req, res) => {
         role: "STAFF",
       }),
     )
-      .select("name email mobile role createdAt updatedAt")
-      // Staff accounts have no active state yet, so use a stable alphabetical order with a unique tie-breaker.
-      .sort({ name: 1, _id: 1 })
+      .select("name email mobile role isActive createdAt updatedAt")
+      // Keep the operationally available staff first, followed by a stable alphabetical order.
+      .sort({ isActive: -1, name: 1, _id: 1 })
       .lean();
 
-    return res.status(200).json({ users });
+    // Legacy staff records without this field remain active after the lifecycle field is introduced.
+    return res.status(200).json({
+      users: users.map((user) => ({ ...user, isActive: user.isActive !== false })),
+    });
   } catch (error) {
     console.error("Failed to load staff users:", error);
     return res.status(500).json({ message: "Unable to load staff users" });
@@ -73,4 +78,46 @@ const createStaffUser = async (req, res) => {
   }
 };
 
-export { createStaffUser, getStaffUsers };
+const updateStaffStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.isObjectIdOrHexString(id)) {
+      return res.status(400).json({ message: "Invalid staff member" });
+    }
+
+    const { isActive } = validateStaffStatusUpdate(req.body);
+    // Tenant and role constraints ensure an owner can change only a staff account from their own business.
+    const staffUser = await User.findOne(
+      tenantFilter(req, { _id: id, role: "STAFF" }),
+    );
+    if (!staffUser) {
+      return res.status(404).json({ message: "Staff member not found" });
+    }
+
+    staffUser.isActive = isActive;
+    await staffUser.save();
+
+    return res.status(200).json({
+      message: isActive ? "Staff member activated" : "Staff member deactivated",
+      user: {
+        _id: staffUser._id,
+        name: staffUser.name,
+        email: staffUser.email ?? undefined,
+        mobile: staffUser.mobile,
+        role: staffUser.role,
+        isActive: staffUser.isActive,
+        createdAt: staffUser.createdAt,
+        updatedAt: staffUser.updatedAt,
+      },
+    });
+  } catch (error) {
+    if (error instanceof UserValidationError) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    console.error("Staff status update failed:", error);
+    return res.status(500).json({ message: "Unable to update staff status" });
+  }
+};
+
+export { createStaffUser, getStaffUsers, updateStaffStatus };

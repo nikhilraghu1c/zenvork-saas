@@ -41,6 +41,14 @@
       </app-button>
     </div>
   } @else {
-    <app-data-grid class="staff-grid" [rowData]="filteredStaff" [columnDefs]="columnDefs" />
+    @if (actionErrorMessage) {
+      <p class="action-error" role="alert">{{ actionErrorMessage }}</p>
+    }
+    <app-data-grid
+      class="staff-grid"
+      [rowData]="filteredStaff"
+      [columnDefs]="columnDefs"
+      [context]="gridContext"
+    />
   }
 </section>

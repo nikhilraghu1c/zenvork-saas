@@ -73,7 +73,10 @@ requires the `OWNER` role, validates the dates through that shared utility, and 
 revenue facts. It is not exposed to an AI provider or an HTTP endpoint until a later tool-routing step.
 
 Owners manage staff through the tenant-scoped users module. Its create endpoint accepts no client
-role or `businessId`: it always creates a `STAFF` user for the authenticated owner's business.
+role or `businessId`: it always creates a `STAFF` user for the authenticated owner's business. Owners
+can also toggle a staff account's `isActive` state without deleting its bookings, resource links, or
+history. Login and authentication middleware deny explicitly inactive accounts, including sessions
+created before deactivation.
 
 The Assistant module keeps HTTP/database orchestration in its controller and routes generated replies
 through `assistant.service.js`. The service provides every adapter with server-defined behavior

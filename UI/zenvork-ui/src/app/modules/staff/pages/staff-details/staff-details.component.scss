@@ -111,6 +111,12 @@
     border-color: var(--green-border);
     background: var(--green-soft);
     color: var(--green);
+
+    &.is-inactive {
+      border-color: var(--border-strong);
+      background: var(--surface-subtle);
+      color: var(--text-mute);
+    }
   }
 
   .profile-actions {
@@ -118,6 +124,12 @@
     flex-wrap: wrap;
     gap: 10px;
     margin-left: auto;
+  }
+
+  .action-error {
+    margin: -18px 0 24px;
+    color: var(--mat-sys-error);
+    font-size: 14px;
   }
 
   .details-grid {

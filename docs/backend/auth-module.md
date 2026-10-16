@@ -23,7 +23,7 @@ mobile number, and load its password hash only for comparison.
 
 ```js
 const userLookup = isEmail ? { email: normalized.toLowerCase() } : { mobile: normalized };
-const user = await User.findOne(userLookup).select('+password');
+const user = await User.findOne({ ...userLookup, isActive: { $ne: false } }).select('+password');
 ```
 
 The `password` schema field has `select: false`, so normal user queries never accidentally return it.
@@ -45,8 +45,9 @@ reveal which accounts exist.
 login → signed cookie → userAuth verifies each protected request → logout clears cookie
 ```
 
-The server has no separate session collection today. A deleted user cannot keep using an otherwise valid
-token because `userAuth` reloads the user from MongoDB for every protected request.
+The server has no separate session collection today. A deleted or explicitly deactivated user cannot
+keep using an otherwise valid token because `userAuth` reloads the user from MongoDB for every protected
+request and rejects `isActive === false`.
 
 ## JWT and middleware
 

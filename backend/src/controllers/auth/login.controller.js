@@ -26,7 +26,8 @@ const login = async (req, res) => {
     const userLookup = validator.isEmail(normalizedIdentifier)
       ? { email: normalizedIdentifier.toLowerCase() }
       : { mobile: normalizedIdentifier };
-    const user = await User.findOne(userLookup).select("+password");
+    // Accounts explicitly deactivated by an owner cannot start a new session.
+    const user = await User.findOne({ ...userLookup, isActive: { $ne: false } }).select("+password");
 
     if (!user) {
       return invalidCredentials(res);

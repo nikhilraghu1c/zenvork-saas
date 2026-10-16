@@ -4,22 +4,24 @@
 
 ## Responsibility
 
-This module manages business staff login accounts. It does not manage clients. Only owners can list or
-create staff, and the server always assigns the `STAFF` role and authenticated business ID.
+This module manages business staff login accounts. It does not manage clients. Only owners can list,
+create, activate, or deactivate staff, and the server always assigns the `STAFF` role and authenticated
+business ID.
 
 ## Routes, validation, and list query
 
 ```text
 GET  /api/users → authorize('OWNER') → getStaffUsers
 POST /api/users → authorize('OWNER') → validateStaffCreation → createStaffUser
+PATCH /api/users/:id/status → authorize('OWNER') → validateStaffStatusUpdate → updateStaffStatus
 ```
 
 The list query is tenant and role scoped:
 
 ```js
 User.find(tenantFilter(req, { role: 'STAFF' }))
-  .select('name email mobile role createdAt updatedAt')
-  .sort({ name: 1, _id: 1 });
+  .select('name email mobile role isActive createdAt updatedAt')
+  .sort({ isActive: -1, name: 1, _id: 1 });
 ```
 
 Validation intentionally does not accept `role` or `businessId` from the browser.
@@ -67,11 +69,19 @@ has saved. The database unique index is the final authority.
 The returned conflict text says that the mobile number **or** email is already used, but does not reveal
 which identifier or account caused the conflict.
 
-## Lifecycle and current boundary
+## Access lifecycle
 
 ```text
 Owner creates staff account → staff can log in → staff operates permitted business features
+→ owner deactivates account → access ends, history remains → owner may reactivate same account
 ```
 
-There is no staff update, deactivate, password-reset, role-change, or removal endpoint yet. A later
-deactivation design must decide how to revoke active sessions and preserve historical resource links.
+`PATCH /api/users/:id/status` accepts only `{ isActive: boolean }`. Its lookup combines the trusted
+tenant ID, target user ID, and `role: 'STAFF'`, so an owner cannot deactivate an owner or a user from a
+different business. It changes neither credentials nor resource links.
+
+Login searches for accounts where `isActive !== false`, and `userAuth` reloads the user on every
+protected request. Therefore deactivation blocks a new login and makes an existing token unusable on
+its next API request. Older documents that predate the field are treated as active for a safe rollout.
+
+There is no staff edit, password-reset, role-change, or removal endpoint yet.

@@ -10,8 +10,8 @@ must not be supplied in a request.
 GET /api/users
 ```
 
-Returns tenant-owned staff accounts in name and then ID order. Staff accounts do not currently have
-an active/inactive state.
+Returns tenant-owned staff accounts with active accounts first, then in name and ID order. Each item
+includes `isActive`, which controls whether that staff account may sign in.
 
 Returns only `STAFF` users belonging to the owner's business. Password hashes and tenant IDs are
 never returned.
@@ -46,4 +46,37 @@ If either login identifier is already registered, it returns HTTP `409`:
 
 ```json
 { "message": "This mobile number or email is already used by another account" }
+```
+
+## Change staff access
+
+```http
+PATCH /api/users/:id/status
+```
+
+```json
+{ "isActive": false }
+```
+
+Only the tenant owner may update a staff account belonging to their own business. Setting `isActive`
+to `false` prevents new logins and invalidates the staff member's existing session on its next protected
+request. It does not delete bookings, linked resources, or historical records. Send `true` to reactivate
+the same account; its globally unique mobile/email identifiers cannot be reused for another account.
+
+The response returns the updated safe staff record:
+
+```json
+{
+  "message": "Staff member deactivated",
+  "user": {
+    "_id": "...",
+    "name": "Priya Sharma",
+    "email": "priya@example.com",
+    "mobile": "9876543210",
+    "role": "STAFF",
+    "isActive": false,
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+}
 ```

@@ -14,7 +14,8 @@ const userAuth = async (req, res, next) => {
     }
     const decodedToken = jwt.verify(accessToken, ACCESS_TKN_SECRET);
     const user = await User.findById(decodedToken.userId);
-    if (!user) {
+    // Re-check account access for every request so deactivation also invalidates existing sessions.
+    if (!user || user.isActive === false) {
       return res.status(401).json({ message: "Unauthorized: Please login" });
     }
 

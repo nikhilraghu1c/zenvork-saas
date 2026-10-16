@@ -9,7 +9,8 @@ const zenvorkFeatureCatalog = [
 - Only business owners and staff have Zenvork login accounts; clients do not log in.
 - Sign in accepts the registered email address or 10-digit mobile number with a password.
 - Signing out clears the authenticated browser session.
-- Password reset, staff deactivation, role changes, and account removal are not available in the current product.`,
+- Owners can deactivate a staff account to stop its sign-in access, then reactivate the same account later. Deactivation preserves existing business history.
+- Password reset, role changes, and account removal are not available in the current product.`,
   },
   {
     id: "business-registration",
@@ -152,7 +153,8 @@ const zenvorkFeatureCatalog = [
     content: `Staff management:
 - Only an owner manages staff accounts.
 - New accounts are created as staff users for the owner's business.
-- A staff account belongs to one business only.`,
+- A staff account belongs to one business only.
+- Owners can deactivate and reactivate staff access; a deactivated account cannot sign in but remains in the staff list and keeps its history.`,
   },
   {
     id: "analytics",

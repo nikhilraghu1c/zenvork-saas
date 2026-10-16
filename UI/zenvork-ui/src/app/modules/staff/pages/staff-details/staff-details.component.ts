@@ -25,6 +25,8 @@ export class StaffDetailsComponent implements OnInit {
   protected staffMember: StaffUser | null = null;
   protected loading = true;
   protected errorMessage = '';
+  protected actionErrorMessage = '';
+  protected updatingStatus = false;
   protected readonly permissions = [
     { name: 'Manage bookings', description: 'Create, edit, and cancel appointments' },
     { name: 'Manage clients', description: 'Add and edit client records' },
@@ -63,5 +65,23 @@ export class StaffDetailsComponent implements OnInit {
   /** Returns to the staff list. */
   protected returnToList(): void {
     this.router.navigateByUrl('/app/staff');
+  }
+
+  /** Toggles sign-in access without changing the staff member's existing history. */
+  protected toggleStaffStatus(): void {
+    if (!this.staffMember || this.updatingStatus) return;
+
+    this.actionErrorMessage = '';
+    this.updatingStatus = true;
+    this.staffService.updateStaffStatus(this.staffMember._id, !this.staffMember.isActive).subscribe({
+      next: ({ user }) => {
+        this.staffMember = user;
+        this.updatingStatus = false;
+      },
+      error: (error: HttpErrorResponse) => {
+        this.actionErrorMessage = error.error?.message ?? 'Unable to update staff status.';
+        this.updatingStatus = false;
+      },
+    });
   }
 }

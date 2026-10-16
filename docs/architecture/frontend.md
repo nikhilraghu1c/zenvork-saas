@@ -21,8 +21,9 @@ navigation routes use a temporary shared preview page until their workspaces are
 pages are lazy-loaded. Each feature owns a `<module>.routes.ts` route array beside its code;
 `app.routes.ts` only composes the two layouts and lazy-loads those feature route arrays.
 New route navigation scrolls to the top; browser Back and Forward restore the prior scroll position.
-The Staff module owns `/app/staff`, `/app/staff/new`, and `/app/staff/:id`. The current public routes
-are `/`, `/register`, and `/login`.
+The Staff module owns `/app/staff`, `/app/staff/new`, and `/app/staff/:id`. Owners can activate or
+deactivate staff access from the list action menu; a deactivated account remains visible for history
+and can be reactivated. The current public routes are `/`, `/register`, and `/login`.
 Desktop app pages present their own primary headings. The app toolbar is shown only on mobile, where
 it provides the navigation-drawer control without repeating the page title.
 

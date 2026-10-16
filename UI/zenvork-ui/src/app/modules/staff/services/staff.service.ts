@@ -8,6 +8,7 @@ export interface StaffUser {
   email?: string;
   mobile: string;
   role: 'STAFF';
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,5 +36,16 @@ export class StaffService {
   /** Creates a new staff account for the signed-in owner's business. */
   createStaff(payload: CreateStaffRequest): Observable<{ message: string }> {
     return this.api.post<{ message: string }, CreateStaffRequest>('users', payload);
+  }
+
+  /** Changes whether a staff account can sign in without deleting its operational history. */
+  updateStaffStatus(
+    staffId: string,
+    isActive: boolean,
+  ): Observable<{ message: string; user: StaffUser }> {
+    return this.api.patch<{ message: string; user: StaffUser }, { isActive: boolean }>(
+      `users/${staffId}/status`,
+      { isActive },
+    );
   }
 }

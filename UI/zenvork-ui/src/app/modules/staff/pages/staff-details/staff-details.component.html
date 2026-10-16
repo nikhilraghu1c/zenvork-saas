@@ -15,14 +15,28 @@
         <p class="profile-mobile">{{ staffMember.mobile }}</p>
         <div class="profile-tags">
           <span class="role-tag">Staff</span>
-          <span class="status-tag"><span aria-hidden="true">●</span> Active</span>
+          <span class="status-tag" [class.is-inactive]="!staffMember.isActive">
+            <span aria-hidden="true">●</span> {{ staffMember.isActive ? 'Active' : 'Inactive' }}
+          </span>
         </div>
       </div>
       <div class="profile-actions">
         <app-button variant="secondary" [disabled]="true">Reset password</app-button>
-        <app-button [disabled]="true">Edit account</app-button>
+        <app-button
+          variant="secondary"
+          [loading]="updatingStatus"
+          [disabled]="updatingStatus"
+          (clicked)="toggleStaffStatus()"
+        >
+          {{ staffMember.isActive ? 'Deactivate' : 'Activate' }}
+        </app-button>
+        <!-- <app-button>Edit account</app-button> -->
       </div>
     </header>
+
+    @if (actionErrorMessage) {
+      <p class="action-error" role="alert">{{ actionErrorMessage }}</p>
+    }
 
     <div class="details-grid">
       <section class="detail-section" aria-labelledby="account-title">

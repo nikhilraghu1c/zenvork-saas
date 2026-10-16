@@ -55,3 +55,20 @@ export const validateStaffCreation = (data) => {
     password,
   };
 };
+
+export const validateStaffStatusUpdate = (data) => {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    throw new UserValidationError("Invalid request data");
+  }
+
+  // This endpoint changes only login access; role and credentials remain immutable here.
+  if (Object.keys(data).length !== 1 || !Object.hasOwn(data, "isActive")) {
+    throw new UserValidationError("Invalid request data");
+  }
+
+  if (typeof data.isActive !== "boolean") {
+    throw new UserValidationError("Staff status must be active or inactive");
+  }
+
+  return { isActive: data.isActive };
+};

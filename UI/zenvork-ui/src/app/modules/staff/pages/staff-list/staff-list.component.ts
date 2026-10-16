@@ -10,6 +10,7 @@ import { AppDataGridComponent } from '../../../../shared/data-grid/data-grid.com
 import { AppInputComponent } from '../../../../shared/input/input.component';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
 import { StaffGridActionsComponent } from '../../components/staff-grid-actions/staff-grid-actions.component';
+import { StaffStatusGridCellComponent } from '../../components/staff-status-grid-cell/staff-status-grid-cell.component';
 import { NameAvatarGridCellComponent } from '../../../../shared/data-grid/components/name-avatar-grid-cell/name-avatar-grid-cell.component';
 import { StaffService, StaffUser } from '../../services/staff.service';
 
@@ -33,6 +34,10 @@ export class StaffListComponent implements OnInit {
   protected filteredStaff: StaffUser[] = [];
   protected loading = true;
   protected errorMessage = '';
+  protected actionErrorMessage = '';
+  protected readonly gridContext = {
+    updateStaffStatus: (staffId: string, isActive: boolean) => this.updateStaffStatus(staffId, isActive),
+  };
   protected readonly columnDefs: ColDef<StaffUser>[] = [
     {
       field: 'name',
@@ -49,6 +54,13 @@ export class StaffListComponent implements OnInit {
     },
     { field: 'mobile', headerName: 'Mobile', minWidth: 140 },
     { headerName: 'Access', valueGetter: () => 'Staff', minWidth: 110, maxWidth: 130 },
+    {
+      field: 'isActive',
+      headerName: 'Status',
+      minWidth: 110,
+      maxWidth: 130,
+      cellRenderer: StaffStatusGridCellComponent,
+    },
     {
       field: 'createdAt',
       headerName: 'Added',
@@ -112,5 +124,21 @@ export class StaffListComponent implements OnInit {
   /** Opens the dedicated staff-creation page. */
   protected addStaff(): void {
     this.router.navigateByUrl('/app/staff/new');
+  }
+
+  /** Updates sign-in access while retaining the staff member's existing business records. */
+  private updateStaffStatus(staffId: string, isActive: boolean): void {
+    this.actionErrorMessage = '';
+    this.staffService.updateStaffStatus(staffId, isActive).subscribe({
+      next: ({ user }) => {
+        this.staff = this.staff.map((staffMember) =>
+          staffMember._id === staffId ? user : staffMember,
+        );
+        this.applySearch();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.actionErrorMessage = error.error?.message ?? 'Unable to update staff access.';
+      },
+    });
   }
 }
