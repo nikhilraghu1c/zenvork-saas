@@ -21,9 +21,11 @@ navigation routes use a temporary shared preview page until their workspaces are
 pages are lazy-loaded. Each feature owns a `<module>.routes.ts` route array beside its code;
 `app.routes.ts` only composes the two layouts and lazy-loads those feature route arrays.
 New route navigation scrolls to the top; browser Back and Forward restore the prior scroll position.
-The Staff module owns `/app/staff`, `/app/staff/new`, and `/app/staff/:id`. Owners can activate or
-deactivate staff access from the list action menu; a deactivated account remains visible for history
-and can be reactivated. The current public routes are `/`, `/register`, and `/login`.
+The Staff module owns `/app/staff`, `/app/staff/new`, and `/app/staff/:id`.
+Owners can activate or deactivate staff access from the list action menu; a deactivated account remains
+visible for history and can be reactivated. Staff Details provides an inline editor for booking and
+reminder permissions only; account identity and credentials remain read-only. The current
+public routes are `/`, `/register`, and `/login`.
 Desktop app pages present their own primary headings. The app toolbar is shown only on mobile, where
 it provides the navigation-drawer control without repeating the page title.
 
@@ -141,14 +143,16 @@ service-level revenue without calculating money totals in the browser.
 
 ## Reminder workspace
 
-`/app/reminders` is a lazy-loaded manual appointment-reminder workspace for owners and staff. It shows
+`/app/reminders` is a lazy-loaded manual appointment-reminder workspace for owners and staff granted
+`canSendReminders`; other staff cannot see or route to it. It shows
 three equal-width mobile-safe tabs—To send, Upcoming, and Sent today—with matching counts above them.
 Upcoming is intentionally preview-only; WhatsApp, copy, mark-sent, and skip actions appear only in To
 send. Marking a reminder sent moves it to Sent today, which is a daily confirmation log rather than an
 active queue. WhatsApp opens a prefilled client message and Copy uses the browser clipboard; neither
 action changes server state. After opening WhatsApp, a confirmation dialog asks staff whether they
 sent the message before `ReminderService` records it as sent. Staff can still explicitly mark a
-reminder sent or skipped.
+reminder sent or skipped. `/app/clients` is owner-guarded, while booking forms retain the existing
+authenticated client lookup used to select an existing client.
 
 ## AI Assistant workspace
 

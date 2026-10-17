@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth-guard';
 import { ownerGuard } from './core/guards/owner-guard';
+import { reminderAccessGuard } from './core/guards/reminder-access-guard';
 
 export const routes: Routes = [
   {
@@ -44,6 +45,7 @@ export const routes: Routes = [
       },
       {
         path: 'reminders',
+        canActivate: [reminderAccessGuard],
         loadChildren: () =>
           import('./modules/reminder/reminder.routes').then((m) => m.reminderRoutes),
       },

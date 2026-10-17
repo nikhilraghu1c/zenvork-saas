@@ -14,6 +14,7 @@ business ID.
 GET  /api/users → authorize('OWNER') → getStaffUsers
 POST /api/users → authorize('OWNER') → validateStaffCreation → createStaffUser
 PATCH /api/users/:id/status → authorize('OWNER') → validateStaffStatusUpdate → updateStaffStatus
+PATCH /api/users/:id → authorize('OWNER') → validateStaffUpdate → updateStaffUser
 ```
 
 The list query is tenant and role scoped:
@@ -84,4 +85,17 @@ Login searches for accounts where `isActive !== false`, and `userAuth` reloads t
 protected request. Therefore deactivation blocks a new login and makes an existing token unusable on
 its next API request. Older documents that predate the field are treated as active for a safe rollout.
 
-There is no staff edit, password-reset, role-change, or removal endpoint yet.
+There is no full staff-profile edit, password-reset, role-change, or removal endpoint yet.
+
+The generic staff update endpoint is intentionally narrower than a full staff editor. It updates only
+`bookingAccessScope` and `canSendReminders`; account identity, credentials, role, lifecycle state, and
+tenant ownership remain outside its request contract.
+
+## Booking access scope
+
+New staff accounts receive `bookingAccessScope: 'NONE'` and `canSendReminders: false` unless the owner
+selects another value at creation. All active staff may view tenant bookings, but `NONE` cannot create
+or change one; `OWN_AND_UNASSIGNED` permits only linked-resource and unassigned work; `ALL` permits all
+tenant booking mutations. `canSendReminders` independently grants Reminder workspace access and manual
+reminder actions. Existing records without either field are treated as denied until an owner explicitly
+grants access.

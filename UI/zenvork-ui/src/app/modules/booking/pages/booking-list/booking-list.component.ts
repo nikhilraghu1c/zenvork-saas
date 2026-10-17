@@ -381,10 +381,13 @@ export class BookingListComponent implements OnInit, OnDestroy {
 
   /** Mirrors desktop lifecycle options in the mobile card menu. */
   protected statusActions(booking: BookingRecord): AppActionMenuItem[] {
+    const canManage = booking.capabilities?.canManage === true;
     const editAction = ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status)
+      && canManage
       ? [{ id: 'edit', label: 'Edit booking', icon: 'edit' }]
       : [];
     if (booking.status === 'CHECKED_IN') {
+      if (!canManage) return [];
       return [
         ...editAction,
         booking.hasServices
@@ -404,9 +407,13 @@ export class BookingListComponent implements OnInit, OnDestroy {
     if (booking.status === 'PENDING' || booking.status === 'SCHEDULED') {
       return [
         ...editAction,
-        { id: 'CHECKED_IN', label: 'Check in', icon: 'login' },
-        { id: 'NO_SHOW', label: 'Mark no-show', icon: 'person_off' },
-        { id: 'CANCELLED', label: 'Cancel booking', icon: 'cancel' },
+        ...(canManage
+          ? [
+              { id: 'CHECKED_IN', label: 'Check in', icon: 'login' },
+              { id: 'NO_SHOW', label: 'Mark no-show', icon: 'person_off' },
+              { id: 'CANCELLED', label: 'Cancel booking', icon: 'cancel' },
+            ]
+          : []),
       ];
     }
     return [];

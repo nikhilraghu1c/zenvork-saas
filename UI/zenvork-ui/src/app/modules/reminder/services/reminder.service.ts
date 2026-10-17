@@ -8,7 +8,7 @@ export type ReminderAction = 'sent' | 'skipped';
 export interface ReminderClientSummary {
   _id: string;
   name: string;
-  mobile: string;
+  mobile?: string;
 }
 
 export interface ReminderBookingSummary {

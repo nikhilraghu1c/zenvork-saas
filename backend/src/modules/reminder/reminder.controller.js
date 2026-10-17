@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Reminder from "./reminder.model.js";
+import { canSendReminders } from "./reminder-access.service.js";
 import { expirePendingReminders, retentionDate } from "./reminder.lifecycle.js";
 import {
   ReminderValidationError,
@@ -24,7 +25,7 @@ const sentTodayFilter = (businessId, startOfToday, startOfTomorrow) => ({
   resolvedAt: { $gte: startOfToday, $lt: startOfTomorrow },
 });
 
-// Returns only the booking context staff needs to write or confirm an appointment reminder.
+// Reminder access is permission-gated, so every returned reminder can include its client contact number.
 const toPublicReminder = (reminder) => ({
   _id: reminder._id,
   status: reminder.status,
@@ -66,6 +67,11 @@ const populateReminderContext = (query) =>
 
 const getReminders = async (req, res) => {
   try {
+    // Viewing reminder data also exposes client contact details, so it requires the reminder grant.
+    if (!canSendReminders(req.user)) {
+      return res.status(403).json({ message: "Reminder access is not permitted" });
+    }
+
     const { tab, page, limit } = validateReminderListQuery(req.query);
     const now = new Date();
     const businessId = tenantId(req);
@@ -127,6 +133,10 @@ const updateReminderAction = async (req, res) => {
       return res.status(400).json({ message: "Invalid reminder" });
     }
     const action = validateReminderAction(req.body);
+    // Every manual reminder action requires the same grant as the reminder workspace.
+    if (!canSendReminders(req.user)) {
+      return res.status(403).json({ message: "Reminder access is not permitted" });
+    }
     const now = new Date();
     const businessId = tenantId(req);
     await expirePendingReminders(businessId, now);

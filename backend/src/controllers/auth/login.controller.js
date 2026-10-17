@@ -59,6 +59,8 @@ const login = async (req, res) => {
         mobile: user.mobile,
         role: user.role,
         businessId: user.businessId,
+        bookingAccessScope: user.role === "OWNER" ? "ALL" : user.bookingAccessScope ?? "NONE",
+        canSendReminders: user.role === "OWNER" || user.canSendReminders === true,
       },
     });
   } catch (error) {

@@ -107,15 +107,22 @@ export class BookingDetailsComponent implements OnInit {
   }
 
   /** Lists only valid lifecycle actions for the booking's current state. */
-  protected statusActions(status: BookingStatus): AppActionMenuItem[] {
+  protected statusActions(booking: BookingRecord): AppActionMenuItem[] {
+    const canManage = booking.capabilities?.canManage === true;
+    const { status } = booking;
     if (status === 'CHECKED_IN') {
+      if (!canManage) return [];
       return [{ id: 'COMPLETED', label: 'Mark completed', icon: 'task_alt' }];
     }
     if (status === 'PENDING' || status === 'SCHEDULED') {
       return [
-        { id: 'CHECKED_IN', label: 'Check in', icon: 'login' },
-        { id: 'NO_SHOW', label: 'Mark no-show', icon: 'person_off' },
-        { id: 'CANCELLED', label: 'Cancel booking', icon: 'cancel' },
+        ...(canManage
+          ? [
+              { id: 'CHECKED_IN', label: 'Check in', icon: 'login' },
+              { id: 'NO_SHOW', label: 'Mark no-show', icon: 'person_off' },
+              { id: 'CANCELLED', label: 'Cancel booking', icon: 'cancel' },
+            ]
+          : []),
       ];
     }
     return [];
@@ -136,7 +143,7 @@ export class BookingDetailsComponent implements OnInit {
   }
 
   protected canEditBill(booking: BookingRecord): boolean {
-    return ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status);
+    return booking.capabilities?.canManage === true && ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status);
   }
 
   /** Opens the full editor only while the booking has fields the backend permits staff to change. */
@@ -145,7 +152,7 @@ export class BookingDetailsComponent implements OnInit {
   }
 
   protected canEditBooking(booking: BookingRecord): boolean {
-    return ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status);
+    return booking.capabilities?.canManage === true && ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status);
   }
 
   protected serviceOptionsForSelect(): AppSelectOption[] {
@@ -232,7 +239,12 @@ export class BookingDetailsComponent implements OnInit {
   }
 
   protected updatePaymentStatus(paymentStatus: 'unpaid' | 'paid'): void {
-    if (!this.booking || this.updatingPayment || this.booking.paymentStatus === paymentStatus)
+    if (
+      !this.booking ||
+      !this.booking.capabilities?.canManage ||
+      this.updatingPayment ||
+      this.booking.paymentStatus === paymentStatus
+    )
       return;
     this.updatingPayment = true;
     this.statusError = '';

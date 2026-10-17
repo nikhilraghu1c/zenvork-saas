@@ -10,18 +10,33 @@ export class UserValidationError extends Error {
 // Treat whitespace-only strings as missing values.
 const isNonEmptyString = (value) => typeof value === "string" && value.trim().length > 0;
 
+// Validate the scoped staff capabilities an owner may choose during account creation.
 export const validateStaffCreation = (data) => {
   if (!data || typeof data !== "object" || Array.isArray(data)) {
     throw new UserValidationError("Invalid request data");
   }
 
-  const allowedFields = ["name", "email", "mobile", "password"];
+  const allowedFields = [
+    "name",
+    "email",
+    "mobile",
+    "password",
+    "bookingAccessScope",
+    "canSendReminders",
+  ];
   // The owner cannot choose a role or tenant through this endpoint.
   if (Object.keys(data).some((field) => !allowedFields.includes(field))) {
     throw new UserValidationError("Invalid request data");
   }
 
-  const { name, email, mobile, password } = data;
+  const {
+    name,
+    email,
+    mobile,
+    password,
+    bookingAccessScope = "NONE",
+    canSendReminders = false,
+  } = data;
 
   if (!isNonEmptyString(name)) {
     throw new UserValidationError("Staff name is required");
@@ -47,15 +62,24 @@ export const validateStaffCreation = (data) => {
   if (normalizedEmail && !validator.isEmail(normalizedEmail)) {
     throw new UserValidationError("Please provide a valid email address");
   }
+  if (!["NONE", "OWN_AND_UNASSIGNED", "ALL"].includes(bookingAccessScope)) {
+    throw new UserValidationError("Invalid booking access level");
+  }
+  if (typeof canSendReminders !== "boolean") {
+    throw new UserValidationError("Reminder permission must be enabled or disabled");
+  }
 
   return {
     name: name.trim(),
     email: normalizedEmail || undefined,
     mobile: mobile.trim(),
     password,
+    bookingAccessScope,
+    canSendReminders,
   };
 };
 
+// Restrict lifecycle updates to one boolean so the endpoint cannot become an accidental staff editor.
 export const validateStaffStatusUpdate = (data) => {
   if (!data || typeof data !== "object" || Array.isArray(data)) {
     throw new UserValidationError("Invalid request data");
@@ -71,4 +95,31 @@ export const validateStaffStatusUpdate = (data) => {
   }
 
   return { isActive: data.isActive };
+};
+
+// Keep the generic staff update narrowly scoped until more editable fields have explicit rules.
+export const validateStaffUpdate = (data) => {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    throw new UserValidationError("Invalid request data");
+  }
+
+  const allowedFields = ["bookingAccessScope", "canSendReminders"];
+  if (
+    Object.keys(data).length !== allowedFields.length ||
+    Object.keys(data).some((field) => !allowedFields.includes(field))
+  ) {
+    throw new UserValidationError("Invalid request data");
+  }
+
+  if (!["NONE", "OWN_AND_UNASSIGNED", "ALL"].includes(data.bookingAccessScope)) {
+    throw new UserValidationError("Invalid booking access level");
+  }
+  if (typeof data.canSendReminders !== "boolean") {
+    throw new UserValidationError("Reminder permission must be enabled or disabled");
+  }
+
+  return {
+    bookingAccessScope: data.bookingAccessScope,
+    canSendReminders: data.canSendReminders,
+  };
 };

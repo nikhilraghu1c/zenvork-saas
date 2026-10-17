@@ -34,7 +34,10 @@ POST /api/users
 `name`, `mobile`, and `password` are required. `email` is optional for staff, but must be valid and
 globally unique when supplied. Mobile numbers are globally unique. The request cannot send `role`
 or `businessId`; this endpoint always creates a `STAFF` account for the authenticated owner's
-business.
+business. `bookingAccessScope` is optional and defaults to `NONE`; accepted values are `NONE`,
+`OWN_AND_UNASSIGNED`, and `ALL`. `canSendReminders` is optional and defaults to `false`; it grants a
+staff account access to the Reminder workspace and its manual send/skip actions. Owners always retain
+both booking and reminder control.
 
 The endpoint returns HTTP `201` with a success message only.
 
@@ -80,3 +83,20 @@ The response returns the updated safe staff record:
   }
 }
 ```
+
+## Update staff user
+
+```http
+PATCH /api/users/:id
+```
+
+```json
+{
+  "bookingAccessScope": "OWN_AND_UNASSIGNED",
+  "canSendReminders": true
+}
+```
+
+Only the tenant owner can use this generic staff update endpoint. It currently accepts exactly these two
+operational permission fields and cannot alter the staff member's name, credentials, role, active status,
+or tenant. The response returns the same safe staff summary as the status endpoint.

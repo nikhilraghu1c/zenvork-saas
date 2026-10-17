@@ -19,14 +19,14 @@
           <p>Created {{ formatDateTime(booking.createdAt) }}</p>
         </div>
       </div>
-      @if (statusActions(booking.status).length) {
+      @if (statusActions(booking).length || canEditBooking(booking)) {
         <div class="booking-header__actions">
           @if (canEditBooking(booking)) {
             <app-button variant="text" (clicked)="openBookingEditor(booking)">Edit booking</app-button>
           }
           <app-action-menu
             ariaLabel="Booking status actions"
-            [items]="statusActions(booking.status)"
+            [items]="statusActions(booking)"
             (actionSelected)="requestStatusUpdate($any($event))"
           />
         </div>
@@ -136,12 +136,14 @@
               }
               <div class="bill-total"><span>Total</span><strong>{{ formatAmount(booking.totalAmountPaise) }}</strong></div>
               @if (booking.status === 'COMPLETED') {
-                <div class="payment-status">
-                  <span>Payment</span>
-                  <app-button variant="secondary" [loading]="updatingPayment" (clicked)="updatePaymentStatus(booking.paymentStatus === 'paid' ? 'unpaid' : 'paid')">
-                    Mark as {{ booking.paymentStatus === 'paid' ? 'unpaid' : 'paid' }}
-                  </app-button>
-                </div>
+                @if (booking.capabilities?.canManage) {
+                  <div class="payment-status">
+                    <span>Payment</span>
+                    <app-button variant="secondary" [loading]="updatingPayment" (clicked)="updatePaymentStatus(booking.paymentStatus === 'paid' ? 'unpaid' : 'paid')">
+                      Mark as {{ booking.paymentStatus === 'paid' ? 'unpaid' : 'paid' }}
+                    </app-button>
+                  </div>
+                }
               }
             </div>
           }

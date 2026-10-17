@@ -5,12 +5,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
+import { AppCheckboxComponent } from '../../../../shared/checkbox/checkbox.component';
 import { AppInputComponent } from '../../../../shared/input/input.component';
-import { CreateStaffRequest, StaffService } from '../../services/staff.service';
+import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
+import { BookingAccessScope, CreateStaffRequest, StaffService } from '../../services/staff.service';
 
 @Component({
   selector: 'app-staff-form',
-  imports: [ReactiveFormsModule, MatIconModule, AppButtonComponent, AppInputComponent],
+  imports: [ReactiveFormsModule, MatIconModule, AppButtonComponent, AppCheckboxComponent, AppInputComponent, AppSelectComponent],
   templateUrl: './staff-form.component.html',
   styleUrl: './staff-form.component.scss',
 })
@@ -20,6 +22,11 @@ export class StaffFormComponent {
   protected submitted = false;
   protected loading = false;
   protected serverError = '';
+  protected readonly bookingAccessOptions: AppSelectOption[] = [
+    { value: 'NONE', label: 'No booking access' },
+    { value: 'OWN_AND_UNASSIGNED', label: 'Own and unassigned bookings' },
+    { value: 'ALL', label: 'All bookings' },
+  ];
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -31,6 +38,8 @@ export class StaffFormComponent {
       email: ['', [Validators.email, Validators.maxLength(100)]],
       mobile: ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
       password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(128)]],
+      bookingAccessScope: ['NONE'],
+      canSendReminders: [false],
     });
   }
 
@@ -48,6 +57,7 @@ export class StaffFormComponent {
     const { email, ...staffValues } = this.staffForm.getRawValue();
     const payload: CreateStaffRequest = {
       ...staffValues,
+      bookingAccessScope: staffValues.bookingAccessScope as BookingAccessScope,
       ...(email.trim() ? { email: email.trim() } : {}),
     };
 

@@ -8,6 +8,10 @@ Zenvork creates one manual appointment reminder for each scheduled booking. It b
 hours ahead. The API does not send WhatsApp or SMS: staff open WhatsApp/copy the generated message in
 the UI, then explicitly record the outcome.
 
+Owners can always access reminders. Staff require the explicit `canSendReminders` grant to view the
+queue or open, copy, mark sent, or skip a reminder. Staff without that grant receive `403` for every
+Reminder endpoint.
+
 ## List a reminder tab
 
 ```http
@@ -24,8 +28,8 @@ Before returning a list, the backend changes pending reminders whose appointment
 `sentToday`, and pagination. Marking a reminder sent moves it from To send to Sent today. Sent today
 is a daily confirmation log, so it can show a sent reminder even after that appointment has started.
 
-Each reminder exposes only client name/mobile, its own planned-start snapshot, service names, and
-resource summaries. The snapshot means a sent reminder keeps the appointment time that was
+Each reminder exposes client name and mobile number, its own planned-start snapshot, service names,
+and resource summaries. The snapshot means a sent reminder keeps the appointment time that was
 communicated even when the booking is later rescheduled. It is returned as
 `booking.scheduledStartAt` to preserve the response shape. It never exposes `businessId` or
 `resolvedBy`.
@@ -40,7 +44,8 @@ PATCH /api/reminders/:id
 { "action": "sent" }
 ```
 
-Allowed actions are `sent` and `skipped`. The server changes a due, active reminder to `SENT` or
+Allowed actions are `sent` and `skipped`. An owner or staff member with `canSendReminders` is required.
+The server changes a due, active reminder to `SENT` or
 `SKIPPED`, records server time and authenticated staff member, and retains it as history. The UI opens
 WhatsApp first, then asks staff to explicitly confirm before it sends the `sent` action; it does not
 infer delivery from WhatsApp. It does not alter the booking's schedule, status, or `updatedAt`. A

@@ -45,6 +45,17 @@
       [required]="true"
       [errorMessage]="fieldError('password')"
     />
+    <app-select
+      formControlName="bookingAccessScope"
+      label="Booking Access"
+      labelPlacement="outside"
+      [options]="bookingAccessOptions"
+      hint="Choose what bookings this staff member can manage."
+    />
+    <app-checkbox
+      formControlName="canSendReminders"
+      label="Can access and send appointment reminders"
+    />
 
     @if (serverError) {
       <p class="server-error" role="alert">{{ serverError }}</p>
@@ -52,7 +63,9 @@
 
     <div class="staff-form__actions">
       <app-button type="button" variant="secondary" (clicked)="cancel()">Cancel</app-button>
-      <app-button type="submit" [loading]="loading">Create Staff Account</app-button>
+      <app-button type="submit" [loading]="loading" [disabled]="loading">
+        Create Staff Account
+      </app-button>
     </div>
   </form>
 </section>

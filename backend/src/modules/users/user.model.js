@@ -59,6 +59,15 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    bookingAccessScope: {
+      type: String,
+      enum: ["NONE", "OWN_AND_UNASSIGNED", "ALL"],
+      default: "NONE",
+    },
+    canSendReminders: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

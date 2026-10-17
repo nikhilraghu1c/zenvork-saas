@@ -13,6 +13,7 @@ GET /api/clients
 Returns `{ clients: [...] }`, sorted newest first by `createdAt` and then `_id`. Each client includes `_id`, `name`, `mobile`, optional
 `email` and `notes`, plus `createdAt` and `updatedAt`. Tenant IDs are not returned.
 
+
 ## Create a client
 
 ```http

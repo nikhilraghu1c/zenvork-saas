@@ -74,9 +74,9 @@ export class BookingGridActionsComponent implements ICellRendererAngularComp {
     this.booking = params.data!;
     this.actions = [
       { id: 'details', label: 'Details', icon: 'visibility' },
-      ...this.editActions(this.booking.status),
-      ...this.paymentActions(this.booking),
-      ...this.statusActions(this.booking.status),
+      ...(this.booking.capabilities?.canManage ? this.editActions(this.booking.status) : []),
+      ...this.statusActions(this.booking),
+      ...(this.booking.capabilities?.canManage ? this.paymentActions(this.booking) : []),
     ];
   }
 
@@ -87,8 +87,10 @@ export class BookingGridActionsComponent implements ICellRendererAngularComp {
       : [];
   }
 
-  private statusActions(status: BookingStatus): AppActionMenuItem[] {
+  private statusActions(booking: BookingRecord): AppActionMenuItem[] {
+    const { status } = booking;
     if (status === 'CHECKED_IN') {
+      if (!booking.capabilities?.canManage) return [];
       return [
         this.booking.hasServices
           ? { id: 'status:COMPLETED', label: 'Mark completed', icon: 'task_alt' }
@@ -97,9 +99,13 @@ export class BookingGridActionsComponent implements ICellRendererAngularComp {
     }
     if (status === 'PENDING' || status === 'SCHEDULED') {
       return [
-        { id: 'status:CHECKED_IN', label: 'Check in', icon: 'login' },
-        { id: 'status:NO_SHOW', label: 'Mark no-show', icon: 'person_off' },
-        { id: 'status:CANCELLED', label: 'Cancel booking', icon: 'cancel' },
+        ...(booking.capabilities?.canManage
+          ? [
+              { id: 'status:CHECKED_IN', label: 'Check in', icon: 'login' },
+              { id: 'status:NO_SHOW', label: 'Mark no-show', icon: 'person_off' },
+              { id: 'status:CANCELLED', label: 'Cancel booking', icon: 'cancel' },
+            ]
+          : []),
       ];
     }
     return [];

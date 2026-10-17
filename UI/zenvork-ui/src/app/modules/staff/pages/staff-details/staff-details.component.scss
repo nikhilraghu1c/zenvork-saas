@@ -166,6 +166,8 @@
     gap: 12px;
   }
 
+  .permissions-edit-action { margin-left: auto; }
+
   .card,
   .page-state {
     padding: 24px;
@@ -223,7 +225,25 @@
 
     &:first-child { padding-top: 0; }
     &:last-child { padding-bottom: 0; border-bottom: 0; }
-    mat-slide-toggle { flex: 0 0 auto; }
+    app-toggle { display: block; width: 100%; }
+  }
+
+  .permissions-editor {
+    display: grid;
+    gap: 20px;
+  }
+
+  .permissions-editor__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .permissions-error {
+    margin: 0;
+    color: var(--mat-sys-error);
+    font-size: 14px;
   }
 
   .danger-card {

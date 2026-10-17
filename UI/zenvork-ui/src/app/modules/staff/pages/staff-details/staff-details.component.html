@@ -72,22 +72,55 @@
       <section class="detail-section" aria-labelledby="permissions-title">
         <div class="section-heading">
           <h2 id="permissions-title">Permissions</h2>
-          <span class="coming-soon">Coming soon</span>
-        </div>
-        <div class="card permissions-card">
-          @for (permission of permissions; track permission.name) {
-            <div class="permission-row">
-              <div>
-                <h3>{{ permission.name }}</h3>
-                <p>{{ permission.description }}</p>
-              </div>
-              <mat-slide-toggle
-                [disabled]="true"
-                [aria-label]="permission.name + ' — not available yet'"
-              />
-            </div>
+          @if (!editingPermissions) {
+            <app-button
+              class="permissions-edit-action"
+              variant="text"
+              icon="edit"
+              [iconOnly]="true"
+              ariaLabel="Edit permissions"
+              (click)="startPermissionEdit()"
+            />
           }
         </div>
+        @if (editingPermissions) {
+          <form class="card permissions-editor" [formGroup]="permissionsForm" (ngSubmit)="savePermissions()">
+            <app-select
+              formControlName="bookingAccessScope"
+              label="Booking Access"
+              labelPlacement="outside"
+              [options]="bookingAccessOptions"
+              hint="Choose what bookings this staff member can manage."
+            />
+            <app-checkbox formControlName="canSendReminders" label="Can access and send appointment reminders" />
+
+            @if (permissionsErrorMessage) {
+              <p class="permissions-error" role="alert">{{ permissionsErrorMessage }}</p>
+            }
+
+            <div class="permissions-editor__actions">
+              <app-button type="button" variant="secondary" [disabled]="updatingPermissions" (clicked)="cancelPermissionEdit()">
+                Cancel
+              </app-button>
+              <app-button type="submit" [loading]="updatingPermissions" [disabled]="updatingPermissions">
+                Save permissions
+              </app-button>
+            </div>
+          </form>
+        } @else {
+          <div class="card permissions-card">
+            @for (permission of permissionsFor(staffMember); track permission.name) {
+              <div class="permission-row">
+                <app-toggle
+                  [label]="permission.name"
+                  [hint]="permission.description"
+                  [checked]="permission.enabled"
+                  [disabled]="true"
+                />
+              </div>
+            }
+          </div>
+        }
       </section>
     </div>
 

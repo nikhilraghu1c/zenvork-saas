@@ -4,8 +4,17 @@ All booking endpoints require the HttpOnly authentication cookie established by 
 staff can access only bookings for their authenticated business. The backend derives `businessId` and
 `createdBy`; clients must not send either field.
 
+All active staff can view tenant bookings. Booking mutations are controlled by the server-side
+`bookingAccessScope`: `NONE` cannot create or change bookings; `OWN_AND_UNASSIGNED` can change only
+work assigned to their linked resource or with no assigned person; `ALL` can change any tenant booking.
+Owners always have `ALL`. Restricted staff may assign their linked resource and unlinked shared
+resources, but cannot assign another user's linked resource.
+
 Booking responses use populated `client` and `resources` summaries. They do not expose `businessId`,
 `createdBy`, Mongoose version fields, or the staff identifiers retained in internal status history.
+They also include server-calculated `capabilities.canManage`, which the web app uses to hide
+unavailable mutation actions, including check-in; the mutation endpoints independently enforce the
+same rules.
 
 ## List bookings
 

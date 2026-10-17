@@ -90,11 +90,14 @@ export class ReminderListComponent implements OnInit {
 
   /** Only the dedicated To send queue permits manual reminder actions. */
   protected canAction(reminder: ReminderRecord): boolean {
-    return reminder.status === 'PENDING' && this.selectedTab === 'to-send';
+    return (
+      reminder.status === 'PENDING' &&
+      this.selectedTab === 'to-send'
+    );
   }
 
   protected openWhatsApp(reminder: ReminderRecord): void {
-    if (!reminder.client || !this.canAction(reminder)) return;
+    if (!reminder.client?.mobile || !this.canAction(reminder)) return;
     const phone = reminder.client.mobile.replace(/\D/g, '');
     const message = encodeURIComponent(this.messageFor(reminder));
     window.open(`https://wa.me/91${phone}?text=${message}`, '_blank', 'noopener,noreferrer');

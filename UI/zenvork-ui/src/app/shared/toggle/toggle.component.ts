@@ -11,14 +11,22 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
   ],
 })
 export class AppToggleComponent implements ControlValueAccessor {
+  /** Text displayed beside the toggle. */
   @Input({ required: true }) label = '';
+  /** Optional supporting text displayed below the label. */
   @Input() hint = '';
-  protected checked = false;
-  protected disabled = false;
+  /** Allows a non-form caller to render a read-only checked state. */
+  @Input()
+  set checked(value: boolean | null | undefined) {
+    if (value !== undefined) this.value = value ?? false;
+  }
+  /** Prevents user interaction for either form-bound or read-only usage. */
+  @Input() disabled = false;
+  protected value = false;
   private onChange: (value: boolean) => void = () => undefined;
   private onTouched: () => void = () => undefined;
   writeValue(value: boolean | null): void {
-    this.checked = value ?? false;
+    this.value = value ?? false;
   }
   registerOnChange(onChange: (value: boolean) => void): void {
     this.onChange = onChange;
@@ -30,7 +38,8 @@ export class AppToggleComponent implements ControlValueAccessor {
     this.disabled = disabled;
   }
   protected change(value: boolean): void {
-    this.checked = value;
+    if (this.disabled) return;
+    this.value = value;
     this.onChange(value);
     this.onTouched();
   }

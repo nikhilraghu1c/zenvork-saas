@@ -31,6 +31,11 @@ export interface BookingStatusHistoryEntry {
   changedAt: string;
 }
 
+/** Server-calculated action visibility; the backend still enforces every mutation. */
+export interface BookingCapabilities {
+  canManage: boolean;
+}
+
 export interface BookingServiceSnapshot {
   serviceId: string;
   name: string;
@@ -57,6 +62,7 @@ export interface BookingRecord {
   createdAt: string;
   updatedAt: string;
   statusHistory?: BookingStatusHistoryEntry[];
+  capabilities?: BookingCapabilities;
 }
 
 export interface BookingListQuery extends ApiQuery {

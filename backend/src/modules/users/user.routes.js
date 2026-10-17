@@ -4,6 +4,7 @@ import {
   createStaffUser,
   getStaffUsers,
   updateStaffStatus,
+  updateStaffUser,
 } from "./user.controller.js";
 
 const userRouter = Router();
@@ -14,5 +15,7 @@ userRouter.get("/", authorize("OWNER"), getStaffUsers);
 userRouter.post("/", authorize("OWNER"), createStaffUser);
 // Owners can toggle access for a tenant-owned staff account without removing its history.
 userRouter.patch("/:id/status", authorize("OWNER"), updateStaffStatus);
+// Generic staff updates currently allow only validated operational permissions.
+userRouter.patch("/:id", authorize("OWNER"), updateStaffUser);
 
 export default userRouter;

@@ -75,8 +75,16 @@ revenue facts. It is not exposed to an AI provider or an HTTP endpoint until a l
 Owners manage staff through the tenant-scoped users module. Its create endpoint accepts no client
 role or `businessId`: it always creates a `STAFF` user for the authenticated owner's business. Owners
 can also toggle a staff account's `isActive` state without deleting its bookings, resource links, or
-history. Login and authentication middleware deny explicitly inactive accounts, including sessions
-created before deactivation.
+history, and can update only `bookingAccessScope` and `canSendReminders` through the generic staff update
+endpoint, which currently validates only those permission fields. Login and authentication middleware deny
+explicitly inactive accounts, including sessions created before deactivation.
+Each staff account also has a server-enforced booking scope: `NONE`, `OWN_AND_UNASSIGNED`, or `ALL`.
+It governs booking mutations, not tenant booking visibility. The separate `canSendReminders` grant
+governs access to Reminder data and manual reminder outcomes; owners always retain both capabilities. The client-directory page is
+owner-guarded in the web app while the existing authenticated client API continues to support booking
+client selection.
+The booking access service applies that scope to booking lifecycle actions; active staff can still view
+their tenant's booking list, and owners remain tenant-wide.
 
 The Assistant module keeps HTTP/database orchestration in its controller and routes generated replies
 through `assistant.service.js`. The service provides every adapter with server-defined behavior

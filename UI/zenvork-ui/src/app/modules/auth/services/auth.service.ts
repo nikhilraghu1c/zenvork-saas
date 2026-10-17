@@ -14,6 +14,8 @@ export interface AuthenticatedUser {
   mobile: string;
   role: 'OWNER' | 'STAFF';
   businessId: string;
+  bookingAccessScope: 'NONE' | 'OWN_AND_UNASSIGNED' | 'ALL';
+  canSendReminders: boolean;
 }
 
 export interface LoginResponse {

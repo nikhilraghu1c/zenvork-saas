@@ -10,6 +10,13 @@ import {
 } from "../reminder/reminder.lifecycle.js";
 import { tenantData, tenantFilter } from "../../utils/tenant-scope.js";
 import {
+  canAssignResources,
+  canCreateBookings,
+  getBookingCapabilities,
+  canManageBooking,
+  hasOwnPersonResource,
+} from "./booking-access.service.js";
+import {
   BookingValidationError,
   validateBookingCreation,
   validateBookingListQuery,
@@ -59,7 +66,7 @@ const getServiceSnapshots = async (req, serviceIds) => {
 const getTotalAmountPaise = (services, extraAmountPaise = 0) =>
   services.reduce((total, service) => total + service.pricePaise, extraAmountPaise);
 
-const toPublicBooking = (booking, includeServices = false) => {
+const toPublicBooking = (booking, includeServices = false, capabilities) => {
   const source = typeof booking.toObject === "function" ? booking.toObject() : booking;
   const response = {
     _id: source._id,
@@ -78,6 +85,7 @@ const toPublicBooking = (booking, includeServices = false) => {
     notes: source.notes,
     createdAt: source.createdAt,
     updatedAt: source.updatedAt,
+    capabilities,
   };
 
   if (includeServices) response.services = source.services ?? [];
@@ -140,7 +148,10 @@ const getAllBookings = async (req, res) => {
     ]);
 
     // Keep database references and tenant/audit identifiers internal once records are returned.
-    const bookingResponses = bookings.map(toPublicBooking);
+    const capabilities = await getBookingCapabilities(req, bookings);
+    const bookingResponses = bookings.map((booking, index) =>
+      toPublicBooking(booking, false, capabilities[index]),
+    );
 
     return res.status(200).json({
       bookings: bookingResponses,
@@ -177,7 +188,8 @@ const getBookingById = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    return res.status(200).json({ booking: toPublicBooking(booking, true) });
+    const [capabilities] = await getBookingCapabilities(req, [booking]);
+    return res.status(200).json({ booking: toPublicBooking(booking, true, capabilities) });
   } catch (error) {
     console.error("Failed to retrieve booking details:", error);
     return res.status(500).json({ message: "Unable to retrieve booking details" });
@@ -195,6 +207,9 @@ const updateBooking = async (req, res) => {
     const booking = await Booking.findOne(tenantFilter(req, { _id: req.params.id }));
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
+    }
+    if (!(await canManageBooking(req, booking))) {
+      return res.status(403).json({ message: "You can manage only your assigned or unassigned bookings" });
     }
     if (!EDITABLE_BOOKING_STATUSES.includes(booking.status)) {
       return res.status(409).json({ message: "This booking can no longer be edited" });
@@ -230,6 +245,9 @@ const updateBooking = async (req, res) => {
       }
     }
     if (updateData.hasResourceIds && updateData.resourceIds.length > 0) {
+      if (!(await canAssignResources(req, updateData.resourceIds))) {
+        return res.status(403).json({ message: "You can assign only your linked resource" });
+      }
       // Assigned resources must be active and belong to the booking's tenant.
       const resourceCount = await Resource.countDocuments(
         tenantFilter(req, {
@@ -326,9 +344,10 @@ const updateBooking = async (req, res) => {
 
     await booking.populate("clientId", "name mobile email");
     await booking.populate("resourceIds", "name resourceType");
+    const [capabilities] = await getBookingCapabilities(req, [booking]);
     return res.status(200).json({
       message: "Booking updated successfully",
-      booking: toPublicBooking(booking, true),
+      booking: toPublicBooking(booking, true, capabilities),
     });
   } catch (error) {
     if (error instanceof BookingValidationError) {
@@ -353,6 +372,9 @@ const updateBookingStatus = async (req, res) => {
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
+    if (!(await canManageBooking(req, booking))) {
+      return res.status(403).json({ message: "You can manage only your assigned or unassigned bookings" });
+    }
 
     if (!ALLOWED_STATUS_TRANSITIONS[booking.status].includes(nextStatus)) {
       return res.status(409).json({
@@ -366,6 +388,17 @@ const updateBookingStatus = async (req, res) => {
     }
 
     if (nextStatus === "CHECKED_IN") {
+      if (!(await canAssignResources(req, resourceIds))) {
+        return res.status(403).json({ message: "You can assign only your linked resource" });
+      }
+      // Restricted staff can claim unassigned work only when check-in assigns their own person resource.
+      if (
+        req.user.role !== "OWNER" &&
+        req.user.bookingAccessScope === "OWN_AND_UNASSIGNED" &&
+        !(await hasOwnPersonResource(req, resourceIds))
+      ) {
+        return res.status(403).json({ message: "Check-in requires your linked person resource" });
+      }
       // Check-in assigns only active resources from the authenticated business.
       const resourceCount = await Resource.countDocuments(
         tenantFilter(req, {
@@ -446,9 +479,10 @@ const updateBookingStatus = async (req, res) => {
 
     await booking.populate("clientId", "name mobile email");
     await booking.populate("resourceIds", "name resourceType");
+    const [capabilities] = await getBookingCapabilities(req, [booking]);
     return res.status(200).json({
       message: "Booking status updated successfully",
-      booking: toPublicBooking(booking, true),
+      booking: toPublicBooking(booking, true, capabilities),
     });
   } catch (error) {
     if (error instanceof BookingValidationError) {
@@ -472,6 +506,10 @@ const createBooking = async (req, res) => {
     } = bookingData;
     let createdBooking;
 
+    if (!canCreateBookings(req)) {
+      return res.status(403).json({ message: "Booking creation is not permitted" });
+    }
+
     if (existingClientId) {
       // A booking cannot reference a client from another tenant.
       const clientExists = await Client.exists(
@@ -483,6 +521,9 @@ const createBooking = async (req, res) => {
     }
 
     if (bookingFields.resourceIds.length > 0) {
+      if (!(await canAssignResources(req, bookingFields.resourceIds))) {
+        return res.status(403).json({ message: "You can assign only your linked resource" });
+      }
       // Every assigned resource must be active and owned by this business.
       const resourceCount = await Resource.countDocuments(
         tenantFilter(req, {
@@ -606,6 +647,9 @@ const updateBookingPaymentStatus = async (req, res) => {
     // Payment state is only meaningful for a completed, tenant-owned booking.
     const booking = await Booking.findOne(tenantFilter(req, { _id: req.params.id }));
     if (!booking) return res.status(404).json({ message: "Booking not found" });
+    if (!(await canManageBooking(req, booking))) {
+      return res.status(403).json({ message: "You can manage only your assigned or unassigned bookings" });
+    }
     if (booking.status !== "COMPLETED") {
       return res.status(409).json({ message: "Only completed bookings can be marked paid or unpaid" });
     }
@@ -618,9 +662,10 @@ const updateBookingPaymentStatus = async (req, res) => {
     await booking.save();
     await booking.populate("clientId", "name mobile email");
     await booking.populate("resourceIds", "name resourceType");
+    const [capabilities] = await getBookingCapabilities(req, [booking]);
     return res.status(200).json({
       message: "Payment status updated successfully",
-      booking: toPublicBooking(booking, true),
+      booking: toPublicBooking(booking, true, capabilities),
     });
   } catch (error) {
     if (error instanceof BookingValidationError) {
