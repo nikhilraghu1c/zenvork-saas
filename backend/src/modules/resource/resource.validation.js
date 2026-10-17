@@ -49,3 +49,20 @@ export const validateResourceCreation = (data) => {
     linkedUserId: linkedUserId ? linkedUserId.trim() : null,
   };
 };
+
+// Restrict lifecycle changes to one boolean so this endpoint cannot become an accidental resource editor.
+export const validateResourceStatusUpdate = (data) => {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    throw new ResourceValidationError("Invalid request data");
+  }
+
+  if (Object.keys(data).length !== 1 || !Object.hasOwn(data, "isActive")) {
+    throw new ResourceValidationError("Invalid request data");
+  }
+
+  if (typeof data.isActive !== "boolean") {
+    throw new ResourceValidationError("Resource status must be active or inactive");
+  }
+
+  return { isActive: data.isActive };
+};

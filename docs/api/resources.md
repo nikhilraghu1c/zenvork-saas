@@ -57,3 +57,18 @@ response when the frontend resource-management flow needs it.
 Account linking is optional for person types (`isPerson: true`). Non-person types reject non-null
 `linkedUserId` with `400`. The flag is read from the business-type catalog, never from the request.
 The frontend clears and hides account linking when a non-person type is selected.
+
+## Activate or deactivate a resource
+
+```http
+PATCH /api/resources/:id/status
+```
+
+Only an `OWNER` can change a resource's status. The body must contain exactly one field:
+
+```json
+{ "isActive": false }
+```
+
+The resource lookup is tenant-scoped. Deactivation preserves its booking history, but prevents it
+from being assigned to new or updated bookings. The endpoint returns the updated resource record.

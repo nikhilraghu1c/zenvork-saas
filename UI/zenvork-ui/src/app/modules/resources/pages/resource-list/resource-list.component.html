@@ -50,6 +50,10 @@
     </div>
   </div>
 
+  @if (actionErrorMessage) {
+    <p class="action-error" role="alert">{{ actionErrorMessage }}</p>
+  }
+
   @if (loading) {
     <p class="page-state" role="status">Loading resources…</p>
   } @else if (errorMessage) {
@@ -71,28 +75,42 @@
         <section class="resource-group" [attr.aria-labelledby]="'resource-type-' + group.code">
           <header class="resource-group__header">
             <h2 [id]="'resource-type-' + group.code">{{ group.name }}</h2>
-            <span class="resource-group__active-count">{{ group.activeCount }} active</span>
+            <span class="resource-group__count">{{ group.resources.length }} resource{{ group.resources.length === 1 ? '' : 's' }}</span>
           </header>
           <div class="resource-group__rows">
             @for (resource of group.resources; track resource._id) {
-              <a class="resource-row" [routerLink]="['/app/resources', resource._id]">
-                <span
-                  class="resource-row__icon"
-                  [class.is-person]="resource.isPerson"
-                  aria-hidden="true"
-                >
-                  <mat-icon>{{ resourceIcon(resource) }}</mat-icon>
-                </span>
-                <span class="resource-row__details">
-                  <span class="resource-row__name">{{ resource.name }}</span>
-                  <span class="resource-row__summary">{{ resourceSummary(resource) }}</span>
-                </span>
-                <span class="resource-row__type">{{ resourceTypeName(resource) }}</span>
+              <article class="resource-row">
+                <a class="resource-row__details" [routerLink]="['/app/resources', resource._id]">
+                  <span
+                    class="resource-row__icon"
+                    [class.is-person]="resource.isPerson"
+                    aria-hidden="true"
+                  >
+                    <mat-icon>{{ resourceIcon(resource) }}</mat-icon>
+                  </span>
+                  <span class="resource-row__main">
+                    <span class="resource-row__name">{{ resource.name }}</span>
+                    <span class="resource-row__summary">{{ resourceSummary(resource) }}</span>
+                  </span>
+                  <span class="resource-row__type">{{ resourceTypeName(resource) }}</span>
+                  @if (!isOwner) {
+                    <mat-icon class="resource-row__arrow" aria-hidden="true">chevron_right</mat-icon>
+                  }
+                </a>
                 <span class="resource-row__status" [class.is-active]="resource.isActive">
                   <span aria-hidden="true">●</span> {{ resource.isActive ? 'Active' : 'Inactive' }}
                 </span>
-                <mat-icon class="resource-row__arrow" aria-hidden="true">chevron_right</mat-icon>
-              </a>
+                @if (isOwner) {
+                  <button
+                    class="resource-row__toggle"
+                    type="button"
+                    [class.is-active]="resource.isActive"
+                    [attr.aria-label]="resource.isActive ? 'Deactivate ' + resource.name : 'Activate ' + resource.name"
+                    [disabled]="updatingResourceId !== null"
+                    (click)="toggleResourceStatus(resource)"
+                  ><span></span></button>
+                }
+              </article>
             }
           </div>
         </section>

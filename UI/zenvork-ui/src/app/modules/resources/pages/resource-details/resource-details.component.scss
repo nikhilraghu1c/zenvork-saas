@@ -120,6 +120,12 @@
     margin-left: auto;
   }
 
+  .action-error {
+    margin: -16px 0 24px;
+    color: var(--mat-sys-error);
+    font-size: 14px;
+  }
+
   .details-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));

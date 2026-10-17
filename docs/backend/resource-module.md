@@ -98,11 +98,14 @@ meaning to rank top staff while excluding non-person resources such as chairs an
 Both begin with `businessId`, which preserves tenant isolation and supports resource list/dashboard
 queries.
 
-## Lifecycle and current boundary
+## Lifecycle
 
 ```text
-Create active resource → assign it to a booking → count it as staff only if its type is a person
+Create active resource → assign it to a booking → deactivate when unavailable → retain booking history
+→ reactivate when available → count it as staff only if its type is a person
 ```
 
-The model contains `isActive`, which booking assignment respects, but there is no resource edit or
-activate/deactivate route yet.
+`PATCH /api/resources/:id/status` is owner-only and accepts exactly `{ isActive: boolean }`.
+It finds the resource with `tenantFilter(req, { _id: id })`, so an owner cannot change a resource
+from another business. Deactivated resources remain visible and attached to historic bookings, while
+booking create and update flows reject them for new assignments.

@@ -1,5 +1,6 @@
 import Business from "../business/business.model.js";
 import BusinessType from "../business/business-type.model.js";
+import mongoose from "mongoose";
 import User from "../users/user.model.js";
 import Resource from "./resource.model.js";
 import {
@@ -10,6 +11,7 @@ import {
 import {
   ResourceValidationError,
   validateResourceCreation,
+  validateResourceStatusUpdate,
 } from "./resource.validation.js";
 
 const getResources = async (req, res) => {
@@ -117,6 +119,46 @@ const createResource = async (req, res) => {
   }
 };
 
+// Preserve booking history while letting an owner remove or restore a resource's booking availability.
+const updateResourceStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.isObjectIdOrHexString(id)) {
+      return res.status(400).json({ message: "Invalid resource" });
+    }
+
+    const { isActive } = validateResourceStatusUpdate(req.body);
+    // Tenant scoping prevents an owner from changing a resource owned by another business.
+    const resource = await Resource.findOne(tenantFilter(req, { _id: id }));
+    if (!resource) {
+      return res.status(404).json({ message: "Resource not found" });
+    }
+
+    resource.isActive = isActive;
+    await resource.save();
+
+    return res.status(200).json({
+      message: isActive ? "Resource activated" : "Resource deactivated",
+      resource: {
+        _id: resource._id,
+        name: resource.name,
+        resourceType: resource.resourceType,
+        isActive: resource.isActive,
+        linkedUserId: resource.linkedUserId,
+        createdAt: resource.createdAt,
+        updatedAt: resource.updatedAt,
+      },
+    });
+  } catch (error) {
+    if (error instanceof ResourceValidationError) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    console.error("Resource status update failed:", error);
+    return res.status(500).json({ message: "Unable to update resource status" });
+  }
+};
+
 // Resolve options from the authenticated tenant, never a client-supplied business ID.
 const getResourceOptions = async (req, res) => {
   try {
@@ -146,4 +188,4 @@ const getResourceOptions = async (req, res) => {
   }
 };
 
-export { createResource, getResources, getResourceOptions };
+export { createResource, getResources, getResourceOptions, updateResourceStatus };

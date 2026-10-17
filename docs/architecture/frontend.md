@@ -95,9 +95,11 @@ one frontend service; backend date-range reporting will use that same persisted 
 Resources use lazy routes `/app/resources`, `/app/resources/new`, and `/app/resources/:id`.
 Owners can create resources; both owners and staff can list and inspect tenant-owned resources.
 The add form loads tenant-specific types from `GET /api/resources/options` and offers an optional
-link to the owner or an existing staff account. Desktop lists use the shared grid; smaller screens
-use resource cards. Detail pages resolve records from the tenant-scoped list, display actual active
-status and timestamps, and leave unsupported management, service, and booking controls disabled.
+link to the owner or an existing staff account. The grouped resource list has type, availability,
+and search filters; its count badge reflects the currently displayed resources. Owners can activate
+or deactivate a resource from the list or detail page through `PATCH /api/resources/:id/status`.
+Detail pages resolve records from the tenant-scoped list, display actual active status and timestamps,
+and leave unsupported editing, service, and booking controls disabled.
 
 ## Client workspace
 

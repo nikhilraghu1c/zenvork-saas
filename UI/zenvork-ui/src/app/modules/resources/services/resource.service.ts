@@ -11,6 +11,7 @@ export interface ResourceRecord {
   createdAt: string;
   updatedAt: string;
 }
+export type ResourceStatusRecord = Omit<ResourceRecord, 'isPerson'>;
 export interface ResourceTypeOption {
   isPerson: boolean;
   code: string;
@@ -36,5 +37,13 @@ export class ResourceService {
   /** Creates a resource without accepting a client-supplied tenant identifier. */
   createResource(payload: CreateResourceRequest) {
     return this.api.post<{ message: string }, CreateResourceRequest>('resources', payload);
+  }
+
+  /** Changes booking availability for an owner-managed resource. */
+  updateResourceStatus(id: string, isActive: boolean) {
+    return this.api.patch<{ message: string; resource: ResourceStatusRecord }, { isActive: boolean }>(
+      `resources/${id}/status`,
+      { isActive },
+    );
   }
 }

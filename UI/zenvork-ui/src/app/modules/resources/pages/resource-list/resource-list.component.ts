@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -15,7 +16,6 @@ import {
 interface ResourceGroup {
   code: string;
   name: string;
-  activeCount: number;
   resources: ResourceRecord[];
 }
 
@@ -37,6 +37,8 @@ export class ResourceListComponent implements OnInit {
   protected selectedStatus: 'ACTIVE' | 'INACTIVE' | 'ALL' = 'ACTIVE';
   protected loading = true;
   protected errorMessage = '';
+  protected actionErrorMessage = '';
+  protected updatingResourceId: string | null = null;
 
   /** Produces type chips only for types that have at least one resource. */
   protected get typeFilters(): { code: string; name: string; count: number }[] {
@@ -61,13 +63,10 @@ export class ResourceListComponent implements OnInit {
         const resources = filtered
           .filter((resource) => resource.resourceType === code)
           .sort(this.sortResources);
-        const typeResources = this.resources.filter((resource) => resource.resourceType === code);
-
         return {
           code,
           name: this.typeName(code),
           resources,
-          activeCount: typeResources.filter((resource) => resource.isActive).length,
         };
       })
       .filter((group) => group.resources.length > 0);
@@ -99,6 +98,28 @@ export class ResourceListComponent implements OnInit {
   /** Updates the selected availability filter. */
   protected selectStatus(status: 'ACTIVE' | 'INACTIVE' | 'ALL'): void {
     this.selectedStatus = status;
+  }
+
+  /** Changes a resource's availability without leaving the filtered list. */
+  protected toggleResourceStatus(resource: ResourceRecord): void {
+    if (this.updatingResourceId) return;
+
+    this.actionErrorMessage = '';
+    this.updatingResourceId = resource._id;
+    this.service.updateResourceStatus(resource._id, !resource.isActive).subscribe({
+      next: ({ resource: updatedResource }) => {
+        this.resources = this.resources.map((currentResource) =>
+          currentResource._id === updatedResource._id
+            ? { ...currentResource, ...updatedResource }
+            : currentResource,
+        );
+        this.updatingResourceId = null;
+      },
+      error: (error: HttpErrorResponse) => {
+        this.actionErrorMessage = error.error?.message ?? 'Unable to update resource status.';
+        this.updatingResourceId = null;
+      },
+    });
   }
 
   /** Chooses a familiar icon without assuming a business type has a fixed catalog. */

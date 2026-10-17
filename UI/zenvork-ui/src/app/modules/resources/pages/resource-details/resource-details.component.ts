@@ -1,4 +1,5 @@
 import { InitialsPipe } from '../../../../core/pipes/initials.pipe';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -22,6 +23,8 @@ export class ResourceDetailsComponent implements OnInit {
   protected resource: ResourceRecord | null = null;
   protected loading = true;
   protected errorMessage = '';
+  protected actionErrorMessage = '';
+  protected updatingStatus = false;
 
   /** Loads the requested resource from the authenticated business resource list. */
   ngOnInit(): void {
@@ -40,5 +43,23 @@ export class ResourceDetailsComponent implements OnInit {
           this.loading = false;
         },
       });
+  }
+
+  /** Changes availability while preserving existing bookings and resource history. */
+  protected toggleResourceStatus(): void {
+    if (!this.resource || this.updatingStatus) return;
+
+    this.actionErrorMessage = '';
+    this.updatingStatus = true;
+    this.service.updateResourceStatus(this.resource._id, !this.resource.isActive).subscribe({
+      next: ({ resource }) => {
+        this.resource = { ...this.resource!, ...resource };
+        this.updatingStatus = false;
+      },
+      error: (error: HttpErrorResponse) => {
+        this.actionErrorMessage = error.error?.message ?? 'Unable to update resource status.';
+        this.updatingStatus = false;
+      },
+    });
   }
 }

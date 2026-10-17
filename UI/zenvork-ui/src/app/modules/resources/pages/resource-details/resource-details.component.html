@@ -24,13 +24,21 @@
       </div>
       @if (isOwner) {
         <div class="profile-actions">
-          <app-button variant="secondary" [disabled]="true">{{
+          <app-button
+            variant="secondary"
+            [loading]="updatingStatus"
+            [disabled]="updatingStatus"
+            (clicked)="toggleResourceStatus()"
+          >{{
             resource.isActive ? 'Deactivate' : 'Activate'
-          }}</app-button
-          ><app-button [disabled]="true">Edit resource</app-button>
+          }}</app-button>
+          <app-button [disabled]="true">Edit resource</app-button>
         </div>
       }
     </header>
+    @if (actionErrorMessage) {
+      <p class="action-error" role="alert">{{ actionErrorMessage }}</p>
+    }
     <div class="details-grid">
       <section class="detail-section" aria-labelledby="resource-info-title">
         <h2 id="resource-info-title">Resource details</h2>
