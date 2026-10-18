@@ -20,6 +20,23 @@ const businessSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["ACTIVE", "SUSPENDED"],
+      default: "ACTIVE",
+      index: true,
+    },
+    planExpiresAt: {
+      type: Date,
+      default: null,
+      index: true,
+    },
+    createdByAdminId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
   },
   { timestamps: true },
 );

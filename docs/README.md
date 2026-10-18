@@ -16,6 +16,7 @@ Documentation is maintained with the code and reviewed in the same change that a
 - [Business registration API](api/business-registration.md)
 - [Business types API](api/business-types.md)
 - [Resources API](api/resources.md)
+- [Platform administration API](api/admin.md)
 - [Services API](api/services.md)
 - [Bookings API](api/bookings.md)
 - [Dashboard API](api/dashboard.md)

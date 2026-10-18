@@ -20,6 +20,7 @@ MongoDB implement it.
 ## Module guides
 
 - [Auth module](auth-module.md)
+- [Platform admin module](admin-module.md)
 - [Business module](business-module.md)
 - [Client module](client-module.md)
 - [Resource module](resource-module.md)

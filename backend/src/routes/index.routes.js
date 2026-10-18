@@ -10,10 +10,11 @@ import serviceRouter from "../modules/service/service.routes.js";
 import userRouter from "../modules/users/user.routes.js";
 import authRouter from "./auth.routes.js";
 import assistantRouter from "../modules/assistant/assistant.routes.js";
+import adminRouter from "../modules/admin/admin.routes.js";
 
 const apiRouter = Router();
 
-// Public endpoints for registration, login, logout, and business-type selection.
+// Authentication endpoints handle login and logout; change-password applies its own userAuth check.
 apiRouter.use("/", authRouter);
 // Resource endpoints require an authenticated user before reaching the module router.
 apiRouter.use("/resources", userAuth, resourceRouter);
@@ -31,6 +32,8 @@ apiRouter.use("/bookings", userAuth, bookingRouter);
 apiRouter.use("/reminders", userAuth, reminderRouter);
 // Assistant sessions are private to the authenticated user and tenant inside the module.
 apiRouter.use("/assistant", userAuth, assistantRouter);
+// Platform administration is isolated from all tenant-scoped module routers.
+apiRouter.use("/admin", userAuth, adminRouter);
 // User-management endpoints require authentication before reaching the module router.
 apiRouter.use("/users", userAuth, userRouter);
 

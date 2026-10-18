@@ -1,5 +1,5 @@
 <aside class="app-sidebar" aria-label="Application navigation">
-  <a class="brand" routerLink="/app/dashboard" (click)="selectNavigation()" aria-label="Zenvork dashboard">
+  <a class="brand" [routerLink]="dashboardRoute" (click)="selectNavigation()" aria-label="Zenvork dashboard">
     <img class="brand-mark" src="/images/brand/zenvork-mark.webp" alt="" />
     <span class="brand-wordmark">envork</span>
   </a>
@@ -30,7 +30,7 @@
       <span class="avatar" aria-hidden="true">{{ userName | initials }}</span>
       <div>
         <p>{{ userName }}</p>
-        <span>Your Business</span>
+        <span>{{ userWorkspaceLabel }}</span>
       </div>
     </div>
 

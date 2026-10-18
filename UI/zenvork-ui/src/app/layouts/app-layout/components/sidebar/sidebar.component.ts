@@ -38,7 +38,7 @@ export class SidebarComponent {
   @Output() navigationSelected = new EventEmitter<void>();
 
   /** Every planned workspace is available as a route for navigation preview. */
-  protected readonly navigationGroups: NavigationGroup[] = [
+  private readonly tenantNavigationGroups: NavigationGroup[] = [
     {
       label: 'Overview',
       items: [{ label: 'Dashboard', icon: 'dashboard', route: '/app/dashboard' }],
@@ -72,6 +72,16 @@ export class SidebarComponent {
     },
   ];
 
+  private readonly adminNavigationGroups: NavigationGroup[] = [
+    {
+      label: 'Platform',
+      items: [
+        { label: 'Dashboard', icon: 'dashboard', route: '/admin/dashboard' },
+        { label: 'Businesses', icon: 'business', route: '/admin/businesses' },
+      ],
+    },
+  ];
+
   protected loadingLogout = false;
   protected logoutError = '';
 
@@ -83,6 +93,22 @@ export class SidebarComponent {
   /** Returns the signed-in user's name, with a safe fallback during startup. */
   protected get userName(): string {
     return this.auth.getCurrentUser()?.name ?? 'Business User';
+  }
+
+  protected get navigationGroups(): NavigationGroup[] {
+    return this.auth.getCurrentUser()?.role === 'PLATFORM_ADMIN'
+      ? this.adminNavigationGroups
+      : this.tenantNavigationGroups;
+  }
+
+  protected get dashboardRoute(): string {
+    return this.auth.getCurrentUser()?.role === 'PLATFORM_ADMIN'
+      ? '/admin/dashboard'
+      : '/app/dashboard';
+  }
+
+  protected get userWorkspaceLabel(): string {
+    return this.auth.getCurrentUser()?.role === 'PLATFORM_ADMIN' ? 'Platform Admin' : 'Your Business';
   }
 
   /** Hides workspaces the signed-in user is not permitted to access. */

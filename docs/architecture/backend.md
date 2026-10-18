@@ -9,7 +9,7 @@ backend/src/
 ├── config/       # Environment and database configuration
 ├── controllers/  # Authentication controllers
 ├── middlewares/  # Authentication and authorization middleware
-├── modules/      # Domain modules, including business type and registration
+├── modules/      # Domain modules, including platform administration and business types
 ├── routes/       # Express route registration
 ├── scripts/      # Explicit platform-data seed scripts
 ├── utils/         # Shared backend helpers, including tenant scoping
@@ -18,8 +18,8 @@ backend/src/
 
 ## Tenant model
 
-A business is the tenant boundary. Registration creates a `Business` and its `OWNER` user in one
-MongoDB transaction. `Resource`, `Client`, `Booking`, and `Reminder` are tenant-owned models with a required
+A business is the tenant boundary. A seeded `PLATFORM_ADMIN` creates a `Business` and its `OWNER` user
+in one MongoDB transaction. `Resource`, `Client`, `Booking`, and `Reminder` are tenant-owned models with a required
 `businessId`; their APIs derive that value from the authenticated user rather than accepting it from
 the client. The Resource `{ businessId, resourceType }`, Client `{ businessId, mobile }`, and Booking
 calendar/resource indexes support their tenant-scoped queries. Future business-owned records follow
@@ -43,8 +43,8 @@ tenant to database queries, `tenantData()` adds it to new documents, and `tenant
 for direct tenant lookups. Each helper sets `businessId` after caller-provided data, so request data
 cannot override the authenticated tenant.
 
-`BusinessType` is platform-managed reference data. A `Business` stores `businessTypeId`, and owner
-registration accepts only an active referenced type. Resource creation verifies the submitted type
+`BusinessType` is platform-managed reference data. A `Business` stores `businessTypeId`, and the
+platform-admin creation flow accepts only an active referenced type. Resource creation verifies the submitted type
 against the authenticated business's active `BusinessType`; it also verifies any linked user belongs
 to that same business. Initial types are created with
 `npm run seed:business-types`; seed data is not a runtime hardcoded allow-list.
@@ -52,6 +52,13 @@ to that same business. Initial types are created with
 `routes/index.routes.js` is the API composition point. It mounts public authentication routes and
 applies authentication before mounting protected module routes; `app.js` mounts this router at
 `/api`.
+
+The `/api/admin` router is protected by `userAuth` and then `authorize('PLATFORM_ADMIN')`. Platform
+admins have `businessId: null` and intentionally operate outside tenant-scoped module queries. They
+can list businesses, create an active business and owner with a one-time generated password, suspend or
+reactivate a business, change its plan expiry, and reset its owner password. Tenant login and
+authentication middleware reject suspended or expired businesses; platform-admin sessions bypass that
+tenant lifecycle check.
 
 The authenticated dashboard summary combines tenant-scoped booking and resource counts without
 accepting a business identifier. Its earned-revenue figures use completed bookings' server-recorded

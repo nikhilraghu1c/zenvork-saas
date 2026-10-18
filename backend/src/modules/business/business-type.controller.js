@@ -2,7 +2,7 @@ import BusinessType from "./business-type.model.js";
 
 const getActiveBusinessTypes = async (req, res) => {
   try {
-    // Registration can only select active platform-managed business types.
+    // Platform-admin business registration can only select active platform-managed types.
     const businessTypes = await BusinessType.find({ isActive: true })
       .select("code name iconName resourceTypes")
       .sort({ name: 1 })

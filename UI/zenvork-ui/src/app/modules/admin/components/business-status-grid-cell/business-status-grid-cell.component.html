@@ -1,0 +1,4 @@
+<span class="business-status" [class.is-suspended]="status === 'SUSPENDED'">
+  <mat-icon aria-hidden="true">{{ status === 'ACTIVE' ? 'check_circle' : 'block' }}</mat-icon>
+  {{ status === 'ACTIVE' ? 'Active' : 'Suspended' }}
+</span>

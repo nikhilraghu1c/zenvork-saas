@@ -1,0 +1,50 @@
+<section class="business-list-page" aria-labelledby="businesses-title">
+  <header class="business-list-page__header">
+    <div>
+      <p class="eyebrow">Platform management</p>
+      <div class="business-title-row">
+        <h1 id="businesses-title">Businesses</h1>
+        <span class="business-count"
+          >{{ businesses.length }} {{ businesses.length === 1 ? 'Business' : 'Businesses' }}</span
+        >
+      </div>
+      <p class="business-description">Manage business accounts and their access to Zenvork.</p>
+    </div>
+  </header>
+
+  <div class="business-list-page__search">
+    <app-input
+      [formControl]="searchControl"
+      label="Search businesses"
+      labelPlacement="floating"
+      subscriptSizing="dynamic"
+      prefixIcon="search"
+      placeholder="Search business, owner, email, or mobile"
+      autocomplete="off"
+    />
+    <app-button icon="add_business" label="Register" (clicked)="registerBusiness()" />
+  </div>
+
+  @if (loading) {
+    <p class="page-state" role="status">Loading businesses…</p>
+  } @else if (errorMessage) {
+    <p class="page-state is-error" role="alert">{{ errorMessage }}</p>
+  } @else if (!businesses.length) {
+    <div class="empty-state">
+      <mat-icon aria-hidden="true">business</mat-icon>
+      <h2>No Businesses Yet</h2>
+      <p>Register the first business account to start managing it on Zenvork.</p>
+      <app-button icon="add_business" label="Register business" (clicked)="registerBusiness()" />
+    </div>
+  } @else {
+    @if (actionErrorMessage) {
+      <p class="action-error" role="alert">{{ actionErrorMessage }}</p>
+    }
+    <app-data-grid
+      class="business-grid"
+      [rowData]="filteredBusinesses"
+      [columnDefs]="columnDefs"
+      [context]="gridContext"
+    />
+  }
+</section>

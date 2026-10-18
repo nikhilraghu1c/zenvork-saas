@@ -16,16 +16,19 @@ src/app/
 
 Public and authenticated experiences use separate route-level layouts. `PublicLayoutComponent` owns
 public navigation and public routes. `AppLayoutComponent` owns authenticated navigation and guarded
-`/app` routes. Dashboard, Booking, Clients, Staff, Resources, Services, Reminders, AI Assistant, and owner-only Analytics are implemented; the remaining visible app
+`/app` tenant routes plus guarded `/admin` platform-admin routes. Dashboard, Booking, Clients, Staff, Resources, Services, Reminders, AI Assistant, and owner-only Analytics are implemented; the remaining visible app
 navigation routes use a temporary shared preview page until their workspaces are implemented. Feature
 pages are lazy-loaded. Each feature owns a `<module>.routes.ts` route array beside its code;
 `app.routes.ts` only composes the two layouts and lazy-loads those feature route arrays.
 New route navigation scrolls to the top; browser Back and Forward restore the prior scroll position.
 The Staff module owns `/app/staff`, `/app/staff/new`, and `/app/staff/:id`.
+The platform-admin module owns `/admin/dashboard`, `/admin/businesses`, and
+`/admin/businesses/new`. It lists all platform businesses, allows active/suspended lifecycle changes,
+and registers businesses through the admin-only API.
 Owners can activate or deactivate staff access from the list action menu; a deactivated account remains
 visible for history and can be reactivated. Staff Details provides an inline editor for booking and
 reminder permissions only; account identity and credentials remain read-only. The current
-public routes are `/`, `/register`, and `/login`.
+public routes are `/` and `/login`.
 Desktop app pages present their own primary headings. The app toolbar is shown only on mobile, where
 it provides the navigation-drawer control without repeating the page title.
 
@@ -44,10 +47,10 @@ it provides the navigation-drawer control without repeating the page title.
 `put`, `patch`, and `delete` methods. Its requests include credentials so the browser can use Zenvork's
 HttpOnly authentication cookie. The local backend domain is `http://localhost:4001`; its CORS
 configuration allows the Angular development origin at `http://localhost:4200`. Module-owned
-services define feature endpoints and request/response types by composing that client; for example,
-business registration belongs to `modules/register`. The registration module fetches active business
-types from `GET /api/business-types` and submits the selected `businessTypeId`; it does not hardcode
-the selectable platform types. A global HTTP interceptor clears cached user metadata and redirects
+services define feature endpoints and request/response types by composing that client. The
+platform-admin business form fetches active business types from `GET /api/admin/business-types` and submits
+the selected `businessTypeId` to `POST /api/admin/businesses`; it does not hardcode the selectable
+platform types. A global HTTP interceptor clears cached user metadata and redirects
 protected `401` responses to login; login-request `401` responses remain available to the form as
 invalid-credential feedback.
 

@@ -12,10 +12,11 @@ export interface AuthenticatedUser {
   name: string;
   email: string | null;
   mobile: string;
-  role: 'OWNER' | 'STAFF';
-  businessId: string;
+  role: 'PLATFORM_ADMIN' | 'OWNER' | 'STAFF';
+  businessId: string | null;
   bookingAccessScope: 'NONE' | 'OWN_AND_UNASSIGNED' | 'ALL';
   canSendReminders: boolean;
+  passwordChangedAt: string | null;
 }
 
 export interface LoginResponse {

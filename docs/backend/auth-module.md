@@ -5,8 +5,8 @@
 
 ## Responsibility
 
-Authentication proves who a staff member or owner is. Authorization then decides whether that user
-may use a protected feature.
+Authentication proves who a staff member, owner, or platform administrator is. Authorization then
+decides whether that user may use a protected feature.
 
 ```text
 POST /api/login
@@ -47,7 +47,9 @@ login → signed cookie → userAuth verifies each protected request → logout 
 
 The server has no separate session collection today. A deleted or explicitly deactivated user cannot
 keep using an otherwise valid token because `userAuth` reloads the user from MongoDB for every protected
-request and rejects `isActive === false`.
+request and rejects `isActive === false`. For owners and staff, login and `userAuth` also load the
+business and reject `SUSPENDED` or expired accounts with `403`. `PLATFORM_ADMIN` users have no
+business and bypass that tenant lifecycle check.
 
 ## JWT and middleware
 
@@ -60,7 +62,9 @@ next();
 ```
 
 Every protected module route is mounted after `userAuth`. `authorize('OWNER')` is an additional role
-check used for owner-only actions such as service changes, staff management, and revenue analytics.
+check used for owner-only actions such as service changes, staff management, and revenue analytics;
+`authorize('PLATFORM_ADMIN')` protects `/api/admin`. `userAuth` rejects tokens issued before
+`passwordChangedAt`, so changing or resetting a password ends the prior session.
 
 ## Cookie security
 

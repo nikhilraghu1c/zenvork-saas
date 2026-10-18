@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppCheckboxComponent } from '../../../../shared/checkbox/checkbox.component';
@@ -14,7 +14,6 @@ import { AuthService, LoginRequest } from '../../services/auth.service';
   imports: [
     ReactiveFormsModule,
     MatIconModule,
-    RouterLink,
     AppButtonComponent,
     AppCheckboxComponent,
     AppInputComponent,
@@ -76,9 +75,15 @@ export class LoginComponent {
           this.successMessage = response.message;
           this.loginForm.disable();
           const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-          this.router.navigateByUrl(
-            returnUrl === '/app' || returnUrl?.startsWith('/app/') ? returnUrl : '/app/dashboard',
-          );
+          const isAdmin = response.user.role === 'PLATFORM_ADMIN';
+          const safeReturnUrl = isAdmin
+            ? returnUrl?.startsWith('/admin/')
+              ? returnUrl
+              : '/admin/dashboard'
+            : returnUrl === '/app' || returnUrl?.startsWith('/app/')
+              ? returnUrl
+              : '/app/dashboard';
+          this.router.navigateByUrl(safeReturnUrl);
         },
         error: (error: HttpErrorResponse) => {
           this.serverError = error.error?.message ?? 'Unable to log in. Please try again.';

@@ -14,7 +14,11 @@ const userSchema = new mongoose.Schema(
     businessId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Business",
-      required: true,
+      // Platform administrators never belong to a tenant; every business user must.
+      required: function () {
+        return this.role !== "PLATFORM_ADMIN";
+      },
+      default: null,
       index: true,
     },
     email: {
@@ -52,7 +56,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["OWNER", "STAFF"],
+      enum: ["PLATFORM_ADMIN", "OWNER", "STAFF"],
       default: "STAFF",
     },
     isActive: {
@@ -68,11 +72,26 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // A null value identifies the initial temporary password issued by an administrator.
+    passwordChangedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
   },
 );
+
+// Keep role and tenant identity coupled even when documents are created outside request validation.
+userSchema.pre("validate", function () {
+  if (this.role === "PLATFORM_ADMIN" && this.businessId) {
+    this.invalidate(
+      "businessId",
+      "Platform administrators cannot belong to a business",
+    );
+  }
+});
 
 // Pre-save hook to hash the password before saving the user document
 userSchema.pre("save", async function () {

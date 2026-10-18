@@ -2,12 +2,14 @@
 
 ## Product rule
 
-Only business owners and staff authenticate. Clients are records managed by a business and never
-have login accounts.
+Only platform administrators, business owners, and staff authenticate. Clients are records managed
+by a business and never have login accounts. `PLATFORM_ADMIN` users have no `businessId`, are seeded
+outside public APIs, and use the isolated `/admin` workspace.
 
 ## Current backend state
 
-Registration creates a business and owner but does not authenticate that owner. `POST /api/login`
+Public business registration is unavailable. A platform administrator creates a business and its
+owner through `/api/admin/businesses`; the generated temporary password is returned once. `POST /api/login`
 accepts an email address or mobile number in `identifier`, plus a password, then sets an HttpOnly
 `accessToken` cookie. Its JWT contains the user ID, business ID, and role (`OWNER` or `STAFF`). The
 cookie defaults to `SameSite=Strict` locally and is marked `Secure` in production. Deployments whose
@@ -18,8 +20,7 @@ Login returns only safe user data; the JWT is not included in the JSON response.
 
 ## Frontend implementation
 
-The registration UI keeps its success state in place because registration does not authenticate the
-owner. The frontend sends login and logout requests through `AuthService`, which uses the shared
+The frontend sends login and logout requests through `AuthService`, which uses the shared
 credentialed API client so the browser accepts and sends the HttpOnly cookie. Only safe user metadata
 from the login response is retained in `sessionStorage`; the JWT is never available to JavaScript.
 `AuthService.getCurrentUser()` exposes that safe metadata for TypeScript callers, while `user$`
@@ -38,6 +39,10 @@ network/server failures do not trigger a logout redirect.
 Owner-management routes use `ownerGuard` as an additional UI-routing check, and owner-only sidebar
 items are hidden from staff users. Backend role authorization remains mandatory for every API.
 
-After a successful login, the frontend navigates to `/app/dashboard`. The sidebar logout action
+After a successful login, platform administrators navigate to `/admin/dashboard`; tenant users
+navigate to `/app/dashboard`. The sidebar logout action
 calls `POST /api/logout`, clears safe client metadata only after a successful response, and returns
 the user to `/login`.
+`/api/admin/*` requires `PLATFORM_ADMIN`. Tenant routes centrally reject suspended or expired
+businesses. A password change sets `passwordChangedAt`; authentication rejects JWTs issued before
+that timestamp.

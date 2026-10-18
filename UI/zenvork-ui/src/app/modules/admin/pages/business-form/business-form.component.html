@@ -1,0 +1,111 @@
+<section class="business-form-page" aria-labelledby="business-form-title">
+  <div class="business-form-page__content">
+    <header class="business-form-page__header">
+      <span class="business-form-page__icon" aria-hidden="true"><mat-icon>add_business</mat-icon></span>
+      <p class="eyebrow">Platform management</p>
+      <h1 id="business-form-title">Register Business</h1>
+      <p>Create a business account and its owner sign-in.</p>
+    </header>
+
+    <div class="business-form-page__card">
+      @if (temporaryPassword) {
+        <div class="success-state" role="status">
+          <span aria-hidden="true">✓</span>
+          <h2>Business registered</h2>
+          <p>The owner account is ready. Copy the temporary password before leaving this page.</p>
+          <div class="temporary-password">
+            <span>Temporary password</span>
+            <code>{{ temporaryPassword }}</code>
+          </div>
+          <p class="password-note">Share it securely with the owner. It will not be shown again.</p>
+          <app-button label="Back to businesses" (clicked)="cancel()" />
+        </div>
+      } @else {
+        <p class="form-note">
+          The owner receives a server-generated temporary password after this business is created.
+        </p>
+
+        <form [formGroup]="businessForm" (ngSubmit)="submit()" novalidate>
+          <fieldset>
+            <legend>Business</legend>
+            <app-input
+              formControlName="businessName"
+              label="Business name"
+              labelPlacement="outside"
+              placeholder="Enter the business name"
+              autocomplete="organization"
+              [required]="true"
+              [errorMessage]="fieldError('businessName')"
+            />
+
+            <div class="business-type-field" [class.has-error]="fieldError('businessTypeId')">
+              <p class="field-label" id="business-type-label">Business type</p>
+              <div class="type-options" role="radiogroup" aria-labelledby="business-type-label">
+                @for (businessType of businessTypeOptions; track businessType.id) {
+                  <label
+                    class="type-option"
+                    [class.is-selected]="businessForm.controls.businessTypeId.value === businessType.id"
+                  >
+                    <input type="radio" formControlName="businessTypeId" [value]="businessType.id" />
+                    <mat-icon class="type-icon" aria-hidden="true">{{ businessType.iconName }}</mat-icon>
+                    <span>{{ businessType.name }}</span>
+                  </label>
+                }
+              </div>
+              @if (fieldError('businessTypeId')) {
+                <p class="type-error" role="alert">{{ fieldError('businessTypeId') }}</p>
+              }
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Owner account</legend>
+            <app-input
+              formControlName="ownerName"
+              label="Owner's full name"
+              labelPlacement="outside"
+              floatLabel="always"
+              placeholder="e.g. John Doe"
+              autocomplete="name"
+              [required]="true"
+              [errorMessage]="fieldError('ownerName')"
+            />
+            <app-input
+              formControlName="email"
+              label="Email"
+              labelPlacement="outside"
+              type="email"
+              placeholder="owner@business.com"
+              autocomplete="email"
+              [required]="true"
+              [errorMessage]="fieldError('email')"
+            />
+            <app-input
+              formControlName="mobile"
+              label="Mobile number"
+              labelPlacement="outside"
+              type="tel"
+              placeholder="e.g. 9876543210"
+              autocomplete="tel-national"
+              [required]="true"
+              [errorMessage]="fieldError('mobile')"
+            />
+          </fieldset>
+
+          @if (serverError) {
+            <p class="server-error" role="alert">{{ serverError }}</p>
+          }
+
+          <div class="business-form-page__actions">
+            <app-button type="button" variant="secondary" [disabled]="loading" (clicked)="cancel()">
+              Cancel
+            </app-button>
+            <app-button type="submit" [loading]="loading" [disabled]="loading">
+              Register Business
+            </app-button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</section>

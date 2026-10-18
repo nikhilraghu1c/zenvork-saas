@@ -3,11 +3,12 @@
 ## Active endpoint
 
 ```http
-GET /api/business-types
+GET /api/admin/business-types
 ```
 
-The endpoint is public because it supplies the active business-type choices for owner registration.
-It is registered in `backend/src/routes/auth.routes.js`.
+The endpoint requires an authenticated `PLATFORM_ADMIN` because only platform administrators can
+register businesses.
+It is registered in `backend/src/modules/admin/admin.routes.js`.
 
 ## Successful response
 

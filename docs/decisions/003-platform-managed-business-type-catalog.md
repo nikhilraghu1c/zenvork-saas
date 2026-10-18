@@ -12,8 +12,9 @@ adds or retires a supported type.
 ## Decision
 
 Store business types in MongoDB as platform-managed `BusinessType` records. Each `Business` stores
-a required `businessTypeId` reference. The public registration UI fetches active types through a
-read-only API and submits the selected ID; the backend independently verifies that it is active.
+a required `businessTypeId` reference. The platform-admin registration UI fetches active types through
+an admin-only read-only API and submits the selected ID; the backend independently verifies that it is
+active.
 
 Each type contains its allowed resource-type definitions. Initial records are created through an
 explicit seed script. Zenvork-only administration for changing this catalog is deferred.

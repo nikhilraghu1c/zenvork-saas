@@ -1,0 +1,107 @@
+<section class="admin-dashboard" aria-labelledby="admin-dashboard-title">
+  <header class="dashboard-header">
+    <div>
+      <p class="eyebrow">Platform overview</p>
+      <h1 id="admin-dashboard-title">Businesses on Zenvork</h1>
+      <p class="dashboard-description">Monitor your business portfolio and account health.</p>
+    </div>
+    <div class="dashboard-header__actions">
+      <app-button
+        routerLink="/admin/businesses/new"
+        icon="add"
+        label="Register Business"
+      />
+    </div>
+  </header>
+  @if (errorMessage) {
+    <p class="error" role="alert">{{ errorMessage }}</p>
+  } @else {
+    <div class="summary-grid" [attr.aria-busy]="loading">
+      <article>
+        <mat-icon>domain</mat-icon>
+        <div>
+          <span>Total businesses</span
+          ><strong>{{ loading ? '…' : summary?.totalBusinesses }}</strong
+          ><small>Registered on Zenvork</small>
+        </div>
+      </article>
+      <article>
+        <mat-icon>verified</mat-icon>
+        <div>
+          <span>Active businesses</span
+          ><strong>{{ loading ? '…' : summary?.activeBusinesses }}</strong
+          ><small>Available accounts</small>
+        </div>
+      </article>
+      <article>
+        <mat-icon>pause_circle</mat-icon>
+        <div>
+          <span>Suspended businesses</span
+          ><strong>{{ loading ? '…' : summary?.suspendedBusinesses }}</strong
+          ><small>Require review</small>
+        </div>
+      </article>
+      <article>
+        <mat-icon>schedule</mat-icon>
+        <div>
+          <span>Expiring soon</span
+          ><strong>{{ loading ? '…' : summary?.expiringBusinesses }}</strong
+          ><small>Plans within 30 days</small>
+        </div>
+      </article>
+    </div>
+    <section class="distribution">
+      <h2>Business type distribution</h2>
+      <p>A breakdown of businesses on the platform by type.</p>
+      <div class="distribution-bar">
+        <span class="clinic" [style.width.%]="typePercentage('CLINIC')"></span
+        ><span class="salon" [style.width.%]="typePercentage('SALON')"></span
+        ><span class="independent" [style.width.%]="typePercentage('INDEPENDENT')"></span>
+      </div>
+      <div class="distribution-items">
+        <div>
+          <i class="clinic"></i><b>{{ typePercentage('CLINIC') }}%</b
+          ><span>Clinics · {{ countFor('CLINIC') }}</span>
+        </div>
+        <div>
+          <i class="salon"></i><b>{{ typePercentage('SALON') }}%</b
+          ><span>Salons · {{ countFor('SALON') }}</span>
+        </div>
+        <div>
+          <i class="independent"></i><b>{{ typePercentage('INDEPENDENT') }}%</b
+          ><span>Independent · {{ countFor('INDEPENDENT') }}</span>
+        </div>
+      </div>
+    </section>
+    <section class="recent">
+      <div class="section-heading">
+        <div>
+          <h2>Recent businesses</h2>
+          <p>The most recently registered businesses on the platform.</p>
+        </div>
+      </div>
+      @if (loading) {
+        <p>Loading businesses…</p>
+      } @else {
+        <div class="recent-table">
+          <div class="recent-table__header">
+            <span>Business</span><span>Type</span><span>Owner</span><span>Status</span>
+          </div>
+          @for (business of summary?.recentBusinesses ?? []; track business._id) {
+            <div class="recent-row">
+              <div class="business-name">
+                <mat-icon>{{ business.businessType.iconName }}</mat-icon
+                ><strong>{{ business.name }}</strong>
+              </div>
+              <span>{{ business.businessType.name }}</span
+              ><span>{{ business.ownerName }}</span
+              ><span class="status" [class.is-suspended]="business.status === 'SUSPENDED'">{{
+                business.status
+              }}</span>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  }
+</section>

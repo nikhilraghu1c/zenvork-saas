@@ -7,7 +7,8 @@
     "scripts": {
         "start": "node src/server.js",
         "dev": "nodemon src/server.js",
-        "seed:business-types": "node src/scripts/seed-business-types.js"
+        "seed:business-types": "node src/scripts/seed-business-types.js",
+        "seed:platform-admin": "node src/scripts/seed-platform-admin.js"
     },
     "author": "Zenvork",
     "license": "ISC",

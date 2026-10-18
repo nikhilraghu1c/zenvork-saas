@@ -90,8 +90,9 @@
   @media (max-width: 460px) {
     gap: 12px;
 
-    .btn-gradient {
-      display: none;
+    // The sole Login action replaces the old visible ghost button on narrow screens.
+    .nav-actions .btn-gradient {
+      display: inline-flex;
     }
 
     .button {

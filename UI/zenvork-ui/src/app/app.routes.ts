@@ -2,8 +2,21 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth-guard';
 import { ownerGuard } from './core/guards/owner-guard';
 import { reminderAccessGuard } from './core/guards/reminder-access-guard';
+import { platformAdminGuard } from './core/guards/platform-admin.guard';
 
 export const routes: Routes = [
+  {
+    path: 'admin',
+    canActivate: [platformAdminGuard],
+    loadComponent: () =>
+      import('./layouts/app-layout/app-layout.component').then((m) => m.AppLayoutComponent),
+    children: [
+      {
+        path: '',
+        loadChildren: () => import('./modules/admin/admin.routes').then((m) => m.adminRoutes),
+      },
+    ],
+  },
   {
     path: 'app',
     canActivate: [authGuard],
@@ -72,11 +85,6 @@ export const routes: Routes = [
       {
         path: 'login',
         loadChildren: () => import('./modules/auth/auth.routes').then((m) => m.authRoutes),
-      },
-      {
-        path: 'register',
-        loadChildren: () =>
-          import('./modules/register/register.routes').then((m) => m.registerRoutes),
       },
       {
         path: '',

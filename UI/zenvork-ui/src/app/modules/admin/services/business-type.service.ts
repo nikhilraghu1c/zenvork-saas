@@ -24,7 +24,8 @@ interface BusinessTypesResponse {
 export class BusinessTypeService {
   constructor(private readonly api: ApiService) {}
 
+  /** Loads active platform-managed types for the business registration form. */
   getActive(): Observable<BusinessTypesResponse> {
-    return this.api.get<BusinessTypesResponse>('business-types');
+    return this.api.get<BusinessTypesResponse>('admin/business-types');
   }
 }
