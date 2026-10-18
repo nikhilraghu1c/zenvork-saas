@@ -20,5 +20,10 @@ export const adminRoutes: Routes = [
       import('./pages/dashboard/admin-dashboard.component').then((m) => m.AdminDashboardComponent),
     data: { title: 'Dashboard' },
   },
+  {
+    path: 'settings',
+    loadChildren: () =>
+      import('../settings/settings.routes').then((m) => m.settingsRoutes),
+  },
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
 ];

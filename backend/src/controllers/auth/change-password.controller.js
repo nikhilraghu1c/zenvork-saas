@@ -6,7 +6,7 @@ import { authCookieOptions } from "../../utils/auth-cookie-options.js";
 
 const isStrongPassword = (password) =>
   typeof password === "string" &&
-  password.length >= 12 &&
+  password.length >= 8 &&
   password.length <= 128 &&
   /[a-z]/.test(password) &&
   /[A-Z]/.test(password) &&
@@ -17,15 +17,18 @@ const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body ?? {};
     if (typeof currentPassword !== "string" || !isStrongPassword(newPassword))
-      return res
-        .status(400)
-        .json({
-          message:
-            "New password must be 12+ characters and include uppercase, lowercase, a number, and a symbol",
-        });
+      return res.status(400).json({
+        message:
+          "New password must be 8+ characters and include uppercase, lowercase, a number, and a symbol",
+      });
     const user = await User.findById(req.user._id).select("+password");
-    if (!user || !(await bcrypt.compare(currentPassword, user.password)))
+    if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
       return res.status(400).json({ message: "Current password is incorrect" });
+    }
+    // Compare against the stored hash so an unchanged password cannot rotate the session timestamp.
+    if (await bcrypt.compare(newPassword, user.password)) {
+      return res.status(400).json({ message: "New password must be different from current password" });
+    }
     user.password = newPassword;
     user.passwordChangedAt = new Date();
     await user.save();

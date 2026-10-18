@@ -1,0 +1,106 @@
+.settings-page {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: calc(100dvh - 60px);
+  padding: 32px;
+  isolation: isolate;
+
+  &::before {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: -1;
+    height: 360px;
+    background: var(--gradient-page-glow);
+    content: '';
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  &__header {
+    margin-bottom: 24px;
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      color: var(--text);
+      font-size: clamp(26px, 4vw, 34px);
+      font-weight: 600;
+    }
+
+    > p:last-child {
+      margin: 0;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+  }
+
+  .settings-card {
+    max-width: 640px;
+    padding: 28px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    backdrop-filter: blur(12px);
+  }
+
+  .settings-card__heading {
+    margin-bottom: 24px;
+
+    h2 {
+      margin: 0 0 6px;
+      color: var(--text);
+      font-size: 20px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--text-dim);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  }
+
+  form {
+    display: grid;
+  }
+
+  .form-message {
+    margin: 4px 0 0;
+    font-size: 13px;
+
+    &.is-error {
+      color: var(--mat-sys-error);
+    }
+
+    &.is-success {
+      color: var(--green);
+    }
+  }
+
+  .settings-card__actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+
+  @media (max-width: 520px) {
+    padding: 20px 16px;
+
+    .settings-card {
+      padding: 20px;
+    }
+
+    .settings-card__actions app-button {
+      width: 100%;
+    }
+  }
+}

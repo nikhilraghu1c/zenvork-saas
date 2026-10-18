@@ -1,0 +1,58 @@
+<section class="settings-page" aria-labelledby="settings-title">
+  <header class="settings-page__header">
+    <p class="eyebrow">Account</p>
+    <h1 id="settings-title">Settings</h1>
+    <p>Manage your account security.</p>
+  </header>
+
+  <section class="settings-card" aria-labelledby="change-password-title">
+    <div class="settings-card__heading">
+      <div>
+        <h2 id="change-password-title">Change password</h2>
+        <p>Choose a strong password that you do not use on another account.</p>
+      </div>
+    </div>
+
+    <form [formGroup]="passwordForm" (ngSubmit)="submit()" novalidate>
+      <app-input
+        formControlName="currentPassword"
+        label="Current password"
+        labelPlacement="outside"
+        type="password"
+        autocomplete="current-password"
+        [required]="true"
+        [errorMessage]="fieldError('currentPassword')"
+      />
+      <app-input
+        formControlName="newPassword"
+        label="New password"
+        labelPlacement="outside"
+        type="password"
+        autocomplete="new-password"
+        hint="Use 8+ characters with uppercase, lowercase, number, and symbol."
+        [required]="true"
+        [errorMessage]="fieldError('newPassword')"
+      />
+      <app-input
+        formControlName="confirmPassword"
+        label="Confirm new password"
+        labelPlacement="outside"
+        type="password"
+        autocomplete="new-password"
+        [required]="true"
+        [errorMessage]="fieldError('confirmPassword')"
+      />
+
+      @if (errorMessage) {
+        <p class="form-message is-error" role="alert">{{ errorMessage }}</p>
+      }
+      @if (successMessage) {
+        <p class="form-message is-success" role="status">{{ successMessage }}</p>
+      }
+
+      <div class="settings-card__actions">
+        <app-button type="submit" [loading]="loading" [disabled]="loading">Save password</app-button>
+      </div>
+    </form>
+  </section>
+</section>

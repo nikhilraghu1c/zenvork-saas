@@ -8,6 +8,7 @@ import {
 import { AdminBusiness } from '../../services/admin.service';
 
 type BusinessStatusUpdateHandler = (businessId: string, status: AdminBusiness['status']) => void;
+type OwnerPasswordResetHandler = (businessId: string) => void;
 
 @Component({
   selector: 'app-business-grid-actions',
@@ -31,8 +32,16 @@ export class BusinessGridActionsComponent implements ICellRendererAngularComp {
     return true;
   }
 
-  /** Delegates the lifecycle update to the parent list, which owns the API request. */
+  /** Delegates status and password actions to the parent list, which owns API requests. */
   protected handleAction(actionId: string): void {
+    if (actionId === 'reset-password') {
+      const resetOwnerPassword = this.params.context?.['resetOwnerPassword'] as
+        | OwnerPasswordResetHandler
+        | undefined;
+      resetOwnerPassword?.(this.business._id);
+      return;
+    }
+
     const updateBusinessStatus = this.params.context?.['updateBusinessStatus'] as
       | BusinessStatusUpdateHandler
       | undefined;
@@ -46,6 +55,7 @@ export class BusinessGridActionsComponent implements ICellRendererAngularComp {
       this.business.status === 'ACTIVE'
         ? { id: 'suspend', label: 'Suspend', icon: 'block' }
         : { id: 'activate', label: 'Activate', icon: 'check_circle' },
+      { id: 'reset-password', label: 'Reset password', icon: 'lock_reset' },
     ];
   }
 }

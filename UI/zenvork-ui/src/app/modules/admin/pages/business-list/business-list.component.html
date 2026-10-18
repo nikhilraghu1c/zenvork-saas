@@ -47,4 +47,16 @@
       [context]="gridContext"
     />
   }
+
+  @if (passwordResetBusiness) {
+    <app-business-password-reset-dialog
+      [businessName]="passwordResetBusiness.name"
+      [ownerName]="passwordResetBusiness.ownerId?.name ?? 'the owner'"
+      [submitting]="resettingPassword"
+      [errorMessage]="passwordResetError"
+      [temporaryPassword]="temporaryOwnerPassword"
+      (confirmed)="resetOwnerPassword()"
+      (closed)="closeOwnerPasswordReset()"
+    />
+  }
 </section>

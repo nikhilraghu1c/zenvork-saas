@@ -22,9 +22,13 @@ pages are lazy-loaded. Each feature owns a `<module>.routes.ts` route array besi
 `app.routes.ts` only composes the two layouts and lazy-loads those feature route arrays.
 New route navigation scrolls to the top; browser Back and Forward restore the prior scroll position.
 The Staff module owns `/app/staff`, `/app/staff/new`, and `/app/staff/:id`.
+The Settings module owns `/app/settings` for all authenticated tenant users and `/admin/settings` for
+platform admins. Its current Account section changes a password through the authenticated
+`POST /api/change-password` endpoint; future settings sections can be added within the same workspace.
 The platform-admin module owns `/admin/dashboard`, `/admin/businesses`, and
 `/admin/businesses/new`. It lists all platform businesses, allows active/suspended lifecycle changes,
-and registers businesses through the admin-only API.
+resets an owner password with an in-app one-time reveal, and registers businesses through the
+admin-only API.
 Owners can activate or deactivate staff access from the list action menu; a deactivated account remains
 visible for history and can be reactivated. Staff Details provides an inline editor for booking and
 reminder permissions only; account identity and credentials remain read-only. The current

@@ -28,6 +28,11 @@ export interface LogoutResponse {
   message: string;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 const AUTH_USER_STORAGE_KEY = 'zenvork.auth.user';
 
 @Injectable({
@@ -53,6 +58,11 @@ export class AuthService {
     return this.api
       .post<LogoutResponse, Record<string, never>>('logout', {})
       .pipe(tap(() => this.clearUser()));
+  }
+
+  /** Replaces the authenticated user's password and refreshes the server-managed session cookie. */
+  changePassword(payload: ChangePasswordRequest): Observable<{ message: string }> {
+    return this.api.post<{ message: string }, ChangePasswordRequest>('change-password', payload);
   }
 
   /** Returns whether this browser tab currently has safe metadata for an authenticated user. */

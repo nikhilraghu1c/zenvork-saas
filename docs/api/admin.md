@@ -23,5 +23,6 @@ POST /api/change-password
 ```
 
 Authenticated users submit `{ "currentPassword", "newPassword" }`. New passwords require at least
-12 characters including uppercase, lowercase, number, and symbol. The endpoint updates
+8 characters including uppercase, lowercase, number, and symbol, and must differ from the current
+password. The endpoint updates
 `passwordChangedAt` and replaces the current session cookie.

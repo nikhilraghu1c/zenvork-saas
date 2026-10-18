@@ -68,9 +68,8 @@ export const routes: Routes = [
           import('./modules/assistant/assistant.routes').then((m) => m.assistantRoutes),
       },
       {
-        path: '',
-        loadChildren: () =>
-          import('./modules/coming-soon/coming-soon.routes').then((m) => m.comingSoonRoutes),
+        path: 'settings',
+        loadChildren: () => import('./modules/settings/settings.routes').then((m) => m.settingsRoutes),
       },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],

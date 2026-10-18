@@ -11,6 +11,7 @@ import { AppDataGridComponent } from '../../../../shared/data-grid/data-grid.com
 import { NameAvatarGridCellComponent } from '../../../../shared/data-grid/components/name-avatar-grid-cell/name-avatar-grid-cell.component';
 import { AppInputComponent } from '../../../../shared/input/input.component';
 import { BusinessGridActionsComponent } from '../../components/business-grid-actions/business-grid-actions.component';
+import { BusinessPasswordResetDialogComponent } from '../../components/business-password-reset-dialog/business-password-reset-dialog.component';
 import { BusinessStatusGridCellComponent } from '../../components/business-status-grid-cell/business-status-grid-cell.component';
 import { AdminBusiness, AdminService } from '../../services/admin.service';
 
@@ -22,6 +23,7 @@ import { AdminBusiness, AdminService } from '../../services/admin.service';
     AppButtonComponent,
     AppDataGridComponent,
     AppInputComponent,
+    BusinessPasswordResetDialogComponent,
   ],
   templateUrl: './business-list.component.html',
   styleUrl: './business-list.component.scss',
@@ -38,9 +40,14 @@ export class BusinessListComponent implements OnInit {
   protected loading = true;
   protected errorMessage = '';
   protected actionErrorMessage = '';
+  protected passwordResetBusiness: AdminBusiness | null = null;
+  protected resettingPassword = false;
+  protected passwordResetError = '';
+  protected temporaryOwnerPassword = '';
   protected readonly gridContext = {
     updateBusinessStatus: (businessId: string, status: AdminBusiness['status']) =>
       this.updateBusinessStatus(businessId, status),
+    resetOwnerPassword: (businessId: string) => this.openOwnerPasswordReset(businessId),
   };
   protected readonly columnDefs: ColDef<AdminBusiness>[] = [
     {
@@ -155,5 +162,41 @@ export class BusinessListComponent implements OnInit {
         this.actionErrorMessage = error.error?.message ?? 'Unable to update business status.';
       },
     });
+  }
+
+  /** Opens a confirmation step before replacing the selected owner's credentials. */
+  private openOwnerPasswordReset(businessId: string): void {
+    const business = this.businesses.find((item) => item._id === businessId);
+    if (!business) return;
+    this.passwordResetBusiness = business;
+    this.passwordResetError = '';
+    this.temporaryOwnerPassword = '';
+  }
+
+  /** Requests a one-time owner password and keeps it only until the dialog is closed. */
+  protected resetOwnerPassword(): void {
+    if (!this.passwordResetBusiness || this.resettingPassword) return;
+    this.resettingPassword = true;
+    this.passwordResetError = '';
+    this.admin
+      .resetOwnerPassword(this.passwordResetBusiness._id)
+      .subscribe({
+        next: ({ temporaryPassword }) => {
+          this.temporaryOwnerPassword = temporaryPassword;
+          this.resettingPassword = false;
+        },
+        error: (error: HttpErrorResponse) => {
+          this.passwordResetError = error.error?.message ?? 'Unable to reset owner password.';
+          this.resettingPassword = false;
+        },
+      });
+  }
+
+  /** Clears the one-time password from browser memory when the reset dialog closes. */
+  protected closeOwnerPasswordReset(): void {
+    if (this.resettingPassword) return;
+    this.passwordResetBusiness = null;
+    this.passwordResetError = '';
+    this.temporaryOwnerPassword = '';
   }
 }
