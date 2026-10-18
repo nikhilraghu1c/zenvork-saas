@@ -1,11 +1,12 @@
 import { InitialsPipe } from '../../../../core/pipes/initials.pipe';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../modules/auth/services/auth.service';
+import { ThemeService } from '../../../../core/services/theme.service';
 
 interface NavigationItem {
   label: string;
@@ -85,6 +86,7 @@ export class SidebarComponent {
 
   protected loadingLogout = false;
   protected logoutError = '';
+  protected readonly theme = inject(ThemeService);
 
   constructor(
     private readonly auth: AuthService,

@@ -69,10 +69,11 @@ actions. Pass its `items` array (`id`, `label`, `icon`, optional `disabled`) and
 this disables the trigger itself. The wrapper owns the Material menu and its overlay styling.
 
 `AppDataGridComponent` wraps AG Grid Community for dense desktop data. Features provide their rows
-and column definitions; the wrapper owns the shared dark grid theme, default sortable/resizable
-columns, accessible cell focus behavior, and auto-height layout. Pair it with a feature-owned card
-view only when a compact grid is not practical. Grids intended for mobile should pin their action
-column so it remains visible while the remaining columns scroll horizontally.
+and column definitions; the wrapper owns the shared theme-aware grid styling, default sortable/resizable
+columns, accessible cell focus behavior, and auto-height layout. For locally loaded data it exposes
+AG Grid's native `pagination`, `paginationPageSize`, and `paginationPageSizeSelector` inputs. Pair it
+with a feature-owned card view only when a compact grid is not practical. Grids intended for mobile
+should pin their action column so it remains visible while the remaining columns scroll horizontally.
 
 `AppSelectComponent` (`shared/select`, `app-select`) wraps Material's select listbox and
 implements ControlValueAccessor for reactive forms. Pass `options` with string `value`, `label`,

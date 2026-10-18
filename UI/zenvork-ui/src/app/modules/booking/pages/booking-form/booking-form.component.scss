@@ -236,7 +236,7 @@
       outline: 0;
       background: var(--surface-subtle);
       color: var(--text);
-      color-scheme: dark;
+      color-scheme: var(--native-color-scheme);
       font: inherit;
       &:focus-visible {
         border-color: var(--cyan);

@@ -44,15 +44,41 @@ $app-theme: mat.define-theme((
   ),
 ));
 
+$app-light-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$cyan-palette,
+    tertiary: $app-purple-palette,
+    use-system-variables: true,
+  ),
+  typography: (
+    brand-family: 'Poppins, sans-serif',
+    plain-family: 'Inter, sans-serif',
+    use-system-variables: true,
+  ),
+  density: (
+    scale: 0,
+  ),
+));
+
 html {
   @include mat.all-component-themes($app-theme);
   @include mat.system-level-colors($app-theme);
   @include mat.system-level-typography($app-theme);
 }
 
+html[data-theme='light'] {
+  @include mat.all-component-colors($app-light-theme);
+  @include mat.system-level-colors($app-light-theme);
+}
+
 // Opt-in M3 tertiary variant for Material buttons.
 .app-tertiary-button {
   @include mat.button-color($app-theme, tertiary);
+}
+
+html[data-theme='light'] .app-tertiary-button {
+  @include mat.button-color($app-light-theme, tertiary);
 }
 
 // Keep Material's neutral roles on the same dark base as the application.

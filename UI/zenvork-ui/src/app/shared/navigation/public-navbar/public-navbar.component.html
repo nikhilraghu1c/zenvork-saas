@@ -7,6 +7,16 @@
     <a href="#how-it-works">How it works</a><a href="#business-types">Businesses</a>
   </nav>
   <div class="nav-actions">
+    <button
+      mat-button
+      type="button"
+      class="theme-toggle"
+      [attr.aria-label]="theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+      (click)="theme.toggleTheme()"
+    >
+      <mat-icon>{{ theme.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      <span>{{ theme.theme() === 'dark' ? 'Light' : 'Dark' }}</span>
+    </button>
     <a class="button btn-gradient" routerLink="/login">Log in</a>
   </div>
 </header>

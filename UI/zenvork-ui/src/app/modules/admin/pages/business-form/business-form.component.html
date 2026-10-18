@@ -97,7 +97,12 @@
           }
 
           <div class="business-form-page__actions">
-            <app-button type="button" variant="secondary" [disabled]="loading" (clicked)="cancel()">
+            <app-button
+              type="button"
+              variant="secondary"
+              [disabled]="loading"
+              (clicked)="cancel()"
+            >
               Cancel
             </app-button>
             <app-button type="submit" [loading]="loading" [disabled]="loading">

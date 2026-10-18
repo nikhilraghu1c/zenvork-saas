@@ -13,6 +13,11 @@ body {
 // Remove it while keeping keyboard focus indicators defined by individual components.
 html {
   -webkit-tap-highlight-color: transparent;
+  color-scheme: dark;
+}
+
+html[data-theme='light'] {
+  color-scheme: light;
 }
 
 // Keep native scrolling visually consistent with the dark application surface, including on Windows.

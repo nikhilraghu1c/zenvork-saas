@@ -1,3 +1,5 @@
+@use './preview-tokens' as preview;
+
 :host {
   display: block;
 }
@@ -89,7 +91,7 @@
   }
   .cta-secondary {
     border-color: var(--purple-border-hover);
-    background: rgba(11, 17, 35, 0.54);
+    background: var(--surface-raised);
     color: var(--text);
   }
   .cta-secondary:hover {
@@ -97,6 +99,20 @@
   }
 
   .product-preview {
+    // This is a deliberately dark product illustration, independent of the page appearance.
+    --text: #{preview.$text};
+    --text-dim: #{preview.$text-dim};
+    --text-mute: #{preview.$text-mute};
+    --border: #{preview.$border};
+    --cyan: #{preview.$cyan};
+    --cyan-soft: #{preview.$cyan-soft};
+    --cyan-border: #{preview.$cyan-border};
+    --purple: #{preview.$purple};
+    --purple-soft: #{preview.$purple-soft};
+    --purple-border-hover: #{preview.$purple-border-hover};
+    --green: #{preview.$green};
+    --amber: #{preview.$amber};
+
     display: grid;
     grid-template-columns: 142px minmax(0, 1fr);
     min-height: 450px;
@@ -105,6 +121,29 @@
     border-radius: 20px;
     background: linear-gradient(145deg, rgba(22, 34, 58, 0.96), rgba(10, 15, 29, 0.98));
     box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+    color: preview.$text;
+  }
+
+  .product-preview .preview-brand,
+  .product-preview .preview-header strong,
+  .product-preview .appointment strong,
+  .product-preview .preview-metrics strong {
+    color: preview.$text;
+  }
+
+  .product-preview .preview-nav,
+  .product-preview .preview-kicker,
+  .product-preview .view-switch,
+  .product-preview .preview-date-row,
+  .product-preview .preview-date-row strong,
+  .product-preview .appointment time,
+  .product-preview .preview-metrics span {
+    color: preview.$text-dim;
+  }
+
+  .product-preview .preview-date-row mat-icon,
+  .product-preview .appointment small {
+    color: preview.$text-mute;
   }
   .preview-sidebar {
     display: flex;
@@ -314,7 +353,7 @@
   .value-strip {
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
-    background: rgba(4, 9, 19, 0.3);
+    background: var(--surface-subtle);
   }
   .value-strip__grid {
     display: grid;
@@ -408,11 +447,41 @@
     line-height: 1.55;
   }
   .workflow-preview {
+    // Workflow cards are also product illustrations and retain their own dark visual palette.
+    --text: #{preview.$text};
+    --text-dim: #{preview.$text-dim};
+    --text-mute: #{preview.$text-mute};
+    --border: #{preview.$border};
+    --cyan: #{preview.$cyan};
+    --cyan-soft: #{preview.$cyan-soft};
+    --cyan-border: #{preview.$cyan-border};
+    --purple: #{preview.$purple};
+    --purple-soft: #{preview.$purple-soft};
+    --green: #{preview.$green};
+    --amber: #{preview.$amber};
+
     min-height: 246px;
     padding: 18px;
     border: 1px solid rgba(76, 150, 240, 0.26);
     border-radius: 14px;
     background: linear-gradient(155deg, rgba(18, 32, 58, 0.84), rgba(10, 16, 30, 0.9));
+    color: preview.$text;
+  }
+
+  .workflow-preview .form-preview > span,
+  .workflow-preview .form-preview > span b,
+  .workflow-preview .form-preview small,
+  .workflow-preview .appointment time,
+  .workflow-preview .insight-summary span {
+    color: preview.$text-dim;
+  }
+
+  .workflow-preview .appointment small {
+    color: preview.$text-mute;
+  }
+
+  .workflow-preview .insight-summary b {
+    color: preview.$text;
   }
   .form-preview {
     display: grid;
@@ -589,6 +658,11 @@
   }
 
   .closing-cta {
+    // The closing callout intentionally remains a dark brand surface in both themes.
+    --text: #{preview.$text};
+    --text-dim: #{preview.$callout-text-dim};
+    --cyan: #{preview.$cyan};
+
     box-sizing: border-box;
     min-height: 276px;
     display: grid;
@@ -604,13 +678,14 @@
   }
   .closing-cta h2 {
     margin: 11px 0 9px;
+    color: preview.$text;
     font-size: clamp(29px, 3.4vw, 43px);
     letter-spacing: -0.045em;
   }
   .closing-cta p {
     max-width: 570px;
     margin: 0 auto 24px;
-    color: #d1d6ea;
+    color: preview.$callout-text-dim;
     font-size: 15px;
     line-height: 1.55;
   }
@@ -779,4 +854,8 @@
       align-self: flex-start;
     }
   }
+}
+
+:host-context(html[data-theme='light']) .landing-page .cta-primary {
+  color: var(--text-on-brand);
 }

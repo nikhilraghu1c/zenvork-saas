@@ -530,8 +530,8 @@
     padding: 8px 10px 8px 16px;
     border: 1px solid var(--cyan-border);
     border-radius: var(--radius-md);
-    background: rgba(10, 14, 26, 0.72);
-    box-shadow: 0 0 0 1px rgba(124, 77, 255, 0.08);
+    background: var(--surface-raised);
+    box-shadow: 0 0 0 1px var(--purple-soft);
 
     > mat-icon {
       color: var(--text-dim);

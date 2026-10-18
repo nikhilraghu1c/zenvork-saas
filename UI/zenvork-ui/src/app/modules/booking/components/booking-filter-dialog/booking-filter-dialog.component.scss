@@ -13,7 +13,7 @@
   &__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(3, 7, 16, 0.74);
+    background: var(--overlay-backdrop);
     backdrop-filter: blur(5px);
   }
 

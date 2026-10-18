@@ -134,10 +134,20 @@
     font-size: 12px;
   }
 
+  .theme-button,
   .logout-button {
     width: 100%;
     justify-content: flex-start;
     margin-top: 6px;
     color: var(--text-dim);
   }
+
+  .theme-button:hover {
+    color: var(--text);
+  }
+}
+
+:host-context(html[data-theme='light']) .app-sidebar {
+  --mat-list-list-item-leading-icon-color: var(--cyan);
+  --mat-list-list-item-hover-leading-icon-color: var(--cyan);
 }

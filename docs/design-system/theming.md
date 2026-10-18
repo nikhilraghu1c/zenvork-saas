@@ -6,8 +6,8 @@
 backgrounds, glass surfaces, shared data-grid surfaces, text, gradients, status colors (including
 matching soft/background and border tokens), typography, and radii.
 
-`UI/zenvork-ui/src/styles/_material-theme.scss` defines the Angular Material 3 dark theme and emits
-Material system variables.
+`UI/zenvork-ui/src/styles/_material-theme.scss` defines the Angular Material 3 dark and light themes
+and emits Material system variables for the active appearance.
 
 ## Material 3 roles
 
@@ -20,6 +20,19 @@ In dark mode, M3 semantic variables choose accessible tones automatically. For e
 `--mat-sys-tertiary-container` and `--mat-sys-on-tertiary-container` form a darker Purple container
 pair.
 
+## Appearance preference
+
+Dark mode is the default. `ThemeService` applies the chosen `dark` or `light` theme on the root HTML
+element and stores the preference locally in the browser. Both public and authenticated navigation
+offer the same toggle. The light theme overrides the Zenvork surface, text, state, gradient, native
+control, dialog-backdrop, and Material semantic tokens; page styles should continue to use tokens rather
+than hardcoded dark colors. Deliberately dark product illustrations define a local palette so their text
+remains readable in either appearance.
+
+`UI/zenvork-ui/src/app/modules/landing/_preview-tokens.scss` owns that illustration palette. Its Sass
+variables are landing-private and apply only to intentionally dark, non-interactive product previews;
+application pages continue to use the regular appearance-aware tokens.
+
 ## Usage rule
 
 - Use app tokens such as `--purple`, `--surface`, and `--border` for exact Zenvork custom styling.
@@ -29,7 +42,6 @@ pair.
 
 ## Native scrollbars
 
-Global styles render thin dark scrollbars: `--bg` is the track and `--text-mute` is the thumb, with
+Global styles render thin token-based scrollbars: `--bg` is the track and `--text-mute` is the thumb, with
 `--text-dim` on hover. Firefox uses its standard scrollbar properties; Chromium/Safari use the WebKit
-scrollbar pseudo-elements. This prevents bright operating-system scroll tracks from clashing with the
-dark application shell.
+scrollbar pseudo-elements. This keeps scrollbars aligned with both application appearances.

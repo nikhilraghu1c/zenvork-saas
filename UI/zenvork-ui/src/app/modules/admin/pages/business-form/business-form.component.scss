@@ -181,8 +181,14 @@
 
   &__actions {
     display: flex;
+    width: 100%;
+    flex-wrap: wrap;
     justify-content: flex-end;
-    gap: 12px;
+    gap: 16px;
+
+    app-button {
+      flex: 0 0 auto;
+    }
   }
 
   .success-state {
@@ -254,10 +260,10 @@
     }
 
     &__actions {
-      flex-direction: column-reverse;
+      gap: 12px;
 
       app-button {
-        width: 100%;
+        width: auto;
       }
     }
   }

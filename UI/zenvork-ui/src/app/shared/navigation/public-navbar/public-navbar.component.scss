@@ -58,6 +58,18 @@
     gap: 12px;
   }
 
+  .theme-toggle {
+    color: var(--text-dim);
+
+    &:hover {
+      color: var(--text);
+    }
+
+    mat-icon {
+      margin-right: 5px;
+    }
+  }
+
   .button {
     display: inline-flex;
     min-height: 38px;
@@ -69,6 +81,10 @@
     font-size: 14px;
     font-weight: 500;
     text-decoration: none;
+  }
+
+  .button.btn-gradient {
+    color: var(--text-on-brand);
   }
 
   .button-ghost {
@@ -87,16 +103,20 @@
     }
   }
 
-  @media (max-width: 460px) {
+  @media (max-width: 560px) {
+    padding: 0 16px;
     gap: 12px;
-
-    // The sole Login action replaces the old visible ghost button on narrow screens.
-    .nav-actions .btn-gradient {
-      display: inline-flex;
-    }
 
     .button {
       padding: 0 12px;
+    }
+
+    .theme-toggle span {
+      display: none;
+    }
+
+    .theme-toggle mat-icon {
+      margin: 0;
     }
   }
 }

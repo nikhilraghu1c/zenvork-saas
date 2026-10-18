@@ -40,6 +40,7 @@
   --purple-soft: rgba(124, 77, 255, 0.12);
   --purple-border: rgba(124, 77, 255, 0.25);
   --purple-border-hover: rgba(124, 77, 255, 0.4);
+  --overlay-backdrop: rgba(3, 7, 16, 0.74);
 
   // Reusable gradients
   --gradient-brand: linear-gradient(135deg, var(--azure-light), var(--purple));
@@ -55,4 +56,57 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-pill: 20px;
+  --native-color-scheme: dark;
+}
+
+html[data-theme='light'] {
+  // Brand colors use accessible darker tones against the light application surface.
+  --azure: #0d47a1;
+  --azure-light: #1565c0;
+  --cyan: #007c91;
+  --purple: #6940d6;
+
+  // Surfaces
+  --bg: #f5f7fb;
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-subtle: rgba(15, 23, 42, 0.035);
+  --surface-raised: #ffffff;
+  --surface-grid: #ffffff;
+  --surface-grid-row: #f8fafc;
+  --surface-nav: rgba(255, 255, 255, 0.8);
+  --border: rgba(15, 23, 42, 0.12);
+  --border-strong: rgba(15, 23, 42, 0.22);
+
+  // Text
+  --text: #111827;
+  --text-dim: #4b5563;
+  --text-mute: #6b7280;
+  --text-on-brand: #ffffff;
+
+  // Status
+  --green: #087a46;
+  --amber: #9a5b00;
+
+  // State surfaces
+  --cyan-soft: rgba(0, 124, 145, 0.1);
+  --cyan-border: rgba(0, 124, 145, 0.28);
+  --green-soft: rgba(8, 122, 70, 0.1);
+  --green-border: rgba(8, 122, 70, 0.28);
+  --amber-soft: rgba(154, 91, 0, 0.1);
+  --amber-border: rgba(154, 91, 0, 0.3);
+  --purple-soft: rgba(105, 64, 214, 0.1);
+  --purple-border: rgba(105, 64, 214, 0.25);
+  --purple-border-hover: rgba(105, 64, 214, 0.42);
+  --overlay-backdrop: rgba(15, 23, 42, 0.46);
+
+  // Reusable gradients
+  --gradient-brand: linear-gradient(135deg, var(--azure-light), var(--purple));
+  --gradient-hero-text: linear-gradient(135deg, var(--cyan), var(--purple));
+  --gradient-icon: linear-gradient(135deg, rgba(21, 101, 192, 0.15), rgba(105, 64, 214, 0.15));
+  --gradient-callout: linear-gradient(135deg, rgba(21, 101, 192, 0.08), var(--purple-soft));
+  --gradient-page-glow:
+    radial-gradient(ellipse 800px 500px at 15% -5%, rgba(105, 64, 214, 0.12), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 90% 10%, rgba(0, 124, 145, 0.08), transparent 60%);
+
+  --native-color-scheme: light;
 }

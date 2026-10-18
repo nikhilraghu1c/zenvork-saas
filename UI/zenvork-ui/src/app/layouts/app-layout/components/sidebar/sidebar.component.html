@@ -38,6 +38,17 @@
       <p class="logout-error" role="alert">{{ logoutError }}</p>
     }
 
+    <button
+      mat-button
+      type="button"
+      class="theme-button"
+      [attr.aria-label]="theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+      (click)="theme.toggleTheme()"
+    >
+      <mat-icon>{{ theme.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      {{ theme.theme() === 'dark' ? 'Light mode' : 'Dark mode' }}
+    </button>
+
     <button mat-button type="button" class="logout-button" [disabled]="loadingLogout" (click)="logout()">
       <mat-icon>logout</mat-icon>
       {{ loadingLogout ? 'Logging Out…' : 'Log Out' }}
