@@ -40,12 +40,19 @@
     @if (actionErrorMessage) {
       <p class="action-error" role="alert">{{ actionErrorMessage }}</p>
     }
-    <app-data-grid
-      class="business-grid"
-      [rowData]="filteredBusinesses"
-      [columnDefs]="columnDefs"
-      [context]="gridContext"
-    />
+    @if (filteredBusinesses.length) {
+      <app-data-grid
+        class="business-grid"
+        [rowData]="filteredBusinesses"
+        [columnDefs]="columnDefs"
+        [context]="gridContext"
+        [pagination]="true"
+        [paginationPageSize]="10"
+        [paginationPageSizeSelector]="false"
+      />
+    } @else {
+      <p class="page-state">No businesses match your search.</p>
+    }
   }
 
   @if (passwordResetBusiness) {

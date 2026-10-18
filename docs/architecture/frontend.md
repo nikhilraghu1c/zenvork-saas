@@ -43,7 +43,8 @@ it provides the navigation-drawer control without repeating the page title.
 - Component SCSS is parent-scoped and responsive.
 - Pages compose shared Zenvork UI wrappers instead of directly depending on Angular Material when a wrapper exists.
 - Dense desktop data uses `AppDataGridComponent` (AG Grid Community); features own their column
-  definitions and a mobile card presentation when appropriate.
+  definitions and a mobile card presentation when appropriate. For already loaded lists, the wrapper
+  exposes AG Grid's native client-side pagination inputs rather than requiring feature-owned pagers.
 
 ## API services
 

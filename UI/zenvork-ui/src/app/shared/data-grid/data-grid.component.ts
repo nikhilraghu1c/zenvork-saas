@@ -15,6 +15,12 @@ export class AppDataGridComponent {
   @Input({ required: true }) columnDefs: ColDef<any>[] = [];
   /** Feature-owned callbacks and data used by interactive cell renderers. */
   @Input() context: Record<string, unknown> = {};
+  /** Enables AG Grid's built-in client-side pager for already loaded rows. */
+  @Input() pagination = false;
+  /** Controls how many already loaded rows AG Grid displays on each page. */
+  @Input() paginationPageSize = 100;
+  /** Shows a page-size picker only when a feature intentionally permits changing the page size. */
+  @Input() paginationPageSizeSelector: number[] | boolean = true;
 
   /** Registers the free AG Grid Community features used by Zenvork. */
   protected readonly modules = [AllCommunityModule];
