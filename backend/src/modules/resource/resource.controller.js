@@ -36,11 +36,15 @@ const getResources = async (req, res) => {
         .filter((type) => type.isPerson === true)
         .map((type) => type.code),
     );
+    const resourceTypeNames = new Map(
+      (businessType?.resourceTypes ?? []).map((type) => [type.code, type.name]),
+    );
 
     return res.status(200).json({
       resources: resources.map((resource) => ({
         ...resource,
         isPerson: personTypes.has(resource.resourceType),
+        resourceTypeName: resourceTypeNames.get(resource.resourceType) ?? resource.resourceType,
       })),
     });
   } catch (error) {

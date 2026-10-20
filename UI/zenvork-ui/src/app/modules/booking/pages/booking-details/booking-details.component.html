@@ -59,7 +59,7 @@
           <div class="card resource-list">
             @if (booking.resources.length) {
               @for (resource of booking.resources; track resource._id) {
-                <div class="resource-item"><mat-icon aria-hidden="true">category</mat-icon><div><strong>{{ resource.name }}</strong><span>{{ resource.resourceType }}</span></div></div>
+                <div class="resource-item"><mat-icon aria-hidden="true">category</mat-icon><div><strong>{{ resource.name }}</strong><span>{{ resource.resourceTypeName }}</span></div></div>
               }
             } @else {
               <p class="muted">No resources are assigned yet.</p>

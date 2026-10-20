@@ -11,7 +11,7 @@
       <div class="profile-info">
         <h1>{{ resource.name }}</h1>
         <div class="profile-tags">
-          <span class="role-tag">{{ resource.resourceType }}</span>
+          <span class="role-tag">{{ resource.resourceTypeName }}</span>
           <span [class.status-tag]="resource.isActive" [class.coming-soon]="!resource.isActive"
             ><span aria-hidden="true">●</span> {{ resource.isActive ? 'Active' : 'Inactive' }}</span
           >
@@ -45,7 +45,7 @@
         <dl class="card info-grid">
           <div>
             <dt>Type</dt>
-            <dd>{{ resource.resourceType }}</dd>
+            <dd>{{ resource.resourceTypeName }}</dd>
           </div>
           <div>
             <dt>Status</dt>

@@ -24,6 +24,7 @@ export interface BookingResourceSummary {
   _id: string;
   name: string;
   resourceType: string;
+  resourceTypeName: string;
 }
 
 export interface BookingStatusHistoryEntry {

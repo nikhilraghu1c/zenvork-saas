@@ -623,7 +623,7 @@ export class BookingListComponent implements OnInit, OnDestroy {
         .filter((resource) => resource.isActive)
         .map((resource) => ({
           value: resource._id,
-          label: `${resource.name} · ${resource.resourceType}`,
+          label: `${resource.name} · ${resource.resourceTypeName}`,
         })),
     ];
   }

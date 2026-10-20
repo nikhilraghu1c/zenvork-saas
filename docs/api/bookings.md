@@ -25,8 +25,9 @@ GET /api/bookings
 Returns `{ bookings: [...], pagination: { page, limit, total } }`. Each booking includes its schedule,
 actual times, status, `hasServices`, `extraAmountPaise`, `totalAmountPaise`, `paymentStatus`,
 `paidAt`, notes, timestamps, a populated `client`
-(`name`, `mobile`), and populated `resources` (`name`, `resourceType`) summaries. Database reference
-names `clientId` and `resourceIds` are not returned in list responses. Line-item services are returned
+(`name`, `mobile`), and populated `resources` (`name`, `resourceType`, `resourceTypeName`) summaries.
+`resourceType` is the stable configuration code; `resourceTypeName` is the configured tenant-facing
+label. Database reference names `clientId` and `resourceIds` are not returned in list responses. Line-item services are returned
 only by the detail endpoint.
 
 Optional query parameters are `view=today|all`, `status` (one or more comma-separated lifecycle
@@ -62,7 +63,7 @@ GET /api/bookings/:id
 
 Returns `{ booking: {...} }` for a booking owned by the authenticated business. The response includes
 the same public booking fields as the list endpoint, with a populated `client` (`name`, `mobile`,
-`email`) and populated `resources` (`name`, `resourceType`). It also includes `services`, whose items
+`email`) and populated `resources` (`name`, `resourceType`, `resourceTypeName`). It also includes `services`, whose items
 contain `serviceId`, `name`, `pricePaise`, and `durationMinutes` snapshots, plus `extraAmountPaise`
 and the server-calculated `totalAmountPaise`. Returns `404` when the booking is not in the authenticated business.
 

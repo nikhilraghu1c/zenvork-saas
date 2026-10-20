@@ -3,12 +3,14 @@ import Booking from "./booking.model.js";
 import Client from "../client/client.model.js";
 import Resource from "../resource/resource.model.js";
 import Service from "../service/service.model.js";
+import Business from "../business/business.model.js";
+import BusinessType from "../business/business-type.model.js";
 import {
   cancelPendingAppointmentReminders,
   closeAppointmentReminderQueue,
   upsertPendingAppointmentReminder,
 } from "../reminder/reminder.lifecycle.js";
-import { tenantData, tenantFilter } from "../../utils/tenant-scope.js";
+import { tenantData, tenantFilter, tenantId } from "../../utils/tenant-scope.js";
 import {
   canAssignResources,
   canCreateBookings,
@@ -66,12 +68,25 @@ const getServiceSnapshots = async (req, serviceIds) => {
 const getTotalAmountPaise = (services, extraAmountPaise = 0) =>
   services.reduce((total, service) => total + service.pricePaise, extraAmountPaise);
 
-const toPublicBooking = (booking, includeServices = false, capabilities) => {
+const getResourceTypeNames = async (req) => {
+  // Type labels come only from the authenticated tenant's configured business type.
+  const business = await Business.findById(tenantId(req)).select("businessTypeId").lean();
+  if (!business) return new Map();
+  const businessType = await BusinessType.findById(business.businessTypeId)
+    .select("resourceTypes")
+    .lean();
+  return new Map((businessType?.resourceTypes ?? []).map((type) => [type.code, type.name]));
+};
+
+const toPublicBooking = (booking, includeServices = false, capabilities, resourceTypeNames = new Map()) => {
   const source = typeof booking.toObject === "function" ? booking.toObject() : booking;
   const response = {
     _id: source._id,
     client: source.clientId,
-    resources: source.resourceIds,
+    resources: (source.resourceIds ?? []).map((resource) => ({
+      ...resource,
+      resourceTypeName: resourceTypeNames.get(resource.resourceType) ?? resource.resourceType,
+    })),
     scheduledStartAt: source.scheduledStartAt,
     scheduledEndAt: source.scheduledEndAt,
     actualStartAt: source.actualStartAt,
@@ -133,7 +148,7 @@ const getAllBookings = async (req, res) => {
     }
 
     // Return only bookings owned by the authenticated business.
-    const [bookings, total] = await Promise.all([
+    const [bookings, total, resourceTypeNames] = await Promise.all([
       Booking.find(filter)
         .select(
           "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt services status extraAmountPaise totalAmountPaise paymentStatus paidAt notes createdAt updatedAt",
@@ -145,12 +160,13 @@ const getAllBookings = async (req, res) => {
         .limit(limit)
         .lean(),
       Booking.countDocuments(filter),
+      getResourceTypeNames(req),
     ]);
 
     // Keep database references and tenant/audit identifiers internal once records are returned.
     const capabilities = await getBookingCapabilities(req, bookings);
     const bookingResponses = bookings.map((booking, index) =>
-      toPublicBooking(booking, false, capabilities[index]),
+      toPublicBooking(booking, false, capabilities[index], resourceTypeNames),
     );
 
     return res.status(200).json({
@@ -188,12 +204,17 @@ const getBookingById = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    const [capabilities] = await getBookingCapabilities(req, [booking]);
-    return res.status(200).json({ booking: toPublicBooking(booking, true, capabilities) });
+    const [capabilities, resourceTypeNames] = await Promise.all([
+      getBookingCapabilities(req, [booking]).then(([capability]) => capability),
+      getResourceTypeNames(req),
+    ]);
+    return res.status(200).json({
+      booking: toPublicBooking(booking, true, capabilities, resourceTypeNames),
+    });
   } catch (error) {
     console.error("Failed to retrieve booking details:", error);
     return res.status(500).json({ message: "Unable to retrieve booking details" });
-  } 
+  }
 };
 
 const updateBooking = async (req, res) => {
@@ -344,10 +365,13 @@ const updateBooking = async (req, res) => {
 
     await booking.populate("clientId", "name mobile email");
     await booking.populate("resourceIds", "name resourceType");
-    const [capabilities] = await getBookingCapabilities(req, [booking]);
+    const [[capabilities], resourceTypeNames] = await Promise.all([
+      getBookingCapabilities(req, [booking]),
+      getResourceTypeNames(req),
+    ]);
     return res.status(200).json({
       message: "Booking updated successfully",
-      booking: toPublicBooking(booking, true, capabilities),
+      booking: toPublicBooking(booking, true, capabilities, resourceTypeNames),
     });
   } catch (error) {
     if (error instanceof BookingValidationError) {
@@ -479,10 +503,13 @@ const updateBookingStatus = async (req, res) => {
 
     await booking.populate("clientId", "name mobile email");
     await booking.populate("resourceIds", "name resourceType");
-    const [capabilities] = await getBookingCapabilities(req, [booking]);
+    const [[capabilities], resourceTypeNames] = await Promise.all([
+      getBookingCapabilities(req, [booking]),
+      getResourceTypeNames(req),
+    ]);
     return res.status(200).json({
       message: "Booking status updated successfully",
-      booking: toPublicBooking(booking, true, capabilities),
+      booking: toPublicBooking(booking, true, capabilities, resourceTypeNames),
     });
   } catch (error) {
     if (error instanceof BookingValidationError) {
@@ -662,10 +689,13 @@ const updateBookingPaymentStatus = async (req, res) => {
     await booking.save();
     await booking.populate("clientId", "name mobile email");
     await booking.populate("resourceIds", "name resourceType");
-    const [capabilities] = await getBookingCapabilities(req, [booking]);
+    const [[capabilities], resourceTypeNames] = await Promise.all([
+      getBookingCapabilities(req, [booking]),
+      getResourceTypeNames(req),
+    ]);
     return res.status(200).json({
       message: "Payment status updated successfully",
-      booking: toPublicBooking(booking, true, capabilities),
+      booking: toPublicBooking(booking, true, capabilities, resourceTypeNames),
     });
   } catch (error) {
     if (error instanceof BookingValidationError) {

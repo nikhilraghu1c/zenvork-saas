@@ -6,12 +6,13 @@ export interface ResourceRecord {
   _id: string;
   name: string;
   resourceType: string;
+  resourceTypeName: string;
   isActive: boolean;
   linkedUserId: string | null;
   createdAt: string;
   updatedAt: string;
 }
-export type ResourceStatusRecord = Omit<ResourceRecord, 'isPerson'>;
+export type ResourceStatusRecord = Omit<ResourceRecord, 'isPerson' | 'resourceTypeName'>;
 export interface ResourceTypeOption {
   isPerson: boolean;
   code: string;

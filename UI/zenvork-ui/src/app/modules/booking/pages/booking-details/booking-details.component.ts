@@ -90,6 +90,7 @@ export class BookingDetailsComponent implements OnInit {
     return value ? this.dateTime.format(value, 'dateTime') : 'Not recorded';
   }
 
+
   /** Builds a compact planned slot without showing an artificial end time for pending work. */
   protected scheduleLabel(booking: BookingRecord): string {
     if (!booking.scheduledStartAt) return 'Awaiting schedule';
