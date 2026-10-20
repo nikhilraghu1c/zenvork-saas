@@ -8,6 +8,10 @@ A resource is anything a booking reserves: a staff person, doctor, chair, room, 
 The resource type is configuration-driven by the business's `BusinessType`, so salon and clinic code do
 not need separate hardcoded resource models.
 
+Platform administrators can add, rename, activate, or deactivate a business type's configured resource
+types through the admin API. The type code and person/non-person semantics remain immutable after
+creation because persisted tenant resources rely on both values.
+
 ## Important creation checks
 
 Resource creation follows this order:

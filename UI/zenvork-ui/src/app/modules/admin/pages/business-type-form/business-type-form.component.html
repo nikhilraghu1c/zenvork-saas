@@ -1,0 +1,65 @@
+<section class="business-type-form-page" aria-labelledby="business-type-form-title">
+  <div class="business-type-form-page__content">
+    <header class="business-type-form-page__header">
+      <span class="business-type-form-page__icon" aria-hidden="true"><mat-icon>category</mat-icon></span>
+      <p class="eyebrow">Platform configuration</p>
+      <h1 id="business-type-form-title">{{ pageTitle }}</h1>
+      <p>
+        @if (isEditMode) {
+          Update the business type details. Its code remains fixed for existing business records.
+        } @else {
+          Add a business category that platform admins can select when registering a business.
+        }
+      </p>
+    </header>
+
+    <div class="business-type-form-page__card">
+      @if (loading) {
+        <p class="page-state" role="status">Loading business type…</p>
+      } @else {
+        <form [formGroup]="businessTypeForm" (ngSubmit)="submit()" novalidate>
+          <app-input
+            formControlName="name"
+            label="Business type name"
+            labelPlacement="outside"
+            placeholder="e.g. Independent professional"
+            autocomplete="off"
+            [required]="true"
+            [errorMessage]="fieldError('name')"
+          />
+          <app-input
+            formControlName="code"
+            label="Business type code"
+            labelPlacement="outside"
+            placeholder="e.g. INDEPENDENT_PROFESSIONAL"
+            autocomplete="off"
+            [required]="true"
+            [errorMessage]="fieldError('code')"
+          />
+          <app-input
+            formControlName="iconName"
+            label="Material icon name"
+            labelPlacement="outside"
+            placeholder="e.g. business"
+            autocomplete="off"
+            [required]="true"
+            [errorMessage]="fieldError('iconName')"
+          />
+
+          @if (serverError) {
+            <p class="server-error" role="alert">{{ serverError }}</p>
+          }
+
+          <div class="business-type-form-page__actions">
+            <app-button type="button" variant="secondary" [disabled]="submitting" (clicked)="cancel()">
+              Cancel
+            </app-button>
+            <app-button type="submit" [loading]="submitting" [disabled]="submitting">
+              {{ isEditMode ? 'Save changes' : 'Add business type' }}
+            </app-button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</section>

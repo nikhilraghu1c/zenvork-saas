@@ -1,0 +1,25 @@
+:host {
+  display: flex;
+  height: 100%;
+  align-items: center;
+}
+
+.business-type-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+
+  &.is-inactive {
+    color: var(--mat-sys-error);
+  }
+}

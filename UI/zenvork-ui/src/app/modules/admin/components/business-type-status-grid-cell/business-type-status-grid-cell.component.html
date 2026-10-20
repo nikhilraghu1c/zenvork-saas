@@ -1,0 +1,4 @@
+<span class="business-type-status" [class.is-inactive]="!isActive">
+  <mat-icon aria-hidden="true">{{ isActive ? 'check_circle' : 'cancel' }}</mat-icon>
+  {{ isActive ? 'Active' : 'Inactive' }}
+</span>

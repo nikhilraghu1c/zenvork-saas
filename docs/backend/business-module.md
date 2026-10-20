@@ -24,10 +24,15 @@ BusinessType.find({ isActive: true })
   .lean();
 ```
 
-`GET /api/admin/business-types` returns this active catalogue for the platform-admin creation form. The
+`GET /api/admin/business-types/active` returns this active catalogue for the platform-admin creation form. The
 creation controller independently checks the submitted ID with
 `BusinessType.findOne({ _id: businessTypeId, isActive: true })`, so a browser cannot create a business
 with a disabled or invented type.
+
+Platform administrators manage all catalogue entries through `GET`, `POST`, and `PATCH`
+`/api/admin/business-types` endpoints. Codes are permanent identifiers; names and Material icon names
+can change. Deactivation retains existing businesses, but prevents new business registration and new
+resource provisioning under that type.
 
 ## Lifecycle
 

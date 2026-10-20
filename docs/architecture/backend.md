@@ -44,7 +44,9 @@ for direct tenant lookups. Each helper sets `businessId` after caller-provided d
 cannot override the authenticated tenant.
 
 `BusinessType` is platform-managed reference data. A `Business` stores `businessTypeId`, and the
-platform-admin creation flow accepts only an active referenced type. Resource creation verifies the submitted type
+platform-admin creation flow accepts only an active referenced type. Platform admins manage the type
+catalogue (create, edit name/icon, activate, or deactivate) through `/api/admin/business-types`; codes
+remain immutable. Resource creation verifies the submitted type
 against the authenticated business's active `BusinessType`; it also verifies any linked user belongs
 to that same business. Initial types are created with
 `npm run seed:business-types`; seed data is not a runtime hardcoded allow-list.
@@ -59,6 +61,11 @@ can list businesses, create an active business and owner with a one-time generat
 reactivate a business, change its plan expiry, and reset its owner password. Tenant login and
 authentication middleware reject suspended or expired businesses; platform-admin sessions bypass that
 tenant lifecycle check.
+
+Platform admins also manage the resource-type entries embedded in `BusinessType` records. These entries
+remain scoped to their owning business type rather than becoming tenant data or a separate global
+catalog. Tenant resource creation continues to validate the selected code against the authenticated
+business's active configuration.
 
 The authenticated dashboard summary combines tenant-scoped booking and resource counts without
 accepting a business identifier. Its earned-revenue figures use completed bookings' server-recorded

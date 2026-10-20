@@ -1,0 +1,55 @@
+<section class="business-type-list-page" aria-labelledby="business-types-title">
+  <header class="business-type-list-page__header">
+    <div>
+      <p class="eyebrow">Platform configuration</p>
+      <div class="title-row">
+        <h1 id="business-types-title">Business types</h1>
+        <span class="count">{{ businessTypes.length }} total</span>
+      </div>
+      <p>Define the business categories available when registering a Zenvork business.</p>
+    </div>
+  </header>
+
+  <div class="business-type-list-page__toolbar">
+    <app-input
+      [formControl]="searchControl"
+      label="Search business types"
+      labelPlacement="floating"
+      subscriptSizing="dynamic"
+      prefixIcon="search"
+      placeholder="Search name, code, or icon"
+      autocomplete="off"
+    />
+    <app-button icon="add" label="Add business type" (clicked)="addBusinessType()" />
+  </div>
+
+  @if (loading) {
+    <p class="page-state" role="status">Loading business types…</p>
+  } @else if (errorMessage) {
+    <p class="page-state is-error" role="alert">{{ errorMessage }}</p>
+  } @else if (!businessTypes.length) {
+    <div class="empty-state">
+      <mat-icon aria-hidden="true">category</mat-icon>
+      <h2>No Business Types Yet</h2>
+      <p>Add the first business type before registering businesses under it.</p>
+      <app-button icon="add" label="Add business type" (clicked)="addBusinessType()" />
+    </div>
+  } @else {
+    @if (actionErrorMessage) {
+      <p class="action-error" role="alert">{{ actionErrorMessage }}</p>
+    }
+    @if (filteredBusinessTypes.length) {
+      <app-data-grid
+        class="business-type-grid"
+        [rowData]="filteredBusinessTypes"
+        [columnDefs]="columnDefs"
+        [context]="gridContext"
+        [pagination]="true"
+        [paginationPageSize]="25"
+        [paginationPageSizeSelector]="false"
+      />
+    } @else {
+      <p class="page-state">No business types match your search.</p>
+    }
+  }
+</section>

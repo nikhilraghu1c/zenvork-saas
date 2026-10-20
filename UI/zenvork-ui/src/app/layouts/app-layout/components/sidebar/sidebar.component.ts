@@ -79,6 +79,8 @@ export class SidebarComponent {
       items: [
         { label: 'Dashboard', icon: 'dashboard', route: '/admin/dashboard' },
         { label: 'Businesses', icon: 'business', route: '/admin/businesses' },
+        { label: 'Business Types', icon: 'category', route: '/admin/business-types' },
+        { label: 'Resource Types', icon: 'inventory_2', route: '/admin/resource-types' },
         { label: 'Settings', icon: 'settings', route: '/admin/settings' },
       ],
     },

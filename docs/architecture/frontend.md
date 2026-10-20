@@ -25,10 +25,11 @@ The Staff module owns `/app/staff`, `/app/staff/new`, and `/app/staff/:id`.
 The Settings module owns `/app/settings` for all authenticated tenant users and `/admin/settings` for
 platform admins. Its current Account section changes a password through the authenticated
 `POST /api/change-password` endpoint; future settings sections can be added within the same workspace.
-The platform-admin module owns `/admin/dashboard`, `/admin/businesses`, and
-`/admin/businesses/new`. It lists all platform businesses, allows active/suspended lifecycle changes,
-resets an owner password with an in-app one-time reveal, and registers businesses through the
-admin-only API.
+The platform-admin module owns `/admin/dashboard`, `/admin/businesses`, `/admin/businesses/new`,
+`/admin/resource-types`, and the resource-type create/edit routes. It lists all platform businesses,
+allows active/suspended lifecycle changes, resets an owner password with an in-app one-time reveal,
+registers businesses through the admin-only API, and manages business-type-scoped resource
+configurations without hardcoding them in the registration or tenant resource forms.
 Owners can activate or deactivate staff access from the list action menu; a deactivated account remains
 visible for history and can be reactivated. Staff Details provides an inline editor for booking and
 reminder permissions only; account identity and credentials remain read-only. The current
@@ -53,9 +54,11 @@ it provides the navigation-drawer control without repeating the page title.
 HttpOnly authentication cookie. The local backend domain is `http://localhost:4001`; its CORS
 configuration allows the Angular development origin at `http://localhost:4200`. Module-owned
 services define feature endpoints and request/response types by composing that client. The
-platform-admin business form fetches active business types from `GET /api/admin/business-types` and submits
+platform-admin business form fetches active business types from `GET /api/admin/business-types/active` and submits
 the selected `businessTypeId` to `POST /api/admin/businesses`; it does not hardcode the selectable
-platform types. A global HTTP interceptor clears cached user metadata and redirects
+platform types. The platform-admin Business Types feature uses the full `GET /api/admin/business-types`
+catalogue to manage type identity and lifecycle, while Resource Types remain a separate configuration
+feature scoped to each type. A global HTTP interceptor clears cached user metadata and redirects
 protected `401` responses to login; login-request `401` responses remain available to the form as
 invalid-credential feedback.
 

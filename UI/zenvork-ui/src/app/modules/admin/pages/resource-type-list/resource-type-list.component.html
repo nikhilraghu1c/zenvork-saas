@@ -1,0 +1,55 @@
+<section class="resource-type-list-page" aria-labelledby="resource-types-title">
+  <header class="resource-type-list-page__header">
+    <div>
+      <p class="eyebrow">Platform configuration</p>
+      <div class="title-row">
+        <h1 id="resource-types-title">Resource types</h1>
+        <span class="count">{{ resourceTypes.length }} total</span>
+      </div>
+      <p>Configure the people, spaces, and equipment available for each business type.</p>
+    </div>
+  </header>
+
+  <div class="resource-type-list-page__toolbar">
+    <app-input
+      [formControl]="searchControl"
+      label="Search resource types"
+      labelPlacement="floating"
+      subscriptSizing="dynamic"
+      prefixIcon="search"
+      placeholder="Search name, code, or business type"
+      autocomplete="off"
+    />
+    <app-button icon="add" label="Add resource type" (clicked)="addResourceType()" />
+  </div>
+
+  @if (loading) {
+    <p class="page-state" role="status">Loading resource types…</p>
+  } @else if (errorMessage) {
+    <p class="page-state is-error" role="alert">{{ errorMessage }}</p>
+  } @else if (!resourceTypes.length) {
+    <div class="empty-state">
+      <mat-icon aria-hidden="true">inventory_2</mat-icon>
+      <h2>No Resource Types Yet</h2>
+      <p>Add the first resource type to configure a business workflow.</p>
+      <app-button icon="add" label="Add resource type" (clicked)="addResourceType()" />
+    </div>
+  } @else {
+    @if (actionErrorMessage) {
+      <p class="action-error" role="alert">{{ actionErrorMessage }}</p>
+    }
+    @if (filteredResourceTypes.length) {
+      <app-data-grid
+        class="resource-type-grid"
+        [rowData]="filteredResourceTypes"
+        [columnDefs]="columnDefs"
+        [context]="gridContext"
+        [pagination]="true"
+        [paginationPageSize]="25"
+        [paginationPageSizeSelector]="false"
+      />
+    } @else {
+      <p class="page-state">No resource types match your search.</p>
+    }
+  }
+</section>

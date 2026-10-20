@@ -71,6 +71,25 @@ business and has the `OWNER` role. It generates a new password, sets `passwordCh
 returns the password once. On the owner's next password change, `passwordChangedAt` invalidates all
 tokens issued before that change.
 
+## Business-type configuration
+
+`BusinessType` records are platform configuration, not tenant-owned data. The admin catalogue API
+lists active and inactive types, creates a new type with an immutable code, updates its name/icon, and
+activates or deactivates it. Deactivation preserves existing businesses and history while preventing
+future business registration and resource provisioning for that type.
+
+## Resource-type configuration
+
+`BusinessType.resourceTypes` remains the source of truth for which types a tenant can create. The
+admin resource-type endpoints flatten those embedded entries only for the platform list UI; they do not
+create a tenant-visible global catalog. `POST /api/admin/resource-types` appends a validated entry to
+the selected `BusinessType`; the duplicate-code check is scoped to that same business type.
+
+Codes and `isPerson` are immutable once stored. Tenant `Resource` documents persist the code, and
+`isPerson` controls whether a resource can link to a tenant user. `PATCH .../status` changes only
+`resourceTypes.$.isActive`: it retires the type from future tenant resource creation without deleting
+existing resources or their booking history.
+
 ## Errors
 
 Validation failures return `400`, invalid identifiers return `400`, absent businesses or owners return

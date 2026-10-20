@@ -7,12 +7,32 @@ import {
   AdminValidationError,
   validateBusinessCreation,
   validateBusinessStatus,
+  validateBusinessTypeCreation,
+  validateBusinessTypeStatus,
+  validateBusinessTypeUpdate,
   validatePlanExpiry,
+  validateResourceTypeCreation,
+  validateResourceTypeStatus,
+  validateResourceTypeUpdate,
 } from "./admin.validation.js";
 
 const temporaryPassword = () => crypto.randomBytes(18).toString("base64url");
 const businessProjection =
   "name businessTypeId ownerId status planExpiresAt createdByAdminId createdAt updatedAt";
+
+const isValidResourceTypeRoute = (businessTypeId, code) =>
+  mongoose.isObjectIdOrHexString(businessTypeId) &&
+  typeof code === "string" &&
+  /^[A-Z][A-Z0-9_]*$/.test(code.toUpperCase());
+
+const businessTypeResponse = (businessType) => ({
+  id: businessType._id,
+  code: businessType.code,
+  name: businessType.name,
+  iconName: businessType.iconName,
+  isActive: businessType.isActive === true,
+  resourceTypes: businessType.resourceTypes ?? [],
+});
 
 const getSummary = async (_req, res) => {
   try {
@@ -258,11 +278,248 @@ const resetOwnerPassword = async (req, res) => {
   }
 };
 
+const listBusinessTypes = async (_req, res) => {
+  try {
+    // Platform administration includes inactive types so their lifecycle can be managed without deletion.
+    const businessTypes = await BusinessType.find()
+      .select("code name iconName isActive resourceTypes")
+      .sort({ name: 1 })
+      .lean();
+    return res.status(200).json({ businessTypes: businessTypes.map(businessTypeResponse) });
+  } catch (error) {
+    console.error("Admin business type list failed:", error);
+    return res.status(500).json({ message: "Unable to load business types" });
+  }
+};
+
+const createBusinessType = async (req, res) => {
+  try {
+    const input = validateBusinessTypeCreation(req.body);
+    if (await BusinessType.exists({ code: input.code })) {
+      return res.status(409).json({ message: "This business type code already exists" });
+    }
+    // A code is a durable catalogue identifier used by businesses and dashboard aggregates.
+    const businessType = await BusinessType.create({ ...input, resourceTypes: [], isActive: true });
+    return res.status(201).json({
+      message: "Business type created successfully",
+      businessType: businessTypeResponse(businessType),
+    });
+  } catch (error) {
+    if (error instanceof AdminValidationError) {
+      return res.status(400).json({ message: error.message });
+    }
+    if (error?.code === 11000) {
+      return res.status(409).json({ message: "This business type code already exists" });
+    }
+    console.error("Admin business type creation failed:", error);
+    return res.status(500).json({ message: "Unable to create business type" });
+  }
+};
+
+const updateBusinessType = async (req, res) => {
+  try {
+    if (!mongoose.isObjectIdOrHexString(req.params.id)) {
+      return res.status(400).json({ message: "Invalid business type" });
+    }
+    const update = validateBusinessTypeUpdate(req.body);
+    // Code remains immutable because businesses persist the selected type ID and reports aggregate by code.
+    const businessType = await BusinessType.findByIdAndUpdate(req.params.id, update, { new: true })
+      .select("code name iconName isActive resourceTypes");
+    if (!businessType) return res.status(404).json({ message: "Business type not found" });
+    return res.status(200).json({
+      message: "Business type updated",
+      businessType: businessTypeResponse(businessType),
+    });
+  } catch (error) {
+    if (error instanceof AdminValidationError) {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Admin business type update failed:", error);
+    return res.status(500).json({ message: "Unable to update business type" });
+  }
+};
+
+const updateBusinessTypeStatus = async (req, res) => {
+  try {
+    if (!mongoose.isObjectIdOrHexString(req.params.id)) {
+      return res.status(400).json({ message: "Invalid business type" });
+    }
+    const { isActive } = validateBusinessTypeStatus(req.body);
+    // Retiring a type prevents future registration and resource provisioning while retaining existing records.
+    const businessType = await BusinessType.findByIdAndUpdate(
+      req.params.id,
+      { isActive },
+      { new: true },
+    ).select("code name iconName isActive resourceTypes");
+    if (!businessType) return res.status(404).json({ message: "Business type not found" });
+    return res.status(200).json({
+      message: isActive ? "Business type activated" : "Business type deactivated",
+      businessType: businessTypeResponse(businessType),
+    });
+  } catch (error) {
+    if (error instanceof AdminValidationError) {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Admin business type status update failed:", error);
+    return res.status(500).json({ message: "Unable to update business type status" });
+  }
+};
+
+const listResourceTypes = async (_req, res) => {
+  try {
+    // Flatten platform configuration only for administration; tenants still resolve types from their own business type.
+    const businessTypes = await BusinessType.find()
+      .select("code name isActive resourceTypes")
+      .sort({ name: 1 })
+      .lean();
+    const resourceTypes = businessTypes.flatMap((businessType) =>
+      businessType.resourceTypes.map((resourceType) => ({
+        businessTypeId: businessType._id,
+        businessTypeCode: businessType.code,
+        businessTypeName: businessType.name,
+        businessTypeIsActive: businessType.isActive,
+        code: resourceType.code,
+        name: resourceType.name,
+        isPerson: resourceType.isPerson === true,
+        isActive: resourceType.isActive === true,
+      })),
+    );
+    return res.status(200).json({ resourceTypes });
+  } catch (error) {
+    console.error("Admin resource type list failed:", error);
+    return res.status(500).json({ message: "Unable to load resource types" });
+  }
+};
+
+const createResourceType = async (req, res) => {
+  try {
+    const input = validateResourceTypeCreation(req.body);
+    const businessType = await BusinessType.findById(input.businessTypeId);
+    if (!businessType) return res.status(404).json({ message: "Business type not found" });
+    // A resource code is immutable once configured because tenant resource records persist that code.
+    if (businessType.resourceTypes.some((resourceType) => resourceType.code === input.code)) {
+      return res.status(409).json({ message: "This resource type already exists for the business type" });
+    }
+    businessType.resourceTypes.push({
+      code: input.code,
+      name: input.name,
+      isPerson: input.isPerson,
+      isActive: true,
+    });
+    await businessType.save();
+    return res.status(201).json({
+      message: "Resource type created successfully",
+      resourceType: {
+        businessTypeId: businessType._id,
+        businessTypeCode: businessType.code,
+        businessTypeName: businessType.name,
+        businessTypeIsActive: businessType.isActive,
+        code: input.code,
+        name: input.name,
+        isPerson: input.isPerson,
+        isActive: true,
+      },
+    });
+  } catch (error) {
+    if (error instanceof AdminValidationError) {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Admin resource type creation failed:", error);
+    return res.status(500).json({ message: "Unable to create resource type" });
+  }
+};
+
+const updateResourceType = async (req, res) => {
+  try {
+    const { businessTypeId, code } = req.params;
+    if (!isValidResourceTypeRoute(businessTypeId, code)) {
+      return res.status(400).json({ message: "Invalid resource type" });
+    }
+    const { name } = validateResourceTypeUpdate(req.body);
+    // Only the display name can change; changing code/person semantics would invalidate existing resources.
+    const businessType = await BusinessType.findOneAndUpdate(
+      { _id: businessTypeId, "resourceTypes.code": code.toUpperCase() },
+      { $set: { "resourceTypes.$.name": name } },
+      { new: true },
+    ).select("code name isActive resourceTypes");
+    if (!businessType) return res.status(404).json({ message: "Resource type not found" });
+    const resourceType = businessType.resourceTypes.find(
+      (item) => item.code === code.toUpperCase(),
+    );
+    return res.status(200).json({
+      message: "Resource type updated",
+      resourceType: {
+        businessTypeId: businessType._id,
+        businessTypeCode: businessType.code,
+        businessTypeName: businessType.name,
+        businessTypeIsActive: businessType.isActive,
+        code: resourceType.code,
+        name: resourceType.name,
+        isPerson: resourceType.isPerson === true,
+        isActive: resourceType.isActive === true,
+      },
+    });
+  } catch (error) {
+    if (error instanceof AdminValidationError) {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Admin resource type update failed:", error);
+    return res.status(500).json({ message: "Unable to update resource type" });
+  }
+};
+
+const updateResourceTypeStatus = async (req, res) => {
+  try {
+    const { businessTypeId, code } = req.params;
+    if (!isValidResourceTypeRoute(businessTypeId, code)) {
+      return res.status(400).json({ message: "Invalid resource type" });
+    }
+    const { isActive } = validateResourceTypeStatus(req.body);
+    // Deactivation retires the type from new resource creation while retaining historic resource records.
+    const businessType = await BusinessType.findOneAndUpdate(
+      { _id: businessTypeId, "resourceTypes.code": code.toUpperCase() },
+      { $set: { "resourceTypes.$.isActive": isActive } },
+      { new: true },
+    ).select("code name isActive resourceTypes");
+    if (!businessType) return res.status(404).json({ message: "Resource type not found" });
+    const resourceType = businessType.resourceTypes.find(
+      (item) => item.code === code.toUpperCase(),
+    );
+    return res.status(200).json({
+      message: isActive ? "Resource type activated" : "Resource type deactivated",
+      resourceType: {
+        businessTypeId: businessType._id,
+        businessTypeCode: businessType.code,
+        businessTypeName: businessType.name,
+        businessTypeIsActive: businessType.isActive,
+        code: resourceType.code,
+        name: resourceType.name,
+        isPerson: resourceType.isPerson === true,
+        isActive: resourceType.isActive === true,
+      },
+    });
+  } catch (error) {
+    if (error instanceof AdminValidationError) {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Admin resource type status update failed:", error);
+    return res.status(500).json({ message: "Unable to update resource type status" });
+  }
+};
+
 export {
   createBusiness,
+  createBusinessType,
+  createResourceType,
   getSummary,
   listBusinesses,
+  listBusinessTypes,
+  listResourceTypes,
   resetOwnerPassword,
   updateBusinessStatus,
+  updateBusinessType,
+  updateBusinessTypeStatus,
   updatePlanExpiry,
+  updateResourceType,
+  updateResourceTypeStatus,
 };

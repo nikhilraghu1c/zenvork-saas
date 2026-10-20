@@ -1,0 +1,70 @@
+<section class="resource-type-form-page" aria-labelledby="resource-type-form-title">
+  <div class="resource-type-form-page__content">
+    <header class="resource-type-form-page__header">
+      <span class="resource-type-form-page__icon" aria-hidden="true"><mat-icon>inventory_2</mat-icon></span>
+      <p class="eyebrow">Platform configuration</p>
+      <h1 id="resource-type-form-title">{{ pageTitle }}</h1>
+      <p>
+        @if (isEditMode) {
+          Update the resource type display name. Its code and person setting are retained for existing resources.
+        } @else {
+          Add a configurable person, space, or equipment type for an active business type.
+        }
+      </p>
+    </header>
+
+    <div class="resource-type-form-page__card">
+      @if (loading) {
+        <p class="page-state" role="status">Loading resource type…</p>
+      } @else {
+        <form [formGroup]="resourceTypeForm" (ngSubmit)="submit()" novalidate>
+          <app-select
+            formControlName="businessTypeId"
+            label="Business type"
+            labelPlacement="outside"
+            [options]="businessTypeOptions"
+            placeholder="Select a business type"
+            [required]="true"
+            [errorMessage]="fieldError('businessTypeId')"
+          />
+          <app-input
+            formControlName="name"
+            label="Resource type name"
+            labelPlacement="outside"
+            placeholder="e.g. Resource type name"
+            autocomplete="off"
+            [required]="true"
+            [errorMessage]="fieldError('name')"
+          />
+          <app-input
+            formControlName="code"
+            label="Resource type code"
+            labelPlacement="outside"
+            placeholder="e.g. Resource code"
+            autocomplete="off"
+            [required]="true"
+            [errorMessage]="fieldError('code')"
+          />
+          <app-toggle
+            formControlName="isPerson"
+            label="This is a person resource"
+            hint="Person resources can be linked to a staff login account."
+          />
+
+          @if (serverError) {
+            <p class="server-error" role="alert">{{ serverError }}</p>
+          }
+
+          <div class="resource-type-form-page__actions">
+            <app-button type="button" variant="secondary" [disabled]="submitting" (clicked)="cancel()">
+              Cancel
+            </app-button>
+            <app-button type="submit" [loading]="submitting" [disabled]="submitting">
+              {{ isEditMode ? 'Save changes' : 'Add resource type' }}
+            </app-button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</section>

@@ -1,9 +1,9 @@
 # Business types API
 
-## Active endpoint
+## Registration endpoint
 
 ```http
-GET /api/admin/business-types
+GET /api/admin/business-types/active
 ```
 
 The endpoint requires an authenticated `PLATFORM_ADMIN` because only platform administrators can
@@ -37,3 +37,22 @@ business types; it does not update existing catalog records. New non-person type
 use `isPerson: false`.
 
 Salon seed configuration includes Chair (`CHAIR`) as an active non-person resource type, alongside Stylist.
+
+## Platform management
+
+Platform administrators manage the catalogue through the following endpoints. All require
+`PLATFORM_ADMIN` and are not tenant-scoped.
+
+- `GET /api/admin/business-types` lists active and inactive business types, including their embedded
+  resource-type configuration.
+- `POST /api/admin/business-types` accepts `code`, `name`, and optional `iconName`. A code uses
+  uppercase letters, numbers, and underscores and is immutable after creation.
+- `PATCH /api/admin/business-types/:id` accepts `name` and/or `iconName`.
+- `PATCH /api/admin/business-types/:id/status` accepts `{ "isActive": true | false }`.
+
+Resource types are managed through `/api/admin/resource-types`; see
+[Platform administration API](admin.md#resource-types). They remain embedded in their owning
+`BusinessType` record, so each business type can allow a different set of resource types.
+
+Deactivation retains existing businesses and history, but removes the type from future business
+registration and resource provisioning.
