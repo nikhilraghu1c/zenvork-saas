@@ -116,18 +116,19 @@
   }
 
   .type-options {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 10px;
   }
 
   .type-option {
     position: relative;
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    width: 100px;
+    gap: 4px;
+    width: auto;
     min-height: 48px;
     padding: 8px;
     border: 1px solid var(--border);
@@ -159,8 +160,15 @@
   }
 
   .type-icon {
+    flex: 0 0 auto;
     color: var(--cyan);
     font-size: 20px;
+  }
+
+  .type-option span {
+    min-width: 0;
+    text-align: center;
+    overflow-wrap: anywhere;
   }
 
   .type-error {

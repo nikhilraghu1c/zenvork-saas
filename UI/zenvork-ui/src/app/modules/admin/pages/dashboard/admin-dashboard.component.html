@@ -54,23 +54,17 @@
       <h2>Business type distribution</h2>
       <p>A breakdown of businesses on the platform by type.</p>
       <div class="distribution-bar">
-        <span class="clinic" [style.width.%]="typePercentage('CLINIC')"></span
-        ><span class="salon" [style.width.%]="typePercentage('SALON')"></span
-        ><span class="independent" [style.width.%]="typePercentage('INDEPENDENT')"></span>
+        @for (type of summary?.businessTypeDistribution ?? []; track type.code; let index = $index) {
+          <span [style.width.%]="typePercentage(type.count)" [style.background]="distributionColor(index)"></span>
+        }
       </div>
       <div class="distribution-items">
-        <div>
-          <i class="clinic"></i><b>{{ typePercentage('CLINIC') }}%</b
-          ><span>Clinics · {{ countFor('CLINIC') }}</span>
-        </div>
-        <div>
-          <i class="salon"></i><b>{{ typePercentage('SALON') }}%</b
-          ><span>Salons · {{ countFor('SALON') }}</span>
-        </div>
-        <div>
-          <i class="independent"></i><b>{{ typePercentage('INDEPENDENT') }}%</b
-          ><span>Independent · {{ countFor('INDEPENDENT') }}</span>
-        </div>
+        @for (type of summary?.businessTypeDistribution ?? []; track type.code; let index = $index) {
+          <div>
+            <i [style.background]="distributionColor(index)"></i><b>{{ typePercentage(type.count) }}%</b
+            ><span>{{ type.name }} · {{ type.count }}</span>
+          </div>
+        }
       </div>
     </section>
     <section class="recent">

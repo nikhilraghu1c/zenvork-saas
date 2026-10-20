@@ -29,12 +29,16 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  protected countFor(code: string): number {
-    return this.summary?.byBusinessType[code] ?? 0;
-  }
-  protected typePercentage(code: string): number {
+  protected typePercentage(count: number): number {
     return this.summary?.totalBusinesses
-      ? Math.round((this.countFor(code) / this.summary.totalBusinesses) * 100)
+      ? Math.round((count / this.summary.totalBusinesses) * 100)
       : 0;
+  }
+
+  /** Cycles a compact, accessible palette as platform administrators add catalogue types. */
+  protected distributionColor(index: number): string {
+    return ['var(--cyan)', 'var(--purple)', 'var(--azure-light)', 'var(--green)', 'var(--amber)'][
+      index % 5
+    ];
   }
 }

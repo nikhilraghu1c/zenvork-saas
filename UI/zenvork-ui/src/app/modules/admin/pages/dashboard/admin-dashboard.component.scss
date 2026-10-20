@@ -140,22 +140,11 @@
       min-width: 0;
     }
 
-    .clinic {
-      background: var(--cyan);
-    }
-
-    .salon {
-      background: var(--purple);
-    }
-
-    .independent {
-      background: #4f7cff;
-    }
   }
 
   .distribution-items {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 16px;
 
     div {
@@ -170,18 +159,6 @@
       width: 7px;
       height: 7px;
       border-radius: 50%;
-    }
-
-    i.clinic {
-      background: var(--cyan);
-    }
-
-    i.salon {
-      background: var(--purple);
-    }
-
-    i.independent {
-      background: #4f7cff;
     }
 
     b,

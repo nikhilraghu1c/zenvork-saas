@@ -46,6 +46,7 @@ const getSummary = async (_req, res) => {
       suspendedBusinesses,
       expiringBusinesses,
       recentBusinesses,
+      businessTypes,
     ] = await Promise.all([
       Business.aggregate([
         {
@@ -71,6 +72,11 @@ const getSummary = async (_req, res) => {
         .populate("businessTypeId", "code name iconName")
         .populate("ownerId", "name")
         .lean(),
+      // Include active zero-count types and retired types that still have registered businesses.
+      BusinessType.find()
+        .select("code name iconName isActive")
+        .sort({ name: 1 })
+        .lean(),
     ]);
     const byBusinessType = Object.fromEntries(
       summary.map(({ _id, count }) => [_id, count]),
@@ -78,6 +84,15 @@ const getSummary = async (_req, res) => {
     return res.status(200).json({
       totalBusinesses: summary.reduce((total, item) => total + item.count, 0),
       byBusinessType,
+      businessTypeDistribution: businessTypes
+        .map((businessType) => ({
+          code: businessType.code,
+          name: businessType.name,
+          iconName: businessType.iconName,
+          isActive: businessType.isActive === true,
+          count: byBusinessType[businessType.code] ?? 0,
+        }))
+        .filter((businessType) => businessType.isActive || businessType.count > 0),
       activeBusinesses,
       suspendedBusinesses,
       expiringBusinesses,

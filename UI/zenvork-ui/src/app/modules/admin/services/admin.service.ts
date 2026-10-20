@@ -24,6 +24,13 @@ export interface AdminDashboardSummary {
   suspendedBusinesses: number;
   expiringBusinesses: number;
   byBusinessType: Record<string, number>;
+  businessTypeDistribution: Array<{
+    code: string;
+    name: string;
+    iconName: string;
+    isActive: boolean;
+    count: number;
+  }>;
   recentBusinesses: Array<{
     _id: string;
     name: string;

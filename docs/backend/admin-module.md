@@ -56,6 +56,8 @@ Business.find()
 `GET /api/admin/summary` counts active, suspended, and plans expiring in the next 30 calendar days.
 The expiry filter is `{ planExpiresAt: { $gt: now, $lte: expiringAt } }`, so already expired plans and
 businesses with `planExpiresAt: null` are excluded. Its recent-business query is limited to five rows.
+It also returns `businessTypeDistribution`, built from the platform catalogue with each type's
+configuration metadata and registered-business count, so the dashboard does not hardcode type names.
 
 ## Lifecycle and password recovery
 
