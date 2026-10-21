@@ -102,9 +102,14 @@ export class BookingEditComponent implements OnInit {
       });
   }
 
-  /** Only pre-check-in bookings may change their planned slot or resource assignment. */
+  /** Only pre-check-in bookings may change their planned slot. */
   protected get canEditSchedule(): boolean {
     return this.booking?.status === 'PENDING' || this.booking?.status === 'SCHEDULED';
+  }
+
+  /** A live booking may add the person or assets needed by a newly added service. */
+  protected get canEditResources(): boolean {
+    return ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(this.booking?.status ?? '');
   }
 
   /** Client correction is allowed only before a booking has been scheduled or checked in. */
@@ -118,7 +123,7 @@ export class BookingEditComponent implements OnInit {
   }
 
   protected get canEdit(): boolean {
-    return this.canEditSchedule || this.canEditBill;
+    return this.canEditResources || this.canEditBill;
   }
 
   protected resourceOptions(type: ResourceTypeOption): AppSelectOption[] {
@@ -154,6 +159,24 @@ export class BookingEditComponent implements OnInit {
   protected selectedServices(): ServiceOption[] {
     const selectedIds = new Set(this.serviceIdsControl.value);
     return this.serviceOptions.filter((service) => selectedIds.has(service._id));
+  }
+
+  /** Shows the staffing rule before an owner saves a service change. */
+  protected requiresPersonResource(): boolean {
+    const selectedIds = new Set(this.serviceIdsControl.value);
+    return this.serviceOptions.some(
+      (service) => selectedIds.has(service._id) && service.requiresPersonResource,
+    );
+  }
+
+  protected hasSelectedPersonResource(): boolean {
+    return this.resourceTypes
+      .filter((type) => type.isPerson)
+      .some((type) => Boolean(this.resourceControl(type.code)?.value));
+  }
+
+  protected personRequirementText(): string {
+    return 'Assign a team member or professional';
   }
 
   protected estimatedTotal(): string {
@@ -255,11 +278,23 @@ export class BookingEditComponent implements OnInit {
     if (extraAmountPaise !== this.initialExtraAmountPaise)
       payload.extraAmountPaise = extraAmountPaise;
 
+    const resourceIds = this.canEditResources
+      ? this.resourceTypes
+          .map((type) => this.resourceControl(type.code)?.value)
+          .filter((value): value is string => Boolean(value))
+      : [];
+    if (
+      this.booking.status === 'CHECKED_IN' &&
+      this.requiresPersonResource() &&
+      !this.hasSelectedPersonResource()
+    ) {
+      this.errorMessage = 'Assign a team member or professional before saving these services.';
+      return null;
+    }
+    if (this.canEditResources && !this.sameIds(resourceIds, this.initialResourceIds)) {
+      payload.resourceIds = resourceIds;
+    }
     if (!this.canEditSchedule) return payload;
-
-    const resourceIds = this.resourceTypes
-      .map((type) => this.resourceControl(type.code)?.value)
-      .filter((value): value is string => Boolean(value));
     const hasScheduleValue = [
       this.dateControl.value,
       this.startTimeControl.value,
@@ -281,8 +316,6 @@ export class BookingEditComponent implements OnInit {
       this.errorMessage = 'Select a date and time before assigning resources to a pending booking.';
       return null;
     }
-    if (!this.sameIds(resourceIds, this.initialResourceIds)) payload.resourceIds = resourceIds;
-
     const scheduleChanged =
       this.dateControl.value !== this.initialDate ||
       this.startTimeControl.value !== this.initialStartTime ||

@@ -99,6 +99,43 @@
     display: grid;
     gap: 14px;
   }
+  .person-requirement {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 12px;
+    border: 1px solid var(--cyan-border);
+    border-radius: var(--radius-md);
+    background: var(--cyan-soft);
+    &__icon {
+      flex: 0 0 auto;
+      color: var(--cyan);
+      font-size: 15px;
+      line-height: 1.2;
+    }
+    p {
+      display: grid;
+      gap: 2px;
+      margin: 0;
+    }
+    strong {
+      color: var(--text);
+      font-size: 13px;
+    }
+    span:not(.person-requirement__icon) {
+      color: var(--text-dim);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    &.is-satisfied {
+      border-color: var(--green-border);
+      background: var(--green-soft);
+      .person-requirement__icon { color: var(--green); }
+    }
+  }
+  .person-required-hint {
+    color: var(--cyan);
+  }
   .schedule-fields {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

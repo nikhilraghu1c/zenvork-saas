@@ -192,6 +192,20 @@ export class BookingFormComponent implements OnInit {
     return count ? `${count} selected` : 'Not selected';
   }
 
+  /** A selected service can require a person only when the booking starts, not when it is created. */
+  protected requiresPersonResource(): boolean {
+    const selectedIds = new Set(this.serviceIdsControl.value);
+    return this.serviceOptions.some(
+      (service) => selectedIds.has(service._id) && service.requiresPersonResource,
+    );
+  }
+
+  protected hasSelectedPersonResource(): boolean {
+    return this.resourceTypes
+      .filter((type) => type.isPerson)
+      .some((type) => Boolean(this.resourceControl(type.code)?.value));
+  }
+
   protected estimatedTotal(): string {
     const selectedIds = new Set(this.serviceIdsControl.value);
     const serviceTotal = this.serviceOptions

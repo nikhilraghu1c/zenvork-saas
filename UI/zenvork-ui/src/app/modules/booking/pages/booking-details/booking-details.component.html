@@ -57,6 +57,17 @@
         <section class="detail-section" aria-labelledby="resources-title">
           <h2 id="resources-title">Resources assigned</h2>
           <div class="card resource-list">
+            @if (requiresPersonResource(booking)) {
+              <div class="person-requirement" [class.is-satisfied]="['CHECKED_IN', 'COMPLETED'].includes(booking.status)">
+                <mat-icon aria-hidden="true">person</mat-icon>
+                <p>
+                  <strong>{{ personRequirementLabel(booking) }}</strong>
+                  <span>
+                    {{ ['CHECKED_IN', 'COMPLETED'].includes(booking.status) ? 'This service needs a team member or professional.' : 'Assign a team member or professional when checking in.' }}
+                  </span>
+                </p>
+              </div>
+            }
             @if (booking.resources.length) {
               @for (resource of booking.resources; track resource._id) {
                 <div class="resource-item"><mat-icon aria-hidden="true">category</mat-icon><div><strong>{{ resource.name }}</strong><span>{{ resource.resourceTypeName }}</span></div></div>

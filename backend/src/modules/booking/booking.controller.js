@@ -241,11 +241,10 @@ const updateBooking = async (req, res) => {
     if (!EDITABLE_BOOKING_STATUSES.includes(booking.status)) {
       return res.status(409).json({ message: "This booking can no longer be edited" });
     }
-    if (
-      booking.status === "CHECKED_IN" &&
-      (updateData.hasClientId || updateData.hasResourceIds || updateData.hasSchedule)
-    ) {
-      return res.status(409).json({ message: "Only notes and services can be updated after check-in" });
+    if (booking.status === "CHECKED_IN" && (updateData.hasClientId || updateData.hasSchedule)) {
+      return res.status(409).json({
+        message: "Client and schedule cannot be updated after check-in",
+      });
     }
     if (updateData.hasClientId && booking.status !== "PENDING") {
       // A scheduled appointment must not be silently transferred to another client.
@@ -295,17 +294,6 @@ const updateBooking = async (req, res) => {
         return res.status(400).json({ message: "One or more services are invalid or inactive" });
       }
     }
-    if (
-      booking.status === "CHECKED_IN" &&
-      serviceSnapshots &&
-      requiresPersonResource(serviceSnapshots) &&
-      !(await hasPersonResource(req, booking.resourceIds))
-    ) {
-      return res.status(409).json({
-        message: "Assign a person before adding a service that requires one",
-      });
-    }
-
     const scheduledStartAt = updateData.hasSchedule
       ? updateData.scheduledStartAt
       : booking.scheduledStartAt;
@@ -315,6 +303,21 @@ const updateBooking = async (req, res) => {
     const resourceIds = updateData.hasResourceIds
       ? updateData.resourceIds
       : booking.resourceIds;
+    const services = serviceSnapshots ?? booking.services;
+    if (booking.status === "CHECKED_IN" && resourceIds.length === 0) {
+      return res.status(400).json({
+        message: "Assign at least one resource while this booking is checked in",
+      });
+    }
+    if (
+      booking.status === "CHECKED_IN" &&
+      requiresPersonResource(services) &&
+      !(await hasPersonResource(req, resourceIds))
+    ) {
+      return res.status(409).json({
+        message: "Assign a person before saving a service that requires one",
+      });
+    }
     const becomesScheduled = booking.status === "PENDING" && updateData.hasSchedule;
     if (
       (becomesScheduled || booking.status === "SCHEDULED") &&
@@ -335,6 +338,38 @@ const updateBooking = async (req, res) => {
         return res.status(409).json({
           message: "One or more selected resources are unavailable at this time",
         });
+      }
+    }
+    if (booking.status === "CHECKED_IN" && updateData.hasResourceIds) {
+      // A live booking may add or replace resources, but none may be serving another live booking.
+      const activeResourceBooking = await Booking.exists(
+        tenantFilter(req, {
+          _id: { $ne: booking._id },
+          resourceIds: { $in: resourceIds },
+          status: "CHECKED_IN",
+        }),
+      );
+      if (activeResourceBooking) {
+        return res.status(409).json({
+          message: "One or more selected resources are currently serving another booking",
+        });
+      }
+      if (scheduledStartAt && scheduledEndAt) {
+        // Retain planned-slot protection when a live booking gains another resource.
+        const scheduledConflict = await Booking.exists(
+          tenantFilter(req, {
+            _id: { $ne: booking._id },
+            resourceIds: { $in: resourceIds },
+            status: { $in: ["SCHEDULED", "CHECKED_IN"] },
+            scheduledStartAt: { $lt: scheduledEndAt },
+            scheduledEndAt: { $gt: scheduledStartAt },
+          }),
+        );
+        if (scheduledConflict) {
+          return res.status(409).json({
+            message: "One or more selected resources are unavailable at this time",
+          });
+        }
       }
     }
 

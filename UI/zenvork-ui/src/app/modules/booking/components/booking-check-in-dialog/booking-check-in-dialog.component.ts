@@ -101,6 +101,21 @@ export class BookingCheckInDialogComponent implements OnInit {
       .filter((resourceId): resourceId is string => Boolean(resourceId));
   }
 
+  /** A completed service snapshot keeps its person requirement even if the catalogue changes later. */
+  protected requiresPersonResource(): boolean {
+    return (this.booking.services ?? []).some((service) => service.requiresPersonResource);
+  }
+
+  protected hasSelectedPersonResource(): boolean {
+    return this.resourceTypes
+      .filter((type) => type.isPerson)
+      .some((type) => Boolean(this.resourceControl(type.code)?.value));
+  }
+
+  protected resourceLabel(type: ResourceTypeOption): string {
+    return this.requiresPersonResource() && type.isPerson ? `${type.name} (required)` : type.name;
+  }
+
   /** Keeps the dialog mounted while its one atomic check-in request is in flight. */
   protected close(): void {
     if (!this.submitting) this.closed.emit();
@@ -109,6 +124,10 @@ export class BookingCheckInDialogComponent implements OnInit {
   protected confirm(): void {
     const resourceIds = this.selectedResourceIds();
     if (this.submitting || resourceIds.length === 0) return;
+    if (this.requiresPersonResource() && !this.hasSelectedPersonResource()) {
+      this.errorMessage = 'Select a team member or professional before checking in.';
+      return;
+    }
 
     this.submitting = true;
     this.errorMessage = '';

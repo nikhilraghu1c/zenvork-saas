@@ -68,10 +68,19 @@
           </div>
         </section>
 
-        @if (canEditSchedule) {
+        @if (canEditResources) {
           <section class="form-section" aria-labelledby="resources-title">
-            <h2 id="resources-title">Assign resources <span>Optional</span></h2>
+            <h2 id="resources-title">Assign resources</h2>
             <div class="card resource-fields">
+              @if (requiresPersonResource()) {
+                <div class="person-requirement" [class.is-satisfied]="hasSelectedPersonResource()">
+                  <span class="person-requirement__icon" aria-hidden="true">●</span>
+                  <p>
+                    <strong>{{ hasSelectedPersonResource() ? 'Team member or professional assigned' : personRequirementText() }}</strong>
+                    <span>This service cannot be checked in or completed without one.</span>
+                  </p>
+                </div>
+              }
               @for (type of resourceTypes; track type.code) {
                 <app-select
                   [formControl]="resourceControl(type.code)"
@@ -86,6 +95,9 @@
             </div>
           </section>
 
+        }
+
+        @if (canEditSchedule) {
           <section class="form-section" aria-labelledby="schedule-title">
             <h2 id="schedule-title">
               Schedule <span>{{ booking.status === 'PENDING' ? 'Optional' : '' }}</span>

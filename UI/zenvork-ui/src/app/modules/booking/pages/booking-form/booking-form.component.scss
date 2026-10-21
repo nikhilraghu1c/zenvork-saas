@@ -213,6 +213,43 @@
     display: grid;
     gap: 14px;
   }
+  .person-requirement {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 12px;
+    border: 1px solid var(--cyan-border);
+    border-radius: var(--radius-md);
+    background: var(--cyan-soft);
+    color: var(--cyan);
+    mat-icon {
+      flex: 0 0 auto;
+      margin-top: 1px;
+    }
+    p,
+    strong,
+    span {
+      margin: 0;
+    }
+    p {
+      display: grid;
+      gap: 2px;
+    }
+    strong {
+      color: var(--text);
+      font-size: 13px;
+    }
+    span {
+      color: var(--text-dim);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    &.is-satisfied {
+      border-color: var(--green-border);
+      background: var(--green-soft);
+      color: var(--green);
+    }
+  }
   .service-fields {
     display: grid;
     gap: 14px;

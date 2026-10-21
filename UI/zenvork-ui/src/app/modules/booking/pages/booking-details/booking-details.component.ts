@@ -99,6 +99,17 @@ export class BookingDetailsComponent implements OnInit {
     return `${start} – ${this.dateTime.format(booking.scheduledEndAt, 'time')}`;
   }
 
+  /** Uses immutable booking snapshots instead of the service catalogue's current configuration. */
+  protected requiresPersonResource(booking: BookingRecord): boolean {
+    return (booking.services ?? []).some((service) => service.requiresPersonResource);
+  }
+
+  protected personRequirementLabel(booking: BookingRecord): string {
+    return ['CHECKED_IN', 'COMPLETED'].includes(booking.status)
+      ? 'Team member or professional assigned'
+      : 'Team member or professional needed at check-in';
+  }
+
   /** Maps stored lifecycle values to concise staff-facing labels. */
   protected statusLabel(status: BookingStatus): string {
     return status

@@ -5,7 +5,7 @@
       <div>
         <p>Start service</p>
         <h2 id="check-in-title">Check in {{ booking.client?.name ?? 'client' }}</h2>
-        <span>Choose the staff and other resources needed for this service.</span>
+        <span>Choose the people and other resources needed for this service.</span>
       </div>
       <app-button
         variant="text"
@@ -24,10 +24,19 @@
       <p class="state is-error" role="alert">{{ errorMessage }}</p>
     } @else {
       <div class="resource-fields" aria-label="Resources for this service">
+        @if (requiresPersonResource()) {
+          <div class="person-requirement" [class.is-satisfied]="hasSelectedPersonResource()">
+            <mat-icon aria-hidden="true">person</mat-icon>
+            <p>
+              <strong>{{ hasSelectedPersonResource() ? 'Team member or professional assigned' : 'Assign a team member or professional' }}</strong>
+              <span>This service cannot be checked in without one.</span>
+            </p>
+          </div>
+        }
         @for (type of resourceTypes; track type.code) {
           <app-select
             [formControl]="resourceControl(type.code)"
-            [label]="type.name"
+            [label]="resourceLabel(type)"
             labelPlacement="outside"
             subscriptSizing="dynamic"
             [options]="resourceOptions(type)"

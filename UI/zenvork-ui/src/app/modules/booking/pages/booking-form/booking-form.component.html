@@ -90,8 +90,22 @@
         </section>
 
         <section class="form-section" aria-labelledby="resources-title">
-          <h2 id="resources-title">Assign resources</h2>
+          <h2 id="resources-title">
+            Assign resources
+            @if (requiresPersonResource()) {
+              <span>Team member needed at check-in</span>
+            }
+          </h2>
           <div class="card resource-fields">
+            @if (requiresPersonResource()) {
+              <div class="person-requirement" [class.is-satisfied]="hasSelectedPersonResource()">
+                <mat-icon aria-hidden="true">person</mat-icon>
+                <p>
+                  <strong>{{ hasSelectedPersonResource() ? 'Team member or professional assigned' : 'Assign a team member or professional' }}</strong>
+                  <span>This service cannot be checked in or completed without one.</span>
+                </p>
+              </div>
+            }
             @for (type of resourceTypes; track type.code) {
               <app-select
                 [formControl]="resourceControl(type.code)"
@@ -198,6 +212,11 @@
         <div class="summary-row">
           <span>Services</span><strong [class.empty]="summaryServices() === 'Not selected'">{{ summaryServices() }}</strong>
         </div>
+        @if (requiresPersonResource()) {
+          <div class="summary-row">
+            <span>Person</span><strong [class.empty]="!hasSelectedPersonResource()">{{ hasSelectedPersonResource() ? 'Assigned' : 'Required at check-in' }}</strong>
+          </div>
+        }
         <div class="summary-row">
           <span>Estimated bill</span><strong>{{ estimatedTotal() }}</strong>
         </div>

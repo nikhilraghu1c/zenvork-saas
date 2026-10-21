@@ -11,6 +11,18 @@ Add a credentialed endpoint such as `GET /api/me` that validates the HttpOnly ac
 and returns safe current-user data. The frontend will use it to restore authentication after a page
 reload or in a newly opened browser tab without exposing the JWT to JavaScript.
 
+# Atomic checked-in resource protection (deferred)
+
+The current check-in flow verifies that a selected resource is not already `CHECKED_IN` before it
+updates the booking. Harden this against concurrent requests so two check-ins cannot both observe the
+resource as free and then both succeed.
+
+- Use a database-enforced reservation or another atomic MongoDB strategy for active resource use.
+- Scope every reservation and lookup to `businessId`.
+- Make a competing check-in return `409 Conflict` without changing the losing booking.
+- Release the active reservation when the booking becomes `COMPLETED`, `CANCELLED`, or `NO_SHOW`.
+- Keep planned-slot conflict checks separate from this active check-in protection.
+
 # Booking token and queue system (deferred)
 
 Build the core Booking create/list flow before adding queue functionality.
