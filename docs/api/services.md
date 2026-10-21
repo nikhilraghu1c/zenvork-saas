@@ -16,7 +16,7 @@ GET /api/services?active=true
 Owners and staff can list only their business's services. Omit `active` to return both active and
 inactive services; use `active=true` or `active=false` to filter. The response is
 `{ "services": [...] }`, where each service contains `_id`, `name`, `pricePaise`,
-`description`, `durationMinutes`, `isActive`, `createdAt`, and `updatedAt`.
+`description`, `durationMinutes`, `requiresPersonResource`, `isActive`, `createdAt`, and `updatedAt`.
 When both statuses are requested, active services appear first, followed by name and ID order.
 
 ## Service options
@@ -27,7 +27,7 @@ GET /api/services/options
 
 Owners and staff can retrieve the active services suitable for a booking selector. The response is
 `{ "services": [{ "_id": "...", "name": "Haircut", "pricePaise": 50000,
-"durationMinutes": 45 }] }`, ordered by name and ID.
+"durationMinutes": 45, "requiresPersonResource": true }] }`, ordered by name and ID.
 
 ## Get a service
 
@@ -52,14 +52,17 @@ Only an `OWNER` can create a service.
   "description": "Wash, cut, and finish.",
   "pricePaise": 50000,
   "durationMinutes": 45,
+  "requiresPersonResource": true,
   "isActive": true
 }
 ```
 
 `name` is required and limited to 100 characters. `pricePaise` must be a non-negative whole number;
 `description` is optional plain text up to 500 characters. `durationMinutes` must be a whole number
-from 1 to 1440. `isActive` is optional and defaults to `true`. Service names are unique within a
-business.
+from 1 to 1440. `isActive` is optional and defaults to `true`. `requiresPersonResource` is optional
+and defaults to `false`. When it is `true`, a person resource is required before the service's booking
+can be checked in or completed. The UI describes this as **Person required**, covering both team
+members and independent professionals. Service names are unique within a business.
 Successful creation returns HTTP `201` with the created public service.
 
 ## Update a service
@@ -69,6 +72,7 @@ PATCH /api/services/:id
 ```
 
 Only an `OWNER` can update one or more of `name`, `description`, `pricePaise`, `durationMinutes`,
-and `isActive`.
+`requiresPersonResource`, and `isActive`.
 Use `{ "isActive": false }` to retire a service. The endpoint returns the updated public service;
-it does not change any service snapshots already stored on bookings.
+it does not change any service snapshots already stored on bookings. Staffing requirements are also
+snapshotted, so a later service edit does not change an existing booking's rule.

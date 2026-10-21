@@ -42,6 +42,7 @@ export interface BookingServiceSnapshot {
   name: string;
   pricePaise: number;
   durationMinutes: number;
+  requiresPersonResource: boolean;
 }
 
 export interface BookingRecord {

@@ -48,6 +48,13 @@ const validateIsActive = (value) => {
   return value;
 };
 
+const validateRequiresPersonResource = (value) => {
+  if (typeof value !== "boolean") {
+    throw new ServiceValidationError("Staff requirement must be true or false");
+  }
+  return value;
+};
+
 const assertPlainRequestData = (data, allowedFields, errorMessage) => {
   if (!data || typeof data !== "object" || Array.isArray(data)) {
     throw new ServiceValidationError("Invalid request data");
@@ -63,7 +70,7 @@ const assertPlainRequestData = (data, allowedFields, errorMessage) => {
 export const validateServiceCreation = (data) => {
   assertPlainRequestData(
     data,
-    ["name", "description", "pricePaise", "durationMinutes", "isActive"],
+    ["name", "description", "pricePaise", "durationMinutes", "requiresPersonResource", "isActive"],
     "Invalid service data",
   );
   if (!("name" in data) || !("pricePaise" in data) || !("durationMinutes" in data)) {
@@ -71,11 +78,15 @@ export const validateServiceCreation = (data) => {
   }
   const hasIsActive = Object.hasOwn(data, "isActive");
   const hasDescription = Object.hasOwn(data, "description");
+  const hasRequiresPersonResource = Object.hasOwn(data, "requiresPersonResource");
   return {
     name: validateName(data.name),
     description: hasDescription ? validateDescription(data.description) : "",
     pricePaise: validatePricePaise(data.pricePaise),
     durationMinutes: validateDurationMinutes(data.durationMinutes),
+    requiresPersonResource: hasRequiresPersonResource
+      ? validateRequiresPersonResource(data.requiresPersonResource)
+      : false,
     isActive: hasIsActive ? validateIsActive(data.isActive) : true,
   };
 };
@@ -83,7 +94,7 @@ export const validateServiceCreation = (data) => {
 export const validateServiceUpdate = (data) => {
   assertPlainRequestData(
     data,
-    ["name", "description", "pricePaise", "durationMinutes", "isActive"],
+    ["name", "description", "pricePaise", "durationMinutes", "requiresPersonResource", "isActive"],
     "Invalid service update fields",
   );
   const hasName = Object.hasOwn(data, "name");
@@ -91,6 +102,7 @@ export const validateServiceUpdate = (data) => {
   const hasPricePaise = Object.hasOwn(data, "pricePaise");
   const hasDurationMinutes = Object.hasOwn(data, "durationMinutes");
   const hasIsActive = Object.hasOwn(data, "isActive");
+  const hasRequiresPersonResource = Object.hasOwn(data, "requiresPersonResource");
   return {
     hasName,
     name: hasName ? validateName(data.name) : null,
@@ -100,6 +112,10 @@ export const validateServiceUpdate = (data) => {
     pricePaise: hasPricePaise ? validatePricePaise(data.pricePaise) : null,
     hasDurationMinutes,
     durationMinutes: hasDurationMinutes ? validateDurationMinutes(data.durationMinutes) : null,
+    hasRequiresPersonResource,
+    requiresPersonResource: hasRequiresPersonResource
+      ? validateRequiresPersonResource(data.requiresPersonResource)
+      : null,
     hasIsActive,
     isActive: hasIsActive ? validateIsActive(data.isActive) : null,
   };

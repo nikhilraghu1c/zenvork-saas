@@ -5,8 +5,9 @@
 ## Responsibility
 
 The service catalogue holds currently offerable services: their name, description, price in paise,
-duration in minutes, and active state. A booking copies a service snapshot at creation, so changing the
-catalogue later does not rewrite historical booking revenue.
+duration in minutes, active state, and optional person requirement. A booking copies a service snapshot
+at creation, so changing the catalogue later does not rewrite historical booking revenue or staffing
+rules.
 
 ## Route permissions
 
@@ -31,7 +32,7 @@ active-only query:
 
 ```js
 Service.find(tenantFilter(req, { isActive: true }))
-  .select('name pricePaise durationMinutes')
+  .select('name pricePaise durationMinutes requiresPersonResource')
   .sort({ name: 1, _id: 1 });
 ```
 
@@ -46,7 +47,7 @@ Direct lookups validate the ObjectId, then use `findOne(tenantFilter(req, { _id 
 
 ```js
 Service.find(tenantFilter(req, listFilter))
-  .select('name description pricePaise durationMinutes isActive createdAt updatedAt')
+  .select('name description pricePaise durationMinutes requiresPersonResource isActive createdAt updatedAt')
   .sort({ isActive: -1, name: 1, _id: 1 })
   .lean();
 
@@ -84,6 +85,14 @@ turns it into HTTP `409 Conflict`.
 `validateServiceUpdate()` records which optional fields were supplied, for example `hasPricePaise`.
 The controller changes only those fields and then calls `await service.save()`. This avoids replacing
 the whole document with a partial PATCH request.
+
+## Staffing requirement
+
+`requiresPersonResource` defaults to `false`. An owner may enable it for a service such as a
+consultation or haircut. The booking controller snapshots this value with the selected service and
+uses the tenant's Business Type configuration to identify person resource types. At check-in and
+completion, any booking with a required service must have at least one such resource assigned; an
+asset such as a room or machine is not sufficient.
 
 ## Lifecycle
 

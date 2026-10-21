@@ -92,6 +92,28 @@
       font-size: 12px;
     }
   }
+  .service-settings {
+    display: grid;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-subtle);
+    > p {
+      margin: 0;
+      padding: 13px 14px 10px;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    app-toggle {
+      padding: 12px 14px;
+      &:not(:last-child) {
+        border-bottom: 1px solid var(--border);
+      }
+    }
+  }
   .actions {
     display: flex;
     justify-content: flex-end;

@@ -16,6 +16,7 @@ import {
   canCreateBookings,
   getBookingCapabilities,
   canManageBooking,
+  hasPersonResource,
   hasOwnPersonResource,
 } from "./booking-access.service.js";
 import {
@@ -47,7 +48,7 @@ const getServiceSnapshots = async (req, serviceIds) => {
   const services = await Service.find(
     tenantFilter(req, { _id: { $in: serviceIds }, isActive: true }),
   )
-    .select("name pricePaise durationMinutes")
+    .select("name pricePaise durationMinutes requiresPersonResource")
     .lean();
   if (services.length !== serviceIds.length) return null;
 
@@ -61,12 +62,17 @@ const getServiceSnapshots = async (req, serviceIds) => {
       name: service.name,
       pricePaise: service.pricePaise,
       durationMinutes: service.durationMinutes,
+      requiresPersonResource: service.requiresPersonResource === true,
     };
   });
 };
 
 const getTotalAmountPaise = (services, extraAmountPaise = 0) =>
   services.reduce((total, service) => total + service.pricePaise, extraAmountPaise);
+
+// Historic bookings without this snapshot predate the optional staff requirement.
+const requiresPersonResource = (services) =>
+  services.some((service) => service.requiresPersonResource === true);
 
 const getResourceTypeNames = async (req) => {
   // Type labels come only from the authenticated tenant's configured business type.
@@ -289,6 +295,16 @@ const updateBooking = async (req, res) => {
         return res.status(400).json({ message: "One or more services are invalid or inactive" });
       }
     }
+    if (
+      booking.status === "CHECKED_IN" &&
+      serviceSnapshots &&
+      requiresPersonResource(serviceSnapshots) &&
+      !(await hasPersonResource(req, booking.resourceIds))
+    ) {
+      return res.status(409).json({
+        message: "Assign a person before adding a service that requires one",
+      });
+    }
 
     const scheduledStartAt = updateData.hasSchedule
       ? updateData.scheduledStartAt
@@ -408,6 +424,15 @@ const updateBookingStatus = async (req, res) => {
     if (nextStatus === "COMPLETED" && (booking.services ?? []).length === 0) {
       return res.status(409).json({
         message: "Add at least one service before completing this booking",
+      });
+    }
+    if (
+      ["CHECKED_IN", "COMPLETED"].includes(nextStatus) &&
+      requiresPersonResource(booking.services ?? []) &&
+      !(await hasPersonResource(req, nextStatus === "CHECKED_IN" ? resourceIds : booking.resourceIds))
+    ) {
+      return res.status(409).json({
+        message: "Assign a person before checking in or completing this booking",
       });
     }
 

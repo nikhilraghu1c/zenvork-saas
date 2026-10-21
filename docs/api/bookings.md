@@ -64,7 +64,7 @@ GET /api/bookings/:id
 Returns `{ booking: {...} }` for a booking owned by the authenticated business. The response includes
 the same public booking fields as the list endpoint, with a populated `client` (`name`, `mobile`,
 `email`) and populated `resources` (`name`, `resourceType`, `resourceTypeName`). It also includes `services`, whose items
-contain `serviceId`, `name`, `pricePaise`, and `durationMinutes` snapshots, plus `extraAmountPaise`
+contain `serviceId`, `name`, `pricePaise`, `durationMinutes`, and `requiresPersonResource` snapshots, plus `extraAmountPaise`
 and the server-calculated `totalAmountPaise`. Returns `404` when the booking is not in the authenticated business.
 
 ## Edit a booking
@@ -96,7 +96,8 @@ range, with a start time that is not in the past. The server verifies tenant-own
 and checks conflicts, excluding the booking being rescheduled. Supplying a time range for a `PENDING` booking automatically changes it to
 `SCHEDULED` and adds a status-history entry. A pending booking cannot receive resources until it is
 being scheduled. `serviceIds` replaces the selected service list. Every ID must be an active service
-owned by the authenticated business; the backend snapshots each service's name, price, and duration.
+owned by the authenticated business; the backend snapshots each service's name, price, duration, and
+staffing requirement.
 `extraAmountPaise` is optional and defaults to zero; it is a non-negative manual adjustment that the
 backend adds to the snapshot service total. Create an `Other` service through the owner-only service
 catalog API when staff need a selectable service with a business-configured default price. This
@@ -132,7 +133,9 @@ Allowed transitions are:
 `CHECKED_IN` assigns selected resources and sets `actualStartAt`; `COMPLETED` sets `actualEndAt`.
 `COMPLETED`, `CANCELLED`, and `NO_SHOW` are terminal states. Invalid transitions or unavailable
 resources return `409`. A booking must contain at least one service before it can be completed;
-create a zero-price service when a completed appointment has no charge.
+create a zero-price service when a completed appointment has no charge. If any selected service
+requires a person, check-in and completion require an assigned person resource; rooms,
+equipment, and other asset resources do not satisfy that rule.
 
 ## Update payment status
 

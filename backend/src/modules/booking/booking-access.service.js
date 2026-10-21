@@ -83,6 +83,16 @@ const hasOwnPersonResource = async (req, resourceIds) => {
   );
 };
 
+// Service staffing rules use the tenant-configured person resource types, not a hard-coded role list.
+const hasPersonResource = async (req, resourceIds) => {
+  const [personTypeCodes, resources] = await Promise.all([
+    getPersonResourceTypeCodes(req),
+    getResources(req, resourceIds),
+  ]);
+  const personTypes = new Set(personTypeCodes);
+  return resources.some((resource) => personTypes.has(resource.resourceType));
+};
+
 // Compute display-safe action capabilities once per list response; controllers remain the final authority.
 const getBookingCapabilities = async (req, bookings) => {
   const scope = bookingAccessScope(req.user);
@@ -119,6 +129,7 @@ export {
   canCreateBookings,
   canManageBooking,
   canAssignResources,
+  hasPersonResource,
   hasOwnPersonResource,
   getBookingCapabilities,
 };

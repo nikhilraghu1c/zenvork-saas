@@ -7,6 +7,7 @@ export interface ServiceRecord {
   description: string;
   pricePaise: number;
   durationMinutes: number;
+  requiresPersonResource: boolean;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -17,6 +18,7 @@ export interface ServicePayload {
   description?: string;
   pricePaise: number;
   durationMinutes: number;
+  requiresPersonResource?: boolean;
   isActive?: boolean;
 }
 
@@ -29,6 +31,7 @@ export interface ServiceOption {
   name: string;
   pricePaise: number;
   durationMinutes: number;
+  requiresPersonResource: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

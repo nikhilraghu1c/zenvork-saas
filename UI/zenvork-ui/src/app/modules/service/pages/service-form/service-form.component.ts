@@ -24,6 +24,7 @@ export class ServiceFormComponent implements OnInit {
     price: ['', [Validators.required, Validators.min(0)]],
     duration: ['', [Validators.required, Validators.min(1), Validators.max(1440)]],
     description: ['', Validators.maxLength(500)],
+    requiresPersonResource: [false],
     isActive: [true],
   });
   protected serviceId = '';
@@ -52,6 +53,7 @@ export class ServiceFormComponent implements OnInit {
       description: value.description.trim(),
       pricePaise: Math.round(Number(value.price) * 100),
       durationMinutes: Number(value.duration),
+      requiresPersonResource: value.requiresPersonResource,
       isActive: value.isActive,
     };
     if (!Number.isSafeInteger(payload.pricePaise)) {
@@ -100,6 +102,7 @@ export class ServiceFormComponent implements OnInit {
             price: String(service.pricePaise / 100),
             duration: String(service.durationMinutes),
             description: service.description ?? '',
+            requiresPersonResource: service.requiresPersonResource,
             isActive: service.isActive,
           }),
         error: (error) => (this.errorMessage = error.error?.message ?? 'Unable to load service.'),

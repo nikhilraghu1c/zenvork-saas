@@ -218,13 +218,15 @@ into a booking.
 const services = await Service.find(
   tenantFilter(req, { _id: { $in: serviceIds }, isActive: true }),
 )
-  .select('name pricePaise durationMinutes')
+  .select('name pricePaise durationMinutes requiresPersonResource')
   .lean();
 ```
 
 `$in` accepts any service ID in the request array. The controller compares `services.length` with
 `serviceIds.length`; a mismatch means at least one ID is invalid, inactive, or belongs to another tenant.
-It then copies name, price, and duration into the Booking document as immutable line-item snapshots.
+It then copies name, price, duration, and the person requirement into the Booking document as immutable
+line-item snapshots. At check-in and completion, a booking with any snapshot requiring staff must
+have an assigned resource whose configured type is a person type.
 
 ### Search bookings through matching clients
 

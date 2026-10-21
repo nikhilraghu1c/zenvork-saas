@@ -54,11 +54,19 @@
         ></textarea>
         <p>Shown on the service page. Maximum 500 characters.</p>
       </div>
-      <app-toggle
-        formControlName="isActive"
-        label="Active"
-        hint="Inactive services cannot be assigned to new bookings."
-      />
+      <section class="service-settings" aria-labelledby="service-settings-title">
+        <p id="service-settings-title">Service settings</p>
+        <app-toggle
+          formControlName="isActive"
+          label="Active"
+          hint="Inactive services cannot be assigned to new bookings."
+        />
+        <app-toggle
+          formControlName="requiresPersonResource"
+          label="Person required"
+          hint="Assign a team member or professional before this service can be checked in or completed."
+        />
+      </section>
       @if (errorMessage) {
         <p class="error" role="alert">{{ errorMessage }}</p>
       }

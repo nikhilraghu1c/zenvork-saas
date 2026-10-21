@@ -14,6 +14,7 @@ const toPublicService = (service) => ({
   description: service.description,
   pricePaise: service.pricePaise,
   durationMinutes: service.durationMinutes,
+  requiresPersonResource: service.requiresPersonResource === true,
   isActive: service.isActive,
   createdAt: service.createdAt,
   updatedAt: service.updatedAt,
@@ -24,7 +25,7 @@ const getServices = async (req, res) => {
     const listFilter = validateServiceListQuery(req.query);
     // Every service list is constrained to the authenticated business.
     const services = await Service.find(tenantFilter(req, listFilter))
-      .select("name description pricePaise durationMinutes isActive createdAt updatedAt")
+      .select("name description pricePaise durationMinutes requiresPersonResource isActive createdAt updatedAt")
       // Keep the catalogue stable while prioritizing services that can be assigned to new bookings.
       .sort({ isActive: -1, name: 1, _id: 1 })
       .lean();
@@ -42,15 +43,16 @@ const getServiceOptions = async (req, res) => {
   try {
     // Booking forms may choose only active services from the authenticated business.
     const services = await Service.find(tenantFilter(req, { isActive: true }))
-      .select("name pricePaise durationMinutes")
+      .select("name pricePaise durationMinutes requiresPersonResource")
       .sort({ name: 1, _id: 1 })
       .lean();
     return res.status(200).json({
-      services: services.map(({ _id, name, pricePaise, durationMinutes }) => ({
+      services: services.map(({ _id, name, pricePaise, durationMinutes, requiresPersonResource }) => ({
         _id,
         name,
         pricePaise,
         durationMinutes,
+        requiresPersonResource: requiresPersonResource === true,
       })),
     });
   } catch (error) {
@@ -66,7 +68,7 @@ const getServiceById = async (req, res) => {
     }
     // A direct lookup is tenant-scoped so service IDs cannot cross business boundaries.
     const service = await Service.findOne(tenantFilter(req, { _id: req.params.id }))
-      .select("name description pricePaise durationMinutes isActive createdAt updatedAt")
+      .select("name description pricePaise durationMinutes requiresPersonResource isActive createdAt updatedAt")
       .lean();
     if (!service) return res.status(404).json({ message: "Service not found" });
     return res.status(200).json({ service: toPublicService(service) });
@@ -110,6 +112,9 @@ const updateService = async (req, res) => {
     if (updateData.hasDescription) service.description = updateData.description;
     if (updateData.hasPricePaise) service.pricePaise = updateData.pricePaise;
     if (updateData.hasDurationMinutes) service.durationMinutes = updateData.durationMinutes;
+    if (updateData.hasRequiresPersonResource) {
+      service.requiresPersonResource = updateData.requiresPersonResource;
+    }
     if (updateData.hasIsActive) service.isActive = updateData.isActive;
     await service.save();
     return res.status(200).json({

@@ -22,6 +22,8 @@ const serviceSchema = new mongoose.Schema(
     },
     pricePaise: { type: Number, required: true, min: [0, "Price must be a positive number"] },
     durationMinutes: { type: Number, required: true, min: [1, "Duration must be at least 1 minute"], max: [1440, "Duration cannot exceed 1440 minutes"] },
+    // Controls whether a booking using this service needs an assigned person-type resource.
+    requiresPersonResource: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true },

@@ -22,6 +22,9 @@
           }}</span>
           <span>{{ price() }}</span>
           <span>{{ service.durationMinutes }} min</span>
+          @if (service.requiresPersonResource) {
+            <span>Person required</span>
+          }
         </div>
       </div>
       @if (isOwner) {

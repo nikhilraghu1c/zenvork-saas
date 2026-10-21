@@ -40,6 +40,8 @@ const bookingServiceSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true, maxlength: 100 },
     pricePaise: { type: Number, required: true, min: 0 },
     durationMinutes: { type: Number, required: true, min: 1, max: 1440 },
+    // Preserve the staffing rule that applied when this service was added to the booking.
+    requiresPersonResource: { type: Boolean, default: false },
   },
   { _id: false },
 );
