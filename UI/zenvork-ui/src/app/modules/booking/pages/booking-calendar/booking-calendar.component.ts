@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -81,6 +81,7 @@ export class BookingCalendarComponent implements OnInit {
     eventDurationEditable: false,
     eventDisplay: 'block',
     eventMinHeight: 48,
+    height: this.calendarHeight(),
     slotEventOverlap: false,
     slotMinTime: '00:00:00',
     slotMaxTime: '24:00:00',
@@ -115,6 +116,15 @@ export class BookingCalendarComponent implements OnInit {
     });
     this.loadResourceOptions();
     this.loadBookings();
+  }
+
+  /** Keeps enough calendar surface visible on phones before FullCalendar begins scrolling its content. */
+  @HostListener('window:resize')
+  protected updateCalendarHeight(): void {
+    const height = this.calendarHeight();
+    if (this.calendarOptions.height === height) return;
+    this.calendarOptions = { ...this.calendarOptions, height };
+    this.calendar?.getApi()?.setOption('height', height);
   }
 
   protected get title(): string {
@@ -370,6 +380,12 @@ export class BookingCalendarComponent implements OnInit {
 
   private dateValue(date: Date): string {
     return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+  }
+
+  private calendarHeight(): string {
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 680px)').matches
+      ? '72dvh'
+      : 'auto';
   }
 
   private addDays(date: Date, days: number): Date {
