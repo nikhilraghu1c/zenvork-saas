@@ -90,6 +90,24 @@ export interface BookingListResponse {
   };
 }
 
+/** A lightweight scheduled-booking total for one business-calendar date. */
+export interface BookingCalendarDaySummary {
+  date: string;
+  total: number;
+}
+
+export interface BookingCalendarSummaryQuery extends ApiQuery {
+  from: string;
+  to: string;
+  /** Comma-separated lifecycle values; matches the list endpoint's status filter. */
+  status?: string;
+  resourceId?: string;
+}
+
+export interface BookingCalendarSummaryResponse {
+  days: BookingCalendarDaySummary[];
+}
+
 export interface BookingDetailResponse {
   booking: BookingRecord;
 }
@@ -149,6 +167,13 @@ export class BookingService {
     return Object.keys(activeQuery).length
       ? this.api.query<BookingListResponse>('bookings', activeQuery)
       : this.api.get<BookingListResponse>('bookings');
+  }
+
+  /** Returns per-day totals for Month view without transferring each booking record. */
+  getCalendarSummary(
+    query: BookingCalendarSummaryQuery,
+  ): Observable<BookingCalendarSummaryResponse> {
+    return this.api.query<BookingCalendarSummaryResponse>('bookings/calendar-summary', query);
   }
 
   /** Loads one tenant-owned booking for its staff-facing detail workspace. */

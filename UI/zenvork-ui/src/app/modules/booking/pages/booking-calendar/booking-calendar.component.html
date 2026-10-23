@@ -1,0 +1,112 @@
+<section class="booking-calendar-page" aria-labelledby="booking-calendar-title">
+  <header class="booking-calendar-page__header">
+    <div>
+      <p class="eyebrow">Booking workspace</p>
+      <h1 id="booking-calendar-title">Bookings</h1>
+      <p>Plan and review scheduled appointments.</p>
+    </div>
+    <app-button class="new-booking-button" routerLink="/app/booking/new">
+      <span><mat-icon aria-hidden="true">add</mat-icon>New booking</span>
+    </app-button>
+  </header>
+
+  <div class="booking-calendar-page__view-bar">
+    <nav class="mode-switch" aria-label="Booking display mode">
+      <a
+        routerLink="/app/booking"
+        queryParamsHandling="preserve"
+        aria-label="List view"
+        matTooltip="List view"
+        ><mat-icon aria-hidden="true">format_list_bulleted</mat-icon></a
+      >
+      <span
+        class="is-selected"
+        aria-current="page"
+        aria-label="Calendar view"
+        matTooltip="Calendar view"
+        ><mat-icon aria-hidden="true">calendar_month</mat-icon></span
+      >
+    </nav>
+  </div>
+
+  <div class="calendar-shell">
+    <div class="calendar-toolbar">
+      <div class="calendar-filters" aria-label="Calendar filters">
+        <app-select
+          [formControl]="resourceControl"
+          label="Resource"
+          subscriptSizing="dynamic"
+          [options]="resourceOptions"
+        />
+        <app-select
+          [formControl]="statusControl"
+          label="Status"
+          subscriptSizing="dynamic"
+          [options]="statusOptions"
+          [multiple]="true"
+        />
+      </div>
+      <nav class="calendar-views" aria-label="Calendar range">
+        <button
+          type="button"
+          [class.is-selected]="calendarView === 'day'"
+          [attr.aria-pressed]="calendarView === 'day'"
+          (click)="setCalendarView('day')"
+        >
+          Day
+        </button>
+        <button
+          type="button"
+          [class.is-selected]="calendarView === 'week'"
+          [attr.aria-pressed]="calendarView === 'week'"
+          (click)="setCalendarView('week')"
+        >
+          Week
+        </button>
+        <button
+          type="button"
+          [class.is-selected]="calendarView === 'month'"
+          [attr.aria-pressed]="calendarView === 'month'"
+          (click)="setCalendarView('month')"
+        >
+          Month
+        </button>
+      </nav>
+      <div class="calendar-navigation">
+        <button
+          type="button"
+          aria-label="Previous period"
+          matTooltip="Previous"
+          (click)="movePeriod(-1)"
+        >
+          <mat-icon aria-hidden="true">chevron_left</mat-icon>
+        </button>
+        <strong>{{ title }}</strong>
+        <button type="button" aria-label="Next period" matTooltip="Next" (click)="movePeriod(1)">
+          <mat-icon aria-hidden="true">chevron_right</mat-icon>
+        </button>
+        <button type="button" class="today-button" (click)="goToToday()">Today</button>
+      </div>
+    </div>
+
+    <div class="calendar-legend" aria-label="Booking status colours">
+      @if (calendarView === 'month') {
+        <span class="is-summary"><i aria-hidden="true"></i>Booking count</span>
+        <span>Tap a date to view its bookings</span>
+      } @else {
+        <span class="is-scheduled"><i aria-hidden="true"></i>Scheduled</span>
+        <span class="is-checked-in"><i aria-hidden="true"></i>Checked in</span>
+        <span class="is-completed"><i aria-hidden="true"></i>Completed</span>
+        <span class="is-cancelled"><i aria-hidden="true"></i>Cancelled / no-show</span>
+      }
+    </div>
+
+    @if (loading) {
+      <p class="page-state" role="status">Loading calendar…</p>
+    } @else if (errorMessage) {
+      <p class="page-state is-error" role="alert">{{ errorMessage }}</p>
+    } @else {
+      <app-full-calendar #calendar [options]="calendarOptions" />
+    }
+  </div>
+</section>

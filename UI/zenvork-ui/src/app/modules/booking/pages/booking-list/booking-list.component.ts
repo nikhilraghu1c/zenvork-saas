@@ -1,9 +1,18 @@
-import { Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ColDef } from 'ag-grid-community';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import {
@@ -39,6 +48,7 @@ type BookingListView = 'TODAY' | 'ALL';
     ReactiveFormsModule,
     RouterLink,
     MatIconModule,
+    MatTooltipModule,
     AppActionMenuComponent,
     AppButtonComponent,
     AppDataGridComponent,
@@ -110,99 +120,102 @@ export class BookingListComponent implements OnInit, OnDestroy {
 
   private createColumnDefs(): ColDef<BookingRecord>[] {
     return [
-    {
-      field: 'status',
-      headerName: 'Status',
-      minWidth: 112,
-      maxWidth: 126,
-      cellRenderer: BookingStatusGridCellComponent,
-    },
-    {
-      field: 'client',
-      headerName: 'Client',
-      minWidth: 180,
-      flex: 1.1,
-      cellRenderer: BookingClientGridCellComponent,
-    },
-    {
-      field: 'scheduledStartAt',
-      headerName: 'Date',
-      minWidth: 142,
-      flex: 0.9,
-      valueFormatter: ({ data }) => this.formatDate(this.appointmentAt(data)),
-    },
-    {
-      field: 'scheduledStartAt',
-      headerName: 'Time',
-      minWidth: 142,
-      flex: 0.9,
-      valueFormatter: ({ data }) => (data ? this.bookingTimeLabel(data) : '—'),
-    },
-    {
-      field: 'updatedAt',
-      headerName: 'Modified',
-      minWidth: 138,
-      flex: 0.85,
-      valueFormatter: ({ data }) => this.formatDate(this.activityAt(data)),
-    },
-    {
-      field: 'resources',
-      headerName: 'Assigned resources',
-      minWidth: 190,
-      flex: 1.15,
-      valueFormatter: ({ data }) => (data ? this.resourceLabel(data) : 'Unassigned'),
-      cellStyle: ({ data }) => ({
-        color: data?.resources.length ? 'var(--text-dim)' : 'var(--text-mute)',
-        fontStyle: data?.resources.length ? 'normal' : 'italic',
-      }),
-    },
-    {
-      field: 'totalAmountPaise',
-      headerName: 'Bill',
-      minWidth: 104,
-      maxWidth: 120,
-      valueFormatter: ({ value }) => this.formatAmount(Number(value ?? 0)),
-    },
-    {
-      field: 'paymentStatus',
-      headerName: 'Payment',
-      minWidth: 96,
-      maxWidth: 108,
-      valueFormatter: ({ data }) =>
-        data?.status === 'COMPLETED' ? (data.paymentStatus === 'paid' ? 'Paid' : 'Unpaid') : '—',
-      cellStyle: ({ data }) => ({
-        color:
-          data?.status === 'COMPLETED'
-            ? data.paymentStatus === 'paid'
-              ? 'var(--green)'
-              : 'var(--amber)'
-            : 'var(--text-mute)',
-        fontWeight: data?.status === 'COMPLETED' ? '600' : '400',
-      }),
-    },
-    {
-      headerName: 'Actions',
-      cellRenderer: BookingGridActionsComponent,
-      sortable: false,
-      resizable: false,
-      pinned: 'right',
-      lockPinned: true,
-      minWidth: 96,
-      maxWidth: 96,
-    },
+      {
+        field: 'status',
+        headerName: 'Status',
+        minWidth: 112,
+        maxWidth: 126,
+        cellRenderer: BookingStatusGridCellComponent,
+      },
+      {
+        field: 'client',
+        headerName: 'Client',
+        minWidth: 180,
+        flex: 1.1,
+        cellRenderer: BookingClientGridCellComponent,
+      },
+      {
+        field: 'scheduledStartAt',
+        headerName: 'Date',
+        minWidth: 142,
+        flex: 0.9,
+        valueFormatter: ({ data }) => this.formatDate(this.appointmentAt(data)),
+      },
+      {
+        field: 'scheduledStartAt',
+        headerName: 'Time',
+        minWidth: 142,
+        flex: 0.9,
+        valueFormatter: ({ data }) => (data ? this.bookingTimeLabel(data) : '—'),
+      },
+      {
+        field: 'updatedAt',
+        headerName: 'Modified',
+        minWidth: 138,
+        flex: 0.85,
+        valueFormatter: ({ data }) => this.formatDate(this.activityAt(data)),
+      },
+      {
+        field: 'resources',
+        headerName: 'Assigned resources',
+        minWidth: 190,
+        flex: 1.15,
+        valueFormatter: ({ data }) => (data ? this.resourceLabel(data) : 'Unassigned'),
+        cellStyle: ({ data }) => ({
+          color: data?.resources.length ? 'var(--text-dim)' : 'var(--text-mute)',
+          fontStyle: data?.resources.length ? 'normal' : 'italic',
+        }),
+      },
+      {
+        field: 'totalAmountPaise',
+        headerName: 'Bill',
+        minWidth: 104,
+        maxWidth: 120,
+        valueFormatter: ({ value }) => this.formatAmount(Number(value ?? 0)),
+      },
+      {
+        field: 'paymentStatus',
+        headerName: 'Payment',
+        minWidth: 96,
+        maxWidth: 108,
+        valueFormatter: ({ data }) =>
+          data?.status === 'COMPLETED' ? (data.paymentStatus === 'paid' ? 'Paid' : 'Unpaid') : '—',
+        cellStyle: ({ data }) => ({
+          color:
+            data?.status === 'COMPLETED'
+              ? data.paymentStatus === 'paid'
+                ? 'var(--green)'
+                : 'var(--amber)'
+              : 'var(--text-mute)',
+          fontWeight: data?.status === 'COMPLETED' ? '600' : '400',
+        }),
+      },
+      {
+        headerName: 'Actions',
+        cellRenderer: BookingGridActionsComponent,
+        sortable: false,
+        resizable: false,
+        pinned: 'right',
+        lockPinned: true,
+        minWidth: 96,
+        maxWidth: 96,
+      },
     ];
   }
 
   /** Loads filters and refreshes the list whenever a list control changes. */
   ngOnInit(): void {
     this.restoreListState();
-    [this.viewControl, this.updatedDateControl, this.dateFieldControl, this.resourceControl].forEach((control) =>
-      control.valueChanges
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(() => {
-          this.persistListState();
-          this.resetAndLoadBookings();
-        }),
+    [
+      this.viewControl,
+      this.updatedDateControl,
+      this.dateFieldControl,
+      this.resourceControl,
+    ].forEach((control) =>
+      control.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+        this.persistListState();
+        this.resetAndLoadBookings();
+      }),
     );
     this.searchControl.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
@@ -316,7 +329,7 @@ export class BookingListComponent implements OnInit, OnDestroy {
     if (!booking) return null;
 
     return booking.status === 'CHECKED_IN' || booking.status === 'COMPLETED'
-      ? booking.actualStartAt ?? booking.scheduledStartAt
+      ? (booking.actualStartAt ?? booking.scheduledStartAt)
       : booking.scheduledStartAt;
   }
 
@@ -329,7 +342,9 @@ export class BookingListComponent implements OnInit, OnDestroy {
     const endAt =
       booking.status === 'COMPLETED'
         ? booking.actualEndAt
-        : booking.status === 'SCHEDULED' || booking.status === 'CANCELLED' || booking.status === 'NO_SHOW'
+        : booking.status === 'SCHEDULED' ||
+            booking.status === 'CANCELLED' ||
+            booking.status === 'NO_SHOW'
           ? booking.scheduledEndAt
           : null;
 
@@ -382,10 +397,10 @@ export class BookingListComponent implements OnInit, OnDestroy {
   /** Mirrors desktop lifecycle options in the mobile card menu. */
   protected statusActions(booking: BookingRecord): AppActionMenuItem[] {
     const canManage = booking.capabilities?.canManage === true;
-    const editAction = ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status)
-      && canManage
-      ? [{ id: 'edit', label: 'Edit booking', icon: 'edit' }]
-      : [];
+    const editAction =
+      ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status) && canManage
+        ? [{ id: 'edit', label: 'Edit booking', icon: 'edit' }]
+        : [];
     if (booking.status === 'CHECKED_IN') {
       if (!canManage) return [];
       return [
@@ -563,7 +578,9 @@ export class BookingListComponent implements OnInit, OnDestroy {
     const params = this.route.snapshot.queryParamMap;
     const statuses = (params.get('status') ?? '')
       .split(',')
-      .filter((status): status is BookingStatus => this.allStatusFilters.includes(status as BookingStatus));
+      .filter((status): status is BookingStatus =>
+        this.allStatusFilters.includes(status as BookingStatus),
+      );
 
     this.viewControl.setValue(params.get('view') === 'all' ? 'ALL' : 'TODAY', { emitEvent: false });
     this.selectedStatuses = this.allStatusFilters.filter((status) => statuses.includes(status));
@@ -583,9 +600,12 @@ export class BookingListComponent implements OnInit, OnDestroy {
       view: this.isTodayView ? null : 'all',
       status: this.selectedStatuses.length ? this.selectedStatuses.join(',') : null,
       search: this.searchControl.value.trim() || null,
-      date: this.isTodayView || !this.updatedDateControl.value ? null : this.updatedDateControl.value,
+      date:
+        this.isTodayView || !this.updatedDateControl.value ? null : this.updatedDateControl.value,
       dateField:
-        this.isTodayView || !this.updatedDateControl.value || this.dateFieldControl.value === 'modified'
+        this.isTodayView ||
+        !this.updatedDateControl.value ||
+        this.dateFieldControl.value === 'modified'
           ? null
           : this.dateFieldControl.value,
       resource: this.resourceControl.value || null,

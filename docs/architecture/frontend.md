@@ -132,6 +132,16 @@ booking unless staff provide the complete business-local date/start/end schedule
 The list persists its selected view and active filters in query parameters when staff open details or
 the editor, so returning restores the prior work context. New bookings and completed edit flows return
 to the booking list.
+`/app/booking/calendar` is a separate lazy-loaded calendar page using FullCalendar Standard and the
+existing tenant-scoped `GET /api/bookings` scheduled-date range query. It offers day, week, and month
+ranges, preserves its date/range in query parameters, and uses the shared business timezone for both
+displayed dates and API range bounds. The list and calendar pages are linked by compact icon-only
+display-mode controls; FullCalendar handles timed-event placement, overlaps, month overflow, and the
+mobile-scrollable week grid while feature code maps Zenvork booking data into it. Clicking a date in
+the month or week grid opens that date's Day view. Calendar-only status and resource filters are
+preserved as calendar query parameters and map to the existing tenant-scoped list filters. The shared
+`AppFullCalendarComponent` owns its `.zenvork-calendar`-scoped vendor CSS and separate light/dark
+skins through `ViewEncapsulation.None`; consuming features pass only `CalendarOptions` and event data.
 `BookingService` also provides typed PATCH calls for booking detail edits (including scheduling and
 rescheduling) and lifecycle status transitions; the detail-page controls will use those calls as the
 editing workflow is added. The booking list action menu and detail header expose only valid next

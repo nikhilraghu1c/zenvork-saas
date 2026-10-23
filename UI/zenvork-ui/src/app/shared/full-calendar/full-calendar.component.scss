@@ -1,0 +1,73 @@
+// ViewEncapsulation.None is intentional: FullCalendar creates its internal DOM after Angular renders.
+// Every rule remains limited to this shared wrapper's host class.
+html[data-theme='dark'] .zenvork-calendar .fc {
+  --fc-border-color: #30394a;
+  --fc-page-bg-color: #171d29;
+  --fc-neutral-bg-color: #202838;
+  --fc-list-event-hover-bg-color: #252f40;
+  --fc-today-bg-color: #1c3040;
+  --fc-now-indicator-color: #00e5ff;
+  --fc-button-text-color: #f5f6fa;
+  --fc-button-bg-color: #202838;
+  --fc-button-border-color: #30394a;
+  --fc-button-hover-bg-color: #293447;
+  --fc-button-hover-border-color: #3c4a61;
+}
+
+html[data-theme='light'] .zenvork-calendar .fc {
+  --fc-border-color: #d8dee8;
+  --fc-page-bg-color: #ffffff;
+  --fc-neutral-bg-color: #f5f7fb;
+  --fc-list-event-hover-bg-color: #edf3f7;
+  --fc-today-bg-color: #e8f6f8;
+  --fc-now-indicator-color: #007c91;
+  --fc-button-text-color: #1f2937;
+  --fc-button-bg-color: #ffffff;
+  --fc-button-border-color: #d8dee8;
+  --fc-button-hover-bg-color: #f1f5f9;
+  --fc-button-hover-border-color: #bec9d8;
+}
+
+// Booking lifecycle classes are supplied by the booking feature's event mapping.
+.zenvork-calendar .booking-event--scheduled {
+  --fc-event-bg-color: #087f95;
+  --fc-event-border-color: #087f95;
+}
+
+.zenvork-calendar .booking-event--checked_in {
+  --fc-event-bg-color: #b66b00;
+  --fc-event-border-color: #b66b00;
+}
+
+.zenvork-calendar .booking-event--completed {
+  --fc-event-bg-color: #087a46;
+  --fc-event-border-color: #087a46;
+}
+
+.zenvork-calendar .booking-event--cancelled,
+.zenvork-calendar .booking-event--no_show {
+  --fc-event-bg-color: #6b7280;
+  --fc-event-border-color: #6b7280;
+}
+
+.zenvork-calendar .booking-summary-event {
+  --fc-event-bg-color: #4f46e5;
+  --fc-event-border-color: #4f46e5;
+}
+
+@media (max-width: 680px) {
+  // Preserve usable vertical targets instead of compressing the day/week schedule on phones.
+  .zenvork-calendar .fc .fc-timegrid-slot {
+    height: 56px;
+  }
+
+  // Month needs to fit six weeks without turning the page into a long vertical grid.
+  .zenvork-calendar .fc .fc-daygrid-day-frame {
+    min-height: 52px;
+  }
+  .zenvork-calendar .fc .fc-daygrid-event {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

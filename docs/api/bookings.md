@@ -33,7 +33,7 @@ only by the detail endpoint.
 Optional query parameters are `view=today|all`, `status` (one or more comma-separated lifecycle
 values), `from` and `to` (ISO date-times with a timezone), `search`, `resourceId`, `clientId`,
 `assignment=assigned|unassigned`, `dateField=modified|created|scheduled`, `page`, and `limit`
-(maximum 100). Multiple `status` values are alternatives (for example, `status=PENDING,SCHEDULED`)
+(maximum 10,000). Multiple `status` values are alternatives (for example, `status=PENDING,SCHEDULED`)
 and still combine with date, resource, assignment, and search filters.
 `search` is a tenant-scoped, case-insensitive client-name or mobile-number search and must contain
 2–100 characters.
@@ -46,6 +46,17 @@ start is in the range, checked-in bookings whose actual start is in the range, c
 actual end is in the range, and cancelled/no-show bookings updated in the range. Both views use
 `updatedAt` newest first with `_id` as a final tie-breaker, so a status change keeps a today booking
 visible and moves it to the top rather than making it disappear.
+
+## Calendar month summary
+
+```http
+GET /api/bookings/calendar-summary?from=2026-10-01T18:30:00.000Z&to=2026-11-01T18:30:00.000Z
+```
+
+Returns `{ days: [{ date: "YYYY-MM-DD", total: number }] }` for scheduled bookings grouped by
+business-calendar date. `from` and `to` are required ISO date-times with an explicit timezone; the
+range may not exceed 62 days. Optional `status` and `resourceId` filters match the list endpoint.
+This endpoint is for Month view only: it deliberately returns counts rather than every booking record.
 
 ### Modified-on migration safety
 

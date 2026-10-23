@@ -21,12 +21,14 @@ import {
 } from "./booking-access.service.js";
 import {
   BookingValidationError,
+  validateBookingCalendarSummaryQuery,
   validateBookingCreation,
   validateBookingListQuery,
   validateBookingPaymentStatusUpdate,
   validateBookingStatusUpdate,
   validateBookingUpdate,
 } from "./booking.validation.js";
+import { BUSINESS_TIME_ZONE } from "../../utils/reporting-period.js";
 
 const ALLOWED_STATUS_TRANSITIONS = {
   PENDING: ["CHECKED_IN", "CANCELLED", "NO_SHOW"],
@@ -188,6 +190,45 @@ const getAllBookings = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Unable to retrieve booking details" });
+  }
+};
+
+const getBookingCalendarSummary = async (req, res) => {
+  try {
+    const { from, to, statusValues, resourceId } = validateBookingCalendarSummaryQuery(req.query);
+    // Aggregate in the business timezone so a late-evening appointment belongs to its visible calendar day.
+    const filter = {
+      businessId: new mongoose.Types.ObjectId(tenantId(req)),
+      scheduledStartAt: { $gte: from, $lt: to },
+      ...(statusValues.length && { status: { $in: statusValues } }),
+      ...(resourceId && { resourceIds: new mongoose.Types.ObjectId(resourceId) }),
+    };
+    const days = await Booking.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              date: "$scheduledStartAt",
+              format: "%Y-%m-%d",
+              timezone: BUSINESS_TIME_ZONE,
+            },
+          },
+          total: { $sum: 1 },
+        },
+      },
+      { $project: { _id: 0, date: "$_id", total: 1 } },
+      { $sort: { date: 1 } },
+    ]);
+
+    return res.status(200).json({ days });
+  } catch (error) {
+    if (error instanceof BookingValidationError) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    console.error("Failed to retrieve booking calendar summary:", error);
+    return res.status(500).json({ message: "Unable to retrieve booking calendar summary" });
   }
 };
 
@@ -769,6 +810,7 @@ const updateBookingPaymentStatus = async (req, res) => {
 export {
   getAllBookings,
   getBookingById,
+  getBookingCalendarSummary,
   updateBooking,
   updateBookingPaymentStatus,
   updateBookingStatus,

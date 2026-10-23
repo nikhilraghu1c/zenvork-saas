@@ -21,22 +21,34 @@
     </div>
   </header>
 
-  <nav class="booking-list-page__views" aria-label="Booking view">
-    <button
-      type="button"
-      [class.is-selected]="isTodayView"
-      (click)="setView('TODAY')"
-    >
-      Today’s work
-    </button>
-    <button
-      type="button"
-      [class.is-selected]="!isTodayView"
-      (click)="setView('ALL')"
-    >
-      All bookings
-    </button>
-  </nav>
+  <div class="booking-list-page__view-bar">
+    <nav class="booking-list-page__views" aria-label="Booking list scope">
+      <button type="button" [class.is-selected]="isTodayView" (click)="setView('TODAY')">
+        Today’s work
+      </button>
+      <button type="button" [class.is-selected]="!isTodayView" (click)="setView('ALL')">
+        All bookings
+      </button>
+    </nav>
+    <nav class="booking-list-page__mode-switch" aria-label="Booking display mode">
+      <a
+        routerLink="/app/booking"
+        queryParamsHandling="preserve"
+        class="is-selected"
+        aria-current="page"
+        aria-label="List view"
+        matTooltip="List view"
+        ><mat-icon aria-hidden="true">format_list_bulleted</mat-icon></a
+      >
+      <a
+        routerLink="/app/booking/calendar"
+        queryParamsHandling="preserve"
+        aria-label="Calendar view"
+        matTooltip="Calendar view"
+        ><mat-icon aria-hidden="true">calendar_month</mat-icon></a
+      >
+    </nav>
+  </div>
 
   <p class="activity-description">
     @if (isTodayView) {
@@ -62,7 +74,11 @@
       label="Filters"
       [hideLabelOnMobile]="true"
       [badge]="activeFilterCount || null"
-      [ariaLabel]="activeFilterCount ? 'Open booking filters, ' + activeFilterCount + ' active categories' : 'Open booking filters'"
+      [ariaLabel]="
+        activeFilterCount
+          ? 'Open booking filters, ' + activeFilterCount + ' active categories'
+          : 'Open booking filters'
+      "
       (clicked)="openFilters()"
     />
   </div>
@@ -111,11 +127,19 @@
       [context]="gridContext"
     />
     <nav class="desktop-pagination" aria-label="Booking pages">
-      <app-button variant="secondary" [disabled]="!hasPreviousPage" (clicked)="goToPage(currentPage - 1)">
+      <app-button
+        variant="secondary"
+        [disabled]="!hasPreviousPage"
+        (clicked)="goToPage(currentPage - 1)"
+      >
         Previous
       </app-button>
       <span>Page {{ currentPage }} of {{ totalPages }}</span>
-      <app-button variant="secondary" [disabled]="!hasNextPage" (clicked)="goToPage(currentPage + 1)">
+      <app-button
+        variant="secondary"
+        [disabled]="!hasNextPage"
+        (clicked)="goToPage(currentPage + 1)"
+      >
         Next
       </app-button>
     </nav>
@@ -128,7 +152,9 @@
               [routerLink]="['/app/booking', booking._id]"
               queryParamsHandling="preserve"
             >
-              <span class="booking-card__avatar" aria-hidden="true">{{ clientInitial(booking) }}</span>
+              <span class="booking-card__avatar" aria-hidden="true">{{
+                clientInitial(booking)
+              }}</span>
               <div class="booking-card__identity">
                 <h2>{{ booking.client?.name ?? 'Client unavailable' }}</h2>
                 <p>{{ booking.client?.mobile ?? 'No mobile number' }}</p>
@@ -137,7 +163,9 @@
             <span [class]="'status-pill is-' + booking.status.toLowerCase()">
               <span aria-hidden="true">●</span>{{ statusLabel(booking.status) }}
               @if (booking.status === 'COMPLETED') {
-                <small [class.is-unpaid]="booking.paymentStatus === 'unpaid'">· {{ booking.paymentStatus === 'paid' ? 'Paid' : 'Unpaid' }}</small>
+                <small [class.is-unpaid]="booking.paymentStatus === 'unpaid'"
+                  >· {{ booking.paymentStatus === 'paid' ? 'Paid' : 'Unpaid' }}</small
+                >
               }
             </span>
             @if (statusActions(booking).length) {

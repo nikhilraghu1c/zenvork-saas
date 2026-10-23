@@ -23,6 +23,70 @@ resource as free and then both succeed.
 - Release the active reservation when the booking becomes `COMPLETED`, `CANCELLED`, or `NO_SHOW`.
 - Keep planned-slot conflict checks separate from this active check-in protection.
 
+# Booking calendar follow-ups (deferred)
+
+## Staff default resource filter
+
+- When an authenticated staff user has an active resource whose `linkedUserId` matches their user ID,
+  default the Calendar resource filter to that resource.
+- Keep owners on **All resources** by default, and use **All resources** as a fallback for staff who
+  have no linked active resource.
+- Preserve an intentional staff choice of **All resources** across refresh/navigation, rather than
+  restoring the staff default on every load.
+- Treat this as a display preference only; server-side booking access rules remain authoritative.
+
+## Quick booking detail view
+
+- Replace direct navigation on a Day/Week event click with a small read-only preview dialog.
+- Show client, scheduled time, assigned resources, and lifecycle status, with a **View booking** action
+  that navigates to the full detail page.
+- Keep Month count clicks as a shortcut to Day view, not as booking-detail dialogs.
+
+# Hindi language support (planned)
+
+Add an app-wide English/Hindi language preference using translation keys for static UI text.
+
+- Keep tenant-entered data such as client names, services, notes, and business names unchanged.
+- Persist the chosen language for the signed-in user or device.
+- Introduce translations incrementally by feature, without mixing untranslated hard-coded strings into new UI.
+
+# Booking discounts (planned)
+
+Add a first-class booking discount rather than relying on a negative manual adjustment.
+
+- Support a validated discount amount or percentage with an explicit stored type.
+- Snapshot the resolved discount amount on the booking for payment, analytics, and historical accuracy.
+- Present subtotal, discount, extra charge, and final total clearly in booking create, edit, and details views.
+- Do not permit a discount larger than the service subtotal.
+
+# Group bookings with service quantities (planned)
+
+Allow one booking to bill a selected service for multiple people without introducing attendee records yet.
+
+- Add `quantity` to each booking service snapshot; default it to `1`.
+- Calculate each line as `pricePaise × quantity`, then calculate the booking total from line totals.
+- Add quantity controls in booking create and edit flows, and show quantities in booking details and reporting.
+- Keep duration and resource capacity manually managed for version one; do not automatically multiply duration by quantity.
+- Keep multi-day and multi-session scheduling as a separate future feature.
+
+# Continuous multi-day bookings (planned)
+
+Allow one booking to run continuously across midnight or multiple calendar dates, such as 22 Oct
+10 PM through 23 Oct 10 AM.
+
+- Keep the existing `scheduledStartAt` and `scheduledEndAt` model; it already represents a continuous
+  cross-date range.
+- Update booking create and edit UI to allow choosing an end date separately from the start date.
+- Preserve resource conflict checks across the full continuous time range.
+- Render one event spanning the relevant dates in future Day, Week, and Month calendar views.
+- Change calendar Day/Week retrieval from a start-date filter to an overlap filter:
+  `scheduledStartAt < rangeEnd && scheduledEndAt > rangeStart`. This ensures an overnight booking
+  remains visible on every date it occupies.
+- Change the Month summary aggregation so it counts a continuous booking on every business-calendar
+  date it overlaps, rather than grouping only by `scheduledStartAt`. Define this as calendar presence
+  counts, not a summed unique-booking total across the month.
+- Treat multiple non-contiguous sessions as a separate future feature with a different data model.
+
 # Booking token and queue system (deferred)
 
 Build the core Booking create/list flow before adding queue functionality.

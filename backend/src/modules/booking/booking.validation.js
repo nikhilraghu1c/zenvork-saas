@@ -501,6 +501,50 @@ export const validateBookingListQuery = (query) => {
     sort,
     search: search?.trim() || "",
     page: parsePositiveInteger(page, "page", 1, 1000000),
-    limit: parsePositiveInteger(limit, "limit", 50, 100),
+    limit: parsePositiveInteger(limit, "limit", 50, 10000),
   };
+};
+
+/** Validates the small, scheduled-only range required by the month-calendar aggregate. */
+export const validateBookingCalendarSummaryQuery = (query) => {
+  if (!query || typeof query !== "object" || Array.isArray(query)) {
+    throw new BookingValidationError("Invalid query parameters");
+  }
+
+  const allowedFields = ["from", "to", "status", "resourceId"];
+  if (Object.keys(query).some((field) => !allowedFields.includes(field))) {
+    throw new BookingValidationError("Invalid query parameters");
+  }
+  if (Object.values(query).some((value) => Array.isArray(value) || typeof value === "object")) {
+    throw new BookingValidationError("Invalid query parameters");
+  }
+
+  const { from, to, status, resourceId } = query;
+  if (from === undefined || to === undefined) {
+    throw new BookingValidationError("Calendar summary requires a complete date range");
+  }
+  const fromDate = parseDateTime(from, "from date");
+  const toDate = parseDateTime(to, "to date");
+  if (toDate <= fromDate) {
+    throw new BookingValidationError("To date must be after from date");
+  }
+  // A calendar month may render leading/trailing dates, but must never become an unbounded aggregate.
+  if (toDate.getTime() - fromDate.getTime() > 62 * 24 * 60 * 60 * 1000) {
+    throw new BookingValidationError("Calendar summary range cannot exceed 62 days");
+  }
+  if (resourceId !== undefined && !isValidObjectId(resourceId)) {
+    throw new BookingValidationError("Invalid resource");
+  }
+  if (status !== undefined && typeof status !== "string") {
+    throw new BookingValidationError("Invalid status filter");
+  }
+  const statusValues = status === undefined ? [] : status.split(",");
+  if (
+    statusValues.some((value) => !value || !BOOKING_STATUSES.includes(value)) ||
+    new Set(statusValues).size !== statusValues.length
+  ) {
+    throw new BookingValidationError("Invalid status filter");
+  }
+
+  return { from: fromDate, to: toDate, statusValues, resourceId };
 };

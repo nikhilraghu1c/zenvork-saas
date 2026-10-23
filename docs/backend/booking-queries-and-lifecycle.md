@@ -7,6 +7,7 @@ This guide explains the most important booking controller patterns in
 
 ```text
 GET   /api/bookings                    list
+GET   /api/bookings/calendar-summary   month counts
 GET   /api/bookings/:id                detail
 POST  /api/bookings                    create
 PATCH /api/bookings/:id                edit allowed fields
@@ -193,6 +194,66 @@ const [bookings, total] = await Promise.all([
 
 The All bookings view sorts by `{ updatedAt: -1, _id: -1 }`. `-1` means descending/newest first;
 `_id` is a stable tie-breaker when two rows have the same timestamp.
+
+## Summarise Month calendar bookings
+
+**Requirement:** show a month overview without loading every booking record. The calendar summary
+accepts a short scheduled-time range plus optional lifecycle-status and resource filters. It groups
+the tenant-scoped matches into one count for each business-calendar date:
+
+```js
+Booking.aggregate([
+  { $match: filter },
+  { $group: {
+    _id: { $dateToString: {
+      date: '$scheduledStartAt',
+      format: '%Y-%m-%d',
+      timezone: BUSINESS_TIME_ZONE,
+    } },
+    total: { $sum: 1 },
+  } },
+  { $project: { _id: 0, date: '$_id', total: 1 } },
+  { $sort: { date: 1 } },
+]);
+```
+
+`$match` runs first, so MongoDB works only with the selected tenant's scheduled bookings.
+`$dateToString` converts each UTC schedule time to the business timezone before grouping; this avoids
+placing a late-evening appointment under the wrong visible date. `$sum: 1` counts each booking,
+`$project` exposes only `{ date, total }`, and `$sort` returns days in calendar order. A user taps a
+count to enter Day view, where the normal booking list query returns the actual booking records.
+
+### Read the group stage line by line
+
+Given scheduled bookings at `22 Oct 10:00`, `22 Oct 14:00`, and `23 Oct 11:00`, this stage:
+
+```js
+{
+  $group: {
+    _id: { $dateToString: { date: '$scheduledStartAt', format: '%Y-%m-%d', timezone: BUSINESS_TIME_ZONE } },
+    total: { $sum: 1 },
+  },
+}
+```
+
+means:
+
+1. `'$scheduledStartAt'` reads the schedule timestamp from each matching booking document.
+2. `$dateToString` changes each timestamp into a date key such as `2026-10-22`; the timezone makes
+   that key match the business's visible calendar day instead of the database/server's UTC day.
+3. `_id` is the grouping key, so all bookings whose key is `2026-10-22` go into the same bucket.
+4. `$sum: 1` adds one for every booking in that bucket.
+
+The group-stage output is therefore:
+
+```js
+[
+  { _id: '2026-10-22', total: 2 },
+  { _id: '2026-10-23', total: 1 },
+]
+```
+
+The following `$project` stage simply renames `_id` to `date` before returning it to the frontend.
 
 ## Populate references
 
