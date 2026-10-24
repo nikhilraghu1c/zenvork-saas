@@ -39,6 +39,7 @@ const bookingServiceSchema = new mongoose.Schema(
     },
     name: { type: String, required: true, trim: true, maxlength: 100 },
     pricePaise: { type: Number, required: true, min: 0 },
+    quantity: { type: Number, required: true, min: 1, default: 1 },
     durationMinutes: { type: Number, required: true, min: 1, max: 1440 },
     // Preserve the staffing rule that applied when this service was added to the booking.
     requiresPersonResource: { type: Boolean, default: false },
@@ -95,6 +96,15 @@ const bookingSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
+    discountType: {
+      type: String,
+      enum: ["none", "amount", "percentage"],
+      default: "none",
+    },
+    // Amount discounts use paise; percentage discounts use basis points (100% = 10,000).
+    discountValue: { type: Number, required: true, min: 0, default: 0 },
+    // The resolved discount is retained so historic bills do not change with later UI rules.
+    discountAmountPaise: { type: Number, required: true, min: 0, default: 0 },
     totalAmountPaise: {
       type: Number,
       required: true,

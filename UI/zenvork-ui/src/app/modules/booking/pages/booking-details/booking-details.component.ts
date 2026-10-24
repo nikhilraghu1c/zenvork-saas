@@ -11,8 +11,14 @@ import {
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppInputComponent } from '../../../../shared/input/input.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
+import { QuantityStepperComponent } from '../../../../shared/quantity-stepper/quantity-stepper.component';
 import { BookingCheckInDialogComponent } from '../../components/booking-check-in-dialog/booking-check-in-dialog.component';
-import { BookingRecord, BookingService, BookingStatus } from '../../services/booking.service';
+import {
+  BookingRecord,
+  BookingService,
+  BookingServiceItemRequest,
+  BookingStatus,
+} from '../../services/booking.service';
 import { ServiceOption, ServiceService } from '../../../service/services/service.service';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
 
@@ -33,6 +39,7 @@ interface TimelineStep {
     AppButtonComponent,
     AppInputComponent,
     AppSelectComponent,
+    QuantityStepperComponent,
     BookingCheckInDialogComponent,
   ],
   templateUrl: './booking-details.component.html',
@@ -55,6 +62,7 @@ export class BookingDetailsComponent implements OnInit {
   protected serviceOptions: ServiceOption[] = [];
   protected readonly serviceIdsControl = new FormControl<string[]>([], { nonNullable: true });
   protected readonly extraAmountControl = new FormControl('', { nonNullable: true });
+  protected readonly serviceQuantities: Record<string, FormControl<string>> = {};
   protected editingBill = false;
   protected loadingServices = false;
   protected savingBill = false;
@@ -63,6 +71,13 @@ export class BookingDetailsComponent implements OnInit {
 
   /** Loads one booking directly so details remain correct beyond the currently listed page. */
   ngOnInit(): void {
+    this.serviceIdsControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((serviceIds) => {
+        serviceIds.forEach((serviceId) => {
+          this.serviceQuantityControl(serviceId);
+        });
+      });
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
       this.errorMessage = 'Booking not found.';
@@ -179,11 +194,43 @@ export class BookingDetailsComponent implements OnInit {
     return this.serviceOptions.filter((service) => selectedIds.has(service._id));
   }
 
+  /** Keeps service quantities while staff add or remove bill lines from the detail workspace. */
+  protected serviceQuantityControl(serviceId: string): FormControl<string> {
+    if (!this.serviceQuantities[serviceId]) {
+      this.serviceQuantities[serviceId] = new FormControl('1', { nonNullable: true });
+    }
+    return this.serviceQuantities[serviceId];
+  }
+
+  protected selectedServiceItems(): BookingServiceItemRequest[] {
+    return this.serviceIdsControl.value.map((serviceId) => {
+      const quantity = Number(this.serviceQuantityControl(serviceId).value);
+      return { serviceId, quantity };
+    });
+  }
+
   protected billTotalPaise(): number {
-    return this.selectedServices().reduce(
-      (total, service) => total + service.pricePaise,
-      this.extraAmountPaise(),
+    const subtotal = this.billSubtotalPaise();
+    return subtotal - this.billDiscountPaise(subtotal) + this.extraAmountPaise();
+  }
+
+  protected billSubtotalPaise(): number {
+    const quantities = new Map(
+      this.selectedServiceItems().map((item) => [item.serviceId, item.quantity]),
     );
+    return this.selectedServices().reduce((total, service) => {
+      return total + service.pricePaise * (quantities.get(service._id) ?? 0);
+    }, 0);
+  }
+
+  protected billDiscountPaise(subtotalPaise: number): number {
+    if (!this.booking || this.booking.discountType === 'none') {
+      return 0;
+    }
+    if (this.booking.discountType === 'amount') {
+      return this.booking.discountValue;
+    }
+    return Math.floor((subtotalPaise * this.booking.discountValue) / 10000);
   }
 
   protected formatAmount(amountPaise: number): string {
@@ -198,9 +245,10 @@ export class BookingDetailsComponent implements OnInit {
     if (!this.booking || this.loadingServices || this.savingBill) return;
     this.editingBill = true;
     this.billError = '';
-    this.serviceIdsControl.setValue(
-      (this.booking.services ?? []).map((service) => service.serviceId),
-    );
+    (this.booking.services ?? []).forEach((service) => {
+      this.serviceQuantityControl(service.serviceId).setValue(String(service.quantity ?? 1));
+    });
+    this.serviceIdsControl.setValue((this.booking.services ?? []).map((service) => service.serviceId));
     this.extraAmountControl.setValue(this.formatMoneyInput(this.booking.extraAmountPaise));
     this.loadingServices = true;
     this.serviceApi
@@ -229,11 +277,19 @@ export class BookingDetailsComponent implements OnInit {
       this.billError = 'Enter a valid non-negative extra charge.';
       return;
     }
+    if (
+      this.selectedServiceItems().some(
+        (item) => !Number.isSafeInteger(item.quantity) || item.quantity < 1,
+      )
+    ) {
+      this.billError = 'Each selected service needs a quantity of at least one.';
+      return;
+    }
     this.savingBill = true;
     this.billError = '';
     this.bookingService
       .updateBooking(this.booking._id, {
-        serviceIds: this.serviceIdsControl.value,
+        serviceItems: this.selectedServiceItems(),
         extraAmountPaise,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))

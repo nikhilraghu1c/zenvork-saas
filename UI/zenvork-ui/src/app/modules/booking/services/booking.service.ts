@@ -41,9 +41,23 @@ export interface BookingServiceSnapshot {
   serviceId: string;
   name: string;
   pricePaise: number;
+  /** Older booking snapshots predate quantities and are treated as one. */
+  quantity?: number;
   durationMinutes: number;
   requiresPersonResource: boolean;
 }
+
+export type BookingDiscountType = 'none' | 'amount' | 'percentage';
+
+export interface BookingServiceItemRequest {
+  serviceId: string;
+  quantity: number;
+}
+
+export type BookingDiscountRequest =
+  | { type: 'none' }
+  | { type: 'amount'; amountPaise: number }
+  | { type: 'percentage'; percentageBasisPoints: number };
 
 export interface BookingRecord {
   _id: string;
@@ -57,6 +71,9 @@ export interface BookingRecord {
   hasServices?: boolean;
   services?: BookingServiceSnapshot[];
   extraAmountPaise: number;
+  discountType: BookingDiscountType;
+  discountValue: number;
+  discountAmountPaise: number;
   totalAmountPaise: number;
   paymentStatus: 'unpaid' | 'paid';
   paidAt: string | null;
@@ -119,7 +136,8 @@ export interface CreateBookingRequest {
   scheduledStartAt?: string;
   scheduledEndAt?: string;
   notes?: string;
-  serviceIds?: string[];
+  serviceItems?: BookingServiceItemRequest[];
+  discount?: BookingDiscountRequest;
   extraAmountPaise?: number;
 }
 
@@ -134,7 +152,8 @@ export interface UpdateBookingRequest {
   scheduledStartAt?: string;
   scheduledEndAt?: string;
   notes?: string;
-  serviceIds?: string[];
+  serviceItems?: BookingServiceItemRequest[];
+  discount?: BookingDiscountRequest;
   extraAmountPaise?: number;
 }
 
@@ -161,7 +180,9 @@ export class BookingService {
   getBookings(query: BookingListQuery = {}): Observable<BookingListResponse> {
     // Ignore unset filter values so they do not create an empty query string.
     const activeQuery = Object.fromEntries(
-      Object.entries(query).filter(([, value]) => value !== undefined && value !== null && value !== ''),
+      Object.entries(query).filter(
+        ([, value]) => value !== undefined && value !== null && value !== '',
+      ),
     ) as BookingListQuery;
 
     return Object.keys(activeQuery).length

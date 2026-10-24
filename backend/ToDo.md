@@ -50,25 +50,6 @@ Add an app-wide English/Hindi language preference using translation keys for sta
 - Persist the chosen language for the signed-in user or device.
 - Introduce translations incrementally by feature, without mixing untranslated hard-coded strings into new UI.
 
-# Booking discounts (planned)
-
-Add a first-class booking discount rather than relying on a negative manual adjustment.
-
-- Support a validated discount amount or percentage with an explicit stored type.
-- Snapshot the resolved discount amount on the booking for payment, analytics, and historical accuracy.
-- Present subtotal, discount, extra charge, and final total clearly in booking create, edit, and details views.
-- Do not permit a discount larger than the service subtotal.
-
-# Group bookings with service quantities (planned)
-
-Allow one booking to bill a selected service for multiple people without introducing attendee records yet.
-
-- Add `quantity` to each booking service snapshot; default it to `1`.
-- Calculate each line as `pricePaise × quantity`, then calculate the booking total from line totals.
-- Add quantity controls in booking create and edit flows, and show quantities in booking details and reporting.
-- Keep duration and resource capacity manually managed for version one; do not automatically multiply duration by quantity.
-- Keep multi-day and multi-session scheduling as a separate future feature.
-
 # Continuous multi-day bookings (planned)
 
 Allow one booking to run continuously across midnight or multiple calendar dates, such as 22 Oct

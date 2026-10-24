@@ -99,6 +99,38 @@
     display: grid;
     gap: 14px;
   }
+  .service-quantities {
+    display: grid;
+    gap: 8px;
+  }
+  .service-quantity-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-subtle);
+    > span {
+      display: grid;
+      min-width: 0;
+      gap: 3px;
+    }
+    strong {
+      color: var(--text);
+      font-size: 13px;
+    }
+    small {
+      color: var(--text-mute);
+      font-size: 12px;
+    }
+  }
+  .discount-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
   .person-requirement {
     display: flex;
     align-items: flex-start;
@@ -130,7 +162,9 @@
     &.is-satisfied {
       border-color: var(--green-border);
       background: var(--green-soft);
-      .person-requirement__icon { color: var(--green); }
+      .person-requirement__icon {
+        color: var(--green);
+      }
     }
   }
   .person-required-hint {
@@ -324,7 +358,8 @@
   @media (max-width: 680px) {
     padding: 20px 16px 32px;
     .schedule-fields,
-    .summary-actions {
+    .summary-actions,
+    .discount-fields {
       grid-template-columns: 1fr;
     }
     .card {

@@ -23,7 +23,8 @@ GET /api/bookings
 ```
 
 Returns `{ bookings: [...], pagination: { page, limit, total } }`. Each booking includes its schedule,
-actual times, status, `hasServices`, `extraAmountPaise`, `totalAmountPaise`, `paymentStatus`,
+actual times, status, `hasServices`, `extraAmountPaise`, `discountType`, `discountValue`,
+`discountAmountPaise`, `totalAmountPaise`, `paymentStatus`,
 `paidAt`, notes, timestamps, a populated `client`
 (`name`, `mobile`), and populated `resources` (`name`, `resourceType`, `resourceTypeName`) summaries.
 `resourceType` is the stable configuration code; `resourceTypeName` is the configured tenant-facing
@@ -75,8 +76,10 @@ GET /api/bookings/:id
 Returns `{ booking: {...} }` for a booking owned by the authenticated business. The response includes
 the same public booking fields as the list endpoint, with a populated `client` (`name`, `mobile`,
 `email`) and populated `resources` (`name`, `resourceType`, `resourceTypeName`). It also includes `services`, whose items
-contain `serviceId`, `name`, `pricePaise`, `durationMinutes`, and `requiresPersonResource` snapshots, plus `extraAmountPaise`
-and the server-calculated `totalAmountPaise`. Returns `404` when the booking is not in the authenticated business.
+contain `serviceId`, `name`, `pricePaise`, `quantity`, `durationMinutes`, and `requiresPersonResource`
+snapshots. A missing historic `quantity` is treated as `1`. The response also includes `extraAmountPaise`,
+the requested `discountType` and `discountValue`, the resolved `discountAmountPaise`, and the
+server-calculated `totalAmountPaise`. Returns `404` when the booking is not in the authenticated business.
 
 ## Edit a booking
 
@@ -87,7 +90,8 @@ PATCH /api/bookings/:id
 ```json
 {
   "resourceIds": ["65f123456789012345678902"],
-  "serviceIds": ["65f123456789012345678903"],
+  "serviceItems": [{ "serviceId": "65f123456789012345678903", "quantity": 3 }],
+  "discount": { "type": "percentage", "percentageBasisPoints": 1000 },
   "extraAmountPaise": 30000,
   "scheduledStartAt": "2026-09-16T04:30:00.000Z",
   "scheduledEndAt": "2026-09-16T05:00:00.000Z",
@@ -95,7 +99,7 @@ PATCH /api/bookings/:id
 }
 ```
 
-Only `clientId`, `resourceIds`, `serviceIds`, `extraAmountPaise`, `scheduledStartAt`,
+Only `clientId`, `resourceIds`, `serviceItems`, `discount`, `extraAmountPaise`, `scheduledStartAt`,
 `scheduledEndAt`, and `notes` are accepted. Client correction is allowed only while a booking is
 `PENDING`; after scheduling, the client is locked. Schedule edits are allowed only while a booking is
 `PENDING` or `SCHEDULED`. Resources, services, the extra amount, and notes may be changed while it
@@ -109,11 +113,14 @@ and checks conflicts, excluding the booking being rescheduled. Supplying a time 
 being scheduled. A checked-in booking may update resources only to support the work being delivered;
 the backend still verifies resource activity, current-service conflicts, planned-slot conflicts, and
 any person requirement. At least one resource must remain assigned while it is checked in.
-`serviceIds` replaces the selected service list. Every ID must be an active service
-owned by the authenticated business; the backend snapshots each service's name, price, duration, and
-staffing requirement.
-`extraAmountPaise` is optional and defaults to zero; it is a non-negative manual adjustment that the
-backend adds to the snapshot service total. Create an `Other` service through the owner-only service
+`serviceItems` replaces the selected service list. Each item has one active tenant-owned `serviceId`
+and an integer `quantity` of at least one. The backend snapshots each service's name, price, quantity,
+duration, and staffing requirement. For backwards compatibility, legacy clients may send `serviceIds`,
+which are treated as items with quantity one, but they cannot be sent with `serviceItems`.
+`discount` is optional and is `{ "type": "none" }`, `{ "type": "amount", "amountPaise": number }`,
+or `{ "type": "percentage", "percentageBasisPoints": number }`; percentages use 10,000 basis points
+for 100%. The resolved discount cannot exceed the services subtotal. `extraAmountPaise` is optional and
+defaults to zero; it is a non-negative manual adjustment added after the discount. Create an `Other` service through the owner-only service
 catalog API when staff need a selectable service with a business-configured default price. This
 endpoint does not accept `status`, actual timestamps, tenant fields, totals, payment status, or audit
 fields.
@@ -180,7 +187,8 @@ POST /api/bookings
     "email": "asha@example.com"
   },
   "resourceIds": ["65f123456789012345678902"],
-  "serviceIds": ["65f123456789012345678903"],
+  "serviceItems": [{ "serviceId": "65f123456789012345678903", "quantity": 3 }],
+  "discount": { "type": "amount", "amountPaise": 15000 },
   "extraAmountPaise": 30000,
   "scheduledStartAt": "2026-09-13T04:30:00.000Z",
   "scheduledEndAt": "2026-09-13T05:00:00.000Z",
@@ -194,10 +202,10 @@ created in one transaction. `resourceIds` is optional, allowing an unassigned bo
 start and end must either both be absent (creating a `PENDING` booking) or both be ISO date-times
 with a timezone (creating a `SCHEDULED` booking). The server validates that the client and resources
 belong to the tenant and that resources are active. It returns `409` when a selected resource has an
-overlapping `SCHEDULED` or `CHECKED_IN` booking. `serviceIds` is optional for both pending and
+overlapping `SCHEDULED` or `CHECKED_IN` booking. `serviceItems` is optional for both pending and
 scheduled bookings. Each selected service must be active and tenant-owned; the server stores a
-historical service snapshot and calculates `totalAmountPaise` from its snapshot prices plus the
-optional `extraAmountPaise`.
+historical service snapshot and calculates its subtotal from `pricePaise × quantity`, subtracts the
+validated optional discount, then adds the optional `extraAmountPaise` to produce `totalAmountPaise`.
 
 The request cannot provide status, actual times, `businessId`, or `createdBy`. Actual service times
 are set by the status-update endpoint.

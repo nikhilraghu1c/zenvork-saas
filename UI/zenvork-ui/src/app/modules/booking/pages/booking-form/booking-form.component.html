@@ -17,7 +17,9 @@
     <form class="booking-layout" (ngSubmit)="submit()">
       <div class="booking-form">
         <section class="form-section" aria-labelledby="client-title">
-          <h2 id="client-title">Client <span class="required-marker" aria-hidden="true">*</span></h2>
+          <h2 id="client-title">
+            Client <span class="required-marker" aria-hidden="true">*</span>
+          </h2>
           <div class="card">
             @if (selectedClient) {
               <div class="selected-client">
@@ -101,7 +103,11 @@
               <div class="person-requirement" [class.is-satisfied]="hasSelectedPersonResource()">
                 <mat-icon aria-hidden="true">person</mat-icon>
                 <p>
-                  <strong>{{ hasSelectedPersonResource() ? 'Team member or professional assigned' : 'Assign a team member or professional' }}</strong>
+                  <strong>{{
+                    hasSelectedPersonResource()
+                      ? 'Team member or professional assigned'
+                      : 'Assign a team member or professional'
+                  }}</strong>
                   <span>This service cannot be checked in or completed without one.</span>
                 </p>
               </div>
@@ -157,6 +163,49 @@
               [options]="serviceOptionsForSelect()"
               placeholder="Select services"
             />
+            @if (selectedServices().length) {
+              <div class="service-quantities" aria-label="Service quantities">
+                @for (service of selectedServices(); track service._id) {
+                  <div class="service-quantity-row">
+                    <span
+                      ><strong>{{ service.name }}</strong
+                      ><small>{{ formatAmount(service.pricePaise) }} each</small></span
+                    >
+                    <app-quantity-stepper
+                      [formControl]="serviceQuantityControl(service._id)"
+                      [ariaLabel]="'Quantity for ' + service.name"
+                    />
+                  </div>
+                }
+              </div>
+            }
+            <div class="discount-fields">
+              <app-select
+                [formControl]="discountTypeControl"
+                label="Discount"
+                labelPlacement="outside"
+                subscriptSizing="dynamic"
+                [options]="discountOptions()"
+              />
+              @if (discountTypeControl.value !== 'none') {
+                <app-input
+                  [formControl]="discountValueControl"
+                  type="number"
+                  [label]="
+                    discountTypeControl.value === 'amount'
+                      ? 'Discount amount'
+                      : 'Discount percentage'
+                  "
+                  labelPlacement="outside"
+                  [prefix]="discountTypeControl.value === 'amount' ? '₹ ' : ''"
+                  [suffix]="discountTypeControl.value === 'percentage' ? '%' : ''"
+                  [min]="0"
+                  [max]="discountTypeControl.value === 'percentage' ? 100 : undefined"
+                  placeholder="0"
+                  subscriptSizing="dynamic"
+                />
+              }
+            </div>
             <app-input
               [formControl]="extraAmountControl"
               type="number"
@@ -210,11 +259,17 @@
           }}</strong>
         </div>
         <div class="summary-row">
-          <span>Services</span><strong [class.empty]="summaryServices() === 'Not selected'">{{ summaryServices() }}</strong>
+          <span>Services</span
+          ><strong [class.empty]="summaryServices() === 'Not selected'">{{
+            summaryServices()
+          }}</strong>
         </div>
         @if (requiresPersonResource()) {
           <div class="summary-row">
-            <span>Person</span><strong [class.empty]="!hasSelectedPersonResource()">{{ hasSelectedPersonResource() ? 'Assigned' : 'Required at check-in' }}</strong>
+            <span>Person</span
+            ><strong [class.empty]="!hasSelectedPersonResource()">{{
+              hasSelectedPersonResource() ? 'Assigned' : 'Required at check-in'
+            }}</strong>
           </div>
         }
         <div class="summary-row">

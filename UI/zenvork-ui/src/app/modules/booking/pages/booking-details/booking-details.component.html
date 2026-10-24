@@ -1,6 +1,7 @@
 <section class="booking-details-page" aria-label="Booking details">
   <nav class="breadcrumb" aria-label="Breadcrumb">
-    <a routerLink="/app/booking" queryParamsHandling="preserve">Bookings</a><span aria-hidden="true">/</span><span aria-current="page">Booking details</span>
+    <a routerLink="/app/booking" queryParamsHandling="preserve">Bookings</a
+    ><span aria-hidden="true">/</span><span aria-current="page">Booking details</span>
   </nav>
 
   @if (loading) {
@@ -22,7 +23,9 @@
       @if (statusActions(booking).length || canEditBooking(booking)) {
         <div class="booking-header__actions">
           @if (canEditBooking(booking)) {
-            <app-button variant="text" (clicked)="openBookingEditor(booking)">Edit booking</app-button>
+            <app-button variant="text" (clicked)="openBookingEditor(booking)"
+              >Edit booking</app-button
+            >
           }
           <app-action-menu
             ariaLabel="Booking status actions"
@@ -48,9 +51,20 @@
         <section class="detail-section" aria-labelledby="client-title">
           <h2 id="client-title">Client</h2>
           <dl class="card info-grid">
-            <div><dt>Name</dt><dd>{{ booking.client?.name ?? 'Not available' }}</dd></div>
-            <div><dt>Mobile</dt><dd>{{ booking.client?.mobile ?? 'Not available' }}</dd></div>
-            <div><dt>Email</dt><dd [class.muted]="!booking.client?.email">{{ booking.client?.email ?? 'Not provided' }}</dd></div>
+            <div>
+              <dt>Name</dt>
+              <dd>{{ booking.client?.name ?? 'Not available' }}</dd>
+            </div>
+            <div>
+              <dt>Mobile</dt>
+              <dd>{{ booking.client?.mobile ?? 'Not available' }}</dd>
+            </div>
+            <div>
+              <dt>Email</dt>
+              <dd [class.muted]="!booking.client?.email">
+                {{ booking.client?.email ?? 'Not provided' }}
+              </dd>
+            </div>
           </dl>
         </section>
 
@@ -58,19 +72,32 @@
           <h2 id="resources-title">Resources assigned</h2>
           <div class="card resource-list">
             @if (requiresPersonResource(booking)) {
-              <div class="person-requirement" [class.is-satisfied]="['CHECKED_IN', 'COMPLETED'].includes(booking.status)">
+              <div
+                class="person-requirement"
+                [class.is-satisfied]="['CHECKED_IN', 'COMPLETED'].includes(booking.status)"
+              >
                 <mat-icon aria-hidden="true">person</mat-icon>
                 <p>
                   <strong>{{ personRequirementLabel(booking) }}</strong>
                   <span>
-                    {{ ['CHECKED_IN', 'COMPLETED'].includes(booking.status) ? 'This service needs a team member or professional.' : 'Assign a team member or professional when checking in.' }}
+                    {{
+                      ['CHECKED_IN', 'COMPLETED'].includes(booking.status)
+                        ? 'This service needs a team member or professional.'
+                        : 'Assign a team member or professional when checking in.'
+                    }}
                   </span>
                 </p>
               </div>
             }
             @if (booking.resources.length) {
               @for (resource of booking.resources; track resource._id) {
-                <div class="resource-item"><mat-icon aria-hidden="true">category</mat-icon><div><strong>{{ resource.name }}</strong><span>{{ resource.resourceTypeName }}</span></div></div>
+                <div class="resource-item">
+                  <mat-icon aria-hidden="true">category</mat-icon>
+                  <div>
+                    <strong>{{ resource.name }}</strong
+                    ><span>{{ resource.resourceTypeName }}</span>
+                  </div>
+                </div>
               }
             } @else {
               <p class="muted">No resources are assigned yet.</p>
@@ -81,9 +108,22 @@
         <section class="detail-section" aria-labelledby="schedule-title">
           <h2 id="schedule-title">Schedule</h2>
           <dl class="card info-grid">
-            <div><dt>Scheduled slot</dt><dd [class.muted]="!booking.scheduledStartAt">{{ scheduleLabel(booking) }}</dd></div>
-            <div><dt>Actual start</dt><dd [class.muted]="!booking.actualStartAt">{{ formatDateTime(booking.actualStartAt) }}</dd></div>
-            <div><dt>Actual end</dt><dd [class.muted]="!booking.actualEndAt">{{ formatDateTime(booking.actualEndAt) }}</dd></div>
+            <div>
+              <dt>Scheduled slot</dt>
+              <dd [class.muted]="!booking.scheduledStartAt">{{ scheduleLabel(booking) }}</dd>
+            </div>
+            <div>
+              <dt>Actual start</dt>
+              <dd [class.muted]="!booking.actualStartAt">
+                {{ formatDateTime(booking.actualStartAt) }}
+              </dd>
+            </div>
+            <div>
+              <dt>Actual end</dt>
+              <dd [class.muted]="!booking.actualEndAt">
+                {{ formatDateTime(booking.actualEndAt) }}
+              </dd>
+            </div>
           </dl>
         </section>
 
@@ -111,7 +151,15 @@
                 @if (selectedServices().length) {
                   <div class="bill-lines">
                     @for (service of selectedServices(); track service._id) {
-                      <div><span>{{ service.name }}</span><strong>{{ formatAmount(service.pricePaise) }}</strong></div>
+                      <div class="bill-line-editor">
+                        <span
+                          >{{ service.name
+                          }}<small>{{ formatAmount(service.pricePaise) }} each</small></span
+                        ><app-quantity-stepper
+                          [formControl]="serviceQuantityControl(service._id)"
+                          [ariaLabel]="'Quantity for ' + service.name"
+                        />
+                      </div>
                     }
                   </div>
                 }
@@ -123,11 +171,28 @@
                   prefix="₹ "
                   placeholder="0"
                 />
-                <div class="bill-total"><span>Estimated total</span><strong>{{ formatAmount(billTotalPaise()) }}</strong></div>
-                @if (billError) { <p class="form-error" role="alert">{{ billError }}</p> }
+                @if (booking.discountType !== 'none') {
+                  <div class="bill-adjustment">
+                    <span>Discount</span
+                    ><strong>−{{ formatAmount(billDiscountPaise(billSubtotalPaise())) }}</strong>
+                  </div>
+                }
+                <div class="bill-total">
+                  <span>Estimated total</span><strong>{{ formatAmount(billTotalPaise()) }}</strong>
+                </div>
+                @if (billError) {
+                  <p class="form-error" role="alert">{{ billError }}</p>
+                }
                 <div class="bill-editor__actions">
-                  <app-button variant="secondary" [disabled]="savingBill" (clicked)="cancelBillEditor()">Cancel</app-button>
-                  <app-button [loading]="savingBill" (clicked)="saveBill()">Save services</app-button>
+                  <app-button
+                    variant="secondary"
+                    [disabled]="savingBill"
+                    (clicked)="cancelBillEditor()"
+                    >Cancel</app-button
+                  >
+                  <app-button [loading]="savingBill" (clicked)="saveBill()"
+                    >Save services</app-button
+                  >
                 </div>
               }
             </div>
@@ -136,21 +201,47 @@
               @if (booking.services?.length) {
                 <div class="bill-lines">
                   @for (service of booking.services; track service.serviceId) {
-                    <div><span>{{ service.name }} <small>{{ service.durationMinutes }} min</small></span><strong>{{ formatAmount(service.pricePaise) }}</strong></div>
+                    <div>
+                      <span
+                        >{{ service.name }}
+                        <small
+                          >{{ service.durationMinutes }} min · ×{{ service.quantity ?? 1 }}</small
+                        ></span
+                      ><strong>{{
+                        formatAmount(service.pricePaise * (service.quantity ?? 1))
+                      }}</strong>
+                    </div>
                   }
                 </div>
               } @else {
                 <p class="muted">No services added yet.</p>
               }
               @if (booking.extraAmountPaise) {
-                <div class="bill-adjustment"><span>Extra charge</span><strong>{{ formatAmount(booking.extraAmountPaise) }}</strong></div>
+                <div class="bill-adjustment">
+                  <span>Extra charge</span
+                  ><strong>{{ formatAmount(booking.extraAmountPaise) }}</strong>
+                </div>
               }
-              <div class="bill-total"><span>Total</span><strong>{{ formatAmount(booking.totalAmountPaise) }}</strong></div>
+              @if (booking.discountAmountPaise) {
+                <div class="bill-adjustment">
+                  <span>Discount</span
+                  ><strong>−{{ formatAmount(booking.discountAmountPaise) }}</strong>
+                </div>
+              }
+              <div class="bill-total">
+                <span>Total</span><strong>{{ formatAmount(booking.totalAmountPaise) }}</strong>
+              </div>
               @if (booking.status === 'COMPLETED') {
                 @if (booking.capabilities?.canManage) {
                   <div class="payment-status">
                     <span>Payment</span>
-                    <app-button variant="secondary" [loading]="updatingPayment" (clicked)="updatePaymentStatus(booking.paymentStatus === 'paid' ? 'unpaid' : 'paid')">
+                    <app-button
+                      variant="secondary"
+                      [loading]="updatingPayment"
+                      (clicked)="
+                        updatePaymentStatus(booking.paymentStatus === 'paid' ? 'unpaid' : 'paid')
+                      "
+                    >
                       Mark as {{ booking.paymentStatus === 'paid' ? 'unpaid' : 'paid' }}
                     </app-button>
                   </div>
@@ -162,7 +253,9 @@
 
         <section class="detail-section" aria-labelledby="notes-title">
           <h2 id="notes-title">Notes</h2>
-          <div class="card notes"><p [class.muted]="!booking.notes">{{ booking.notes || 'No notes added.' }}</p></div>
+          <div class="card notes">
+            <p [class.muted]="!booking.notes">{{ booking.notes || 'No notes added.' }}</p>
+          </div>
         </section>
       </div>
 
@@ -171,8 +264,16 @@
           <h2 id="timeline-title">Status timeline</h2>
           <div class="card timeline">
             @for (step of timeline(booking); track step.label) {
-              <div class="timeline__step" [class.is-done]="step.state === 'done'" [class.is-current]="step.state === 'current'">
-                <span class="timeline__dot" aria-hidden="true"></span><div><strong>{{ step.label }}</strong><span>{{ formatDateTime(step.timestamp) }}</span></div>
+              <div
+                class="timeline__step"
+                [class.is-done]="step.state === 'done'"
+                [class.is-current]="step.state === 'current'"
+              >
+                <span class="timeline__dot" aria-hidden="true"></span>
+                <div>
+                  <strong>{{ step.label }}</strong
+                  ><span>{{ formatDateTime(step.timestamp) }}</span>
+                </div>
               </div>
             }
           </div>
@@ -181,14 +282,28 @@
         <section class="detail-section" aria-labelledby="metadata-title">
           <h2 id="metadata-title">Details</h2>
           <dl class="card metadata">
-            <div><dt>Booking ID</dt><dd>#{{ booking._id.slice(-6).toUpperCase() }}</dd></div>
-            <div><dt>Created on</dt><dd>{{ formatDateTime(booking.createdAt) }}</dd></div>
-            <div><dt>Last updated</dt><dd>{{ formatDateTime(booking.updatedAt) }}</dd></div>
+            <div>
+              <dt>Booking ID</dt>
+              <dd>#{{ booking._id.slice(-6).toUpperCase() }}</dd>
+            </div>
+            <div>
+              <dt>Created on</dt>
+              <dd>{{ formatDateTime(booking.createdAt) }}</dd>
+            </div>
+            <div>
+              <dt>Last updated</dt>
+              <dd>{{ formatDateTime(booking.updatedAt) }}</dd>
+            </div>
           </dl>
         </section>
       </aside>
     </div>
   } @else {
-    <div class="page-state is-error" role="alert"><p>{{ errorMessage }}</p><app-button variant="tertiary" routerLink="/app/booking" queryParamsHandling="preserve">Back to Bookings</app-button></div>
+    <div class="page-state is-error" role="alert">
+      <p>{{ errorMessage }}</p>
+      <app-button variant="tertiary" routerLink="/app/booking" queryParamsHandling="preserve"
+        >Back to Bookings</app-button
+      >
+    </div>
   }
 </section>

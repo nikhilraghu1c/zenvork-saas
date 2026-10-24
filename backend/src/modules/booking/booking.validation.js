@@ -66,9 +66,68 @@ const validateServiceIds = (serviceIds) => {
     throw new BookingValidationError("Invalid services");
   }
   if (new Set(serviceIds).size !== serviceIds.length) {
-    throw new BookingValidationError("Services cannot be selected more than once");
+    throw new BookingValidationError(
+      "Services cannot be selected more than once",
+    );
   }
   return serviceIds;
+};
+
+const validateServiceItems = (serviceItems) => {
+  if (!Array.isArray(serviceItems)) {
+    throw new BookingValidationError("Service items must be an array");
+  }
+  const seenServiceIds = new Set();
+  return serviceItems.map((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      throw new BookingValidationError("Invalid service item");
+    }
+    if (
+      !isValidObjectId(item.serviceId) ||
+      !Number.isSafeInteger(item.quantity) ||
+      item.quantity < 1
+    ) {
+      throw new BookingValidationError(
+        "Each service needs a valid ID and quantity of at least one",
+      );
+    }
+    if (seenServiceIds.has(item.serviceId)) {
+      throw new BookingValidationError("A service can be selected only once");
+    }
+    seenServiceIds.add(item.serviceId);
+    return { serviceId: item.serviceId, quantity: item.quantity };
+  });
+};
+
+const validateDiscount = (discount) => {
+  if (discount === undefined) {
+    return { type: "none" };
+  }
+  if (!discount || typeof discount !== "object" || Array.isArray(discount)) {
+    throw new BookingValidationError("Invalid discount");
+  }
+  if (discount.type === "none" && Object.keys(discount).length === 1) {
+    return { type: "none" };
+  }
+  if (
+    discount.type === "amount" &&
+    Number.isSafeInteger(discount.amountPaise) &&
+    discount.amountPaise >= 0
+  ) {
+    return { type: "amount", amountPaise: discount.amountPaise };
+  }
+  if (
+    discount.type === "percentage" &&
+    Number.isSafeInteger(discount.percentageBasisPoints) &&
+    discount.percentageBasisPoints >= 0 &&
+    discount.percentageBasisPoints <= 10000
+  ) {
+    return {
+      type: "percentage",
+      percentageBasisPoints: discount.percentageBasisPoints,
+    };
+  }
+  throw new BookingValidationError("Invalid discount");
 };
 
 const validateExtraAmountPaise = (value) => {
@@ -92,6 +151,8 @@ export const validateBookingCreation = (data) => {
     "scheduledStartAt",
     "scheduledEndAt",
     "serviceIds",
+    "serviceItems",
+    "discount",
     "extraAmountPaise",
     "notes",
   ];
@@ -107,6 +168,8 @@ export const validateBookingCreation = (data) => {
     scheduledStartAt,
     scheduledEndAt,
     serviceIds = [],
+    serviceItems,
+    discount,
     extraAmountPaise = 0,
     notes,
   } = data;
@@ -156,7 +219,19 @@ export const validateBookingCreation = (data) => {
       "Resources cannot be selected more than once",
     );
   }
+  if (serviceItems !== undefined && serviceIds.length > 0) {
+    throw new BookingValidationError(
+      "Provide service items or service IDs, not both",
+    );
+  }
   validateServiceIds(serviceIds);
+  const validatedServiceItems =
+    serviceItems === undefined
+      ? serviceIds.map((serviceId) => {
+          return { serviceId, quantity: 1 };
+        })
+      : validateServiceItems(serviceItems);
+  const validatedDiscount = validateDiscount(discount);
   validateExtraAmountPaise(extraAmountPaise);
   if (
     notes !== undefined &&
@@ -190,14 +265,17 @@ export const validateBookingCreation = (data) => {
   }
   // New appointments must remain actionable; past slots are historical, not schedulable.
   if (startAt && startAt < new Date()) {
-    throw new BookingValidationError("Scheduled start time cannot be in the past");
+    throw new BookingValidationError(
+      "Scheduled start time cannot be in the past",
+    );
   }
 
   return {
     clientId: hasClientId ? clientId : null,
     client: newClient,
     resourceIds,
-    serviceIds,
+    serviceItems: validatedServiceItems,
+    discount: validatedDiscount,
     extraAmountPaise,
     scheduledStartAt: startAt,
     scheduledEndAt: endAt,
@@ -219,16 +297,23 @@ export const validateBookingStatusUpdate = (data) => {
   ) {
     throw new BookingValidationError("Invalid status update fields");
   }
-  if (typeof data.status !== "string" || !BOOKING_STATUSES.includes(data.status)) {
+  if (
+    typeof data.status !== "string" ||
+    !BOOKING_STATUSES.includes(data.status)
+  ) {
     throw new BookingValidationError("Invalid booking status");
   }
 
   const hasResourceIds = Object.hasOwn(data, "resourceIds");
   if (data.status !== "CHECKED_IN" && hasResourceIds) {
-    throw new BookingValidationError("Resources can only be assigned while checking in");
+    throw new BookingValidationError(
+      "Resources can only be assigned while checking in",
+    );
   }
   if (data.status === "CHECKED_IN" && !hasResourceIds) {
-    throw new BookingValidationError("Assign at least one resource before checking in");
+    throw new BookingValidationError(
+      "Assign at least one resource before checking in",
+    );
   }
   if (
     hasResourceIds &&
@@ -238,7 +323,10 @@ export const validateBookingStatusUpdate = (data) => {
   ) {
     throw new BookingValidationError("Select at least one valid resource");
   }
-  if (hasResourceIds && new Set(data.resourceIds).size !== data.resourceIds.length) {
+  if (
+    hasResourceIds &&
+    new Set(data.resourceIds).size !== data.resourceIds.length
+  ) {
     throw new BookingValidationError(
       "Resources cannot be selected more than once",
     );
@@ -276,6 +364,8 @@ export const validateBookingUpdate = (data) => {
     "scheduledStartAt",
     "scheduledEndAt",
     "serviceIds",
+    "serviceItems",
+    "discount",
     "extraAmountPaise",
     "notes",
   ];
@@ -293,6 +383,8 @@ export const validateBookingUpdate = (data) => {
   const hasScheduledEnd = Object.hasOwn(data, "scheduledEndAt");
   const hasNotes = Object.hasOwn(data, "notes");
   const hasServiceIds = Object.hasOwn(data, "serviceIds");
+  const hasServiceItems = Object.hasOwn(data, "serviceItems");
+  const hasDiscount = Object.hasOwn(data, "discount");
   const hasExtraAmountPaise = Object.hasOwn(data, "extraAmountPaise");
 
   // A time range is only valid when both ends are intentionally updated together.
@@ -311,8 +403,23 @@ export const validateBookingUpdate = (data) => {
   ) {
     throw new BookingValidationError("Invalid resources");
   }
-  if (hasServiceIds) validateServiceIds(data.serviceIds);
-  if (hasExtraAmountPaise) validateExtraAmountPaise(data.extraAmountPaise);
+  if (hasServiceIds && hasServiceItems) {
+    throw new BookingValidationError(
+      "Provide service items or service IDs, not both",
+    );
+  }
+  if (hasServiceIds) {
+    validateServiceIds(data.serviceIds);
+  }
+  if (hasServiceItems) {
+    validateServiceItems(data.serviceItems);
+  }
+  if (hasDiscount) {
+    validateDiscount(data.discount);
+  }
+  if (hasExtraAmountPaise) {
+    validateExtraAmountPaise(data.extraAmountPaise);
+  }
   if (
     hasResourceIds &&
     new Set(data.resourceIds).size !== data.resourceIds.length
@@ -336,14 +443,20 @@ export const validateBookingUpdate = (data) => {
   const scheduledEndAt = hasScheduledEnd
     ? parseDateTime(data.scheduledEndAt, "scheduled end time")
     : null;
-  if (scheduledStartAt && scheduledEndAt && scheduledEndAt <= scheduledStartAt) {
+  if (
+    scheduledStartAt &&
+    scheduledEndAt &&
+    scheduledEndAt <= scheduledStartAt
+  ) {
     throw new BookingValidationError(
       "Scheduled end time must be after the start time",
     );
   }
   // Enforce this only when the slot changes, so notes/services remain editable on an overdue booking.
   if (scheduledStartAt && scheduledStartAt < new Date()) {
-    throw new BookingValidationError("Scheduled start time cannot be in the past");
+    throw new BookingValidationError(
+      "Scheduled start time cannot be in the past",
+    );
   }
 
   return {
@@ -356,8 +469,16 @@ export const validateBookingUpdate = (data) => {
     scheduledEndAt,
     hasNotes,
     notes: hasNotes ? data.notes.trim() : null,
-    hasServiceIds,
-    serviceIds: hasServiceIds ? data.serviceIds : null,
+    hasServiceItems: hasServiceIds || hasServiceItems,
+    serviceItems: hasServiceItems
+      ? validateServiceItems(data.serviceItems)
+      : hasServiceIds
+        ? data.serviceIds.map((serviceId) => {
+            return { serviceId, quantity: 1 };
+          })
+        : null,
+    hasDiscount,
+    discount: hasDiscount ? validateDiscount(data.discount) : null,
     hasExtraAmountPaise,
     extraAmountPaise: hasExtraAmountPaise ? data.extraAmountPaise : null,
   };
@@ -420,9 +541,13 @@ export const validateBookingListQuery = (query) => {
   }
   if (
     search !== undefined &&
-    (typeof search !== "string" || search.trim().length < 2 || search.trim().length > 100)
+    (typeof search !== "string" ||
+      search.trim().length < 2 ||
+      search.trim().length > 100)
   ) {
-    throw new BookingValidationError("Search must contain between 2 and 100 characters");
+    throw new BookingValidationError(
+      "Search must contain between 2 and 100 characters",
+    );
   }
 
   if (resourceId !== undefined && !isValidObjectId(resourceId)) {
@@ -466,7 +591,9 @@ export const validateBookingListQuery = (query) => {
   };
   if (view === "today") {
     if (!fromDate || !toDate) {
-      throw new BookingValidationError("Today's view requires a complete business-day range");
+      throw new BookingValidationError(
+        "Today's view requires a complete business-day range",
+      );
     }
     // Each status enters Today's work through its own business-relevant timestamp.
     filter.$or = [
@@ -515,13 +642,19 @@ export const validateBookingCalendarSummaryQuery = (query) => {
   if (Object.keys(query).some((field) => !allowedFields.includes(field))) {
     throw new BookingValidationError("Invalid query parameters");
   }
-  if (Object.values(query).some((value) => Array.isArray(value) || typeof value === "object")) {
+  if (
+    Object.values(query).some(
+      (value) => Array.isArray(value) || typeof value === "object",
+    )
+  ) {
     throw new BookingValidationError("Invalid query parameters");
   }
 
   const { from, to, status, resourceId } = query;
   if (from === undefined || to === undefined) {
-    throw new BookingValidationError("Calendar summary requires a complete date range");
+    throw new BookingValidationError(
+      "Calendar summary requires a complete date range",
+    );
   }
   const fromDate = parseDateTime(from, "from date");
   const toDate = parseDateTime(to, "to date");
@@ -530,7 +663,9 @@ export const validateBookingCalendarSummaryQuery = (query) => {
   }
   // A calendar month may render leading/trailing dates, but must never become an unbounded aggregate.
   if (toDate.getTime() - fromDate.getTime() > 62 * 24 * 60 * 60 * 1000) {
-    throw new BookingValidationError("Calendar summary range cannot exceed 62 days");
+    throw new BookingValidationError(
+      "Calendar summary range cannot exceed 62 days",
+    );
   }
   if (resourceId !== undefined && !isValidObjectId(resourceId)) {
     throw new BookingValidationError("Invalid resource");

@@ -9,12 +9,15 @@ import { AppDatePickerComponent } from '../../../../shared/date-picker/date-pick
 import { AppInputComponent } from '../../../../shared/input/input.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
 import { AppTimePickerComponent } from '../../../../shared/time-picker/time-picker.component';
+import { QuantityStepperComponent } from '../../../../shared/quantity-stepper/quantity-stepper.component';
 import { ClientRecord } from '../../../client/services/client.service';
 import { ResourceRecord, ResourceTypeOption } from '../../../resources/services/resource.service';
 import { ServiceOption } from '../../../service/services/service.service';
 import {
   BookingRecord,
+  BookingDiscountType,
   BookingService,
+  BookingServiceItemRequest,
   UpdateBookingRequest,
 } from '../../services/booking.service';
 import { BookingFormService } from '../../services/booking-form.service';
@@ -29,6 +32,7 @@ import { BookingFormService } from '../../services/booking-form.service';
     AppSelectComponent,
     AppDatePickerComponent,
     AppTimePickerComponent,
+    QuantityStepperComponent,
   ],
   templateUrl: './booking-edit.component.html',
   styleUrl: './booking-edit.component.scss',
@@ -47,8 +51,13 @@ export class BookingEditComponent implements OnInit {
   protected readonly endTimeControl = new FormControl('', { nonNullable: true });
   protected readonly notesControl = new FormControl('', { nonNullable: true });
   protected readonly serviceIdsControl = new FormControl<string[]>([], { nonNullable: true });
+  protected readonly discountTypeControl = new FormControl<BookingDiscountType>('none', {
+    nonNullable: true,
+  });
+  protected readonly discountValueControl = new FormControl('', { nonNullable: true });
   protected readonly extraAmountControl = new FormControl('', { nonNullable: true });
   protected readonly resourceSelections: Record<string, FormControl<string>> = {};
+  protected readonly serviceQuantities: Record<string, FormControl<string>> = {};
 
   protected booking: BookingRecord | null = null;
   protected clients: ClientRecord[] = [];
@@ -63,12 +72,21 @@ export class BookingEditComponent implements OnInit {
   private initialStartTime = '';
   private initialEndTime = '';
   private initialNotes = '';
-  private initialServiceIds: string[] = [];
+  private initialServiceItems: BookingServiceItemRequest[] = [];
+  private initialDiscountType: BookingDiscountType = 'none';
+  private initialDiscountValue = 0;
   private initialExtraAmountPaise = 0;
   private initialResourceIds: string[] = [];
 
   /** Loads the tenant-owned booking and the active choices needed for fields that may be edited. */
   ngOnInit(): void {
+    this.serviceIdsControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((serviceIds) => {
+        serviceIds.forEach((serviceId) => {
+          this.serviceQuantityControl(serviceId);
+        });
+      });
     const bookingId = this.route.snapshot.paramMap.get('id');
     if (!bookingId) {
       this.errorMessage = 'Booking not found.';
@@ -161,6 +179,29 @@ export class BookingEditComponent implements OnInit {
     return this.serviceOptions.filter((service) => selectedIds.has(service._id));
   }
 
+  /** Keeps line-item quantities stable while selected services are edited. */
+  protected serviceQuantityControl(serviceId: string): FormControl<string> {
+    if (!this.serviceQuantities[serviceId]) {
+      this.serviceQuantities[serviceId] = new FormControl('1', { nonNullable: true });
+    }
+    return this.serviceQuantities[serviceId];
+  }
+
+  protected selectedServiceItems(): BookingServiceItemRequest[] {
+    return this.serviceIdsControl.value.map((serviceId) => {
+      const quantity = Number(this.serviceQuantityControl(serviceId).value);
+      return { serviceId, quantity };
+    });
+  }
+
+  protected discountOptions(): AppSelectOption[] {
+    return [
+      { value: 'none', label: 'No discount' },
+      { value: 'amount', label: 'Amount (₹)' },
+      { value: 'percentage', label: 'Percentage (%)' },
+    ];
+  }
+
   /** Shows the staffing rule before an owner saves a service change. */
   protected requiresPersonResource(): boolean {
     const selectedIds = new Set(this.serviceIdsControl.value);
@@ -180,12 +221,21 @@ export class BookingEditComponent implements OnInit {
   }
 
   protected estimatedTotal(): string {
-    const servicesTotal = this.selectedServices().reduce(
-      (total, service) => total + service.pricePaise,
-      0,
+    const quantities = new Map(
+      this.selectedServiceItems().map((item) => [item.serviceId, item.quantity]),
     );
+    const servicesTotal = this.serviceOptions.reduce((total, service) => {
+      return total + service.pricePaise * (quantities.get(service._id) ?? 0);
+    }, 0);
     const extra = this.extraAmountPaise();
-    return this.formatAmount(servicesTotal + (extra >= 0 ? extra : 0));
+    const discountValue = Number(this.discountValueControl.value || 0);
+    const discount =
+      this.discountTypeControl.value === 'amount'
+        ? Math.round(discountValue * 100)
+        : this.discountTypeControl.value === 'percentage'
+          ? Math.floor((servicesTotal * discountValue) / 100)
+          : 0;
+    return this.formatAmount(Math.max(0, servicesTotal - discount) + (extra >= 0 ? extra : 0));
   }
 
   protected formatAmount(amountPaise: number): string {
@@ -237,16 +287,31 @@ export class BookingEditComponent implements OnInit {
     this.initialStartTime = start?.time ?? '';
     this.initialEndTime = end?.time ?? '';
     this.initialNotes = booking.notes;
-    this.initialServiceIds = (booking.services ?? []).map((service) => service.serviceId);
+    this.initialServiceItems = (booking.services ?? []).map((service) => ({
+      serviceId: service.serviceId,
+      quantity: service.quantity ?? 1,
+    }));
+    this.initialDiscountType = booking.discountType;
+    this.initialDiscountValue = booking.discountValue;
     this.initialExtraAmountPaise = booking.extraAmountPaise;
     this.initialResourceIds = booking.resources.map((resource) => resource._id);
-    this.selectedClient =
-      this.clients.find((client) => client._id === booking.client?._id) ?? null;
+    this.selectedClient = this.clients.find((client) => client._id === booking.client?._id) ?? null;
     this.dateControl.setValue(this.initialDate);
     this.startTimeControl.setValue(this.initialStartTime);
     this.endTimeControl.setValue(this.initialEndTime);
     this.notesControl.setValue(this.initialNotes);
-    this.serviceIdsControl.setValue(this.initialServiceIds);
+    this.initialServiceItems.forEach((item) => {
+      this.serviceQuantityControl(item.serviceId).setValue(String(item.quantity));
+    });
+    this.serviceIdsControl.setValue(this.initialServiceItems.map((item) => item.serviceId));
+    this.discountTypeControl.setValue(this.initialDiscountType);
+    this.discountValueControl.setValue(
+      this.initialDiscountType === 'amount'
+        ? this.moneyInputValue(this.initialDiscountValue)
+        : this.initialDiscountType === 'percentage'
+          ? String(this.initialDiscountValue / 100)
+          : '',
+    );
     this.extraAmountControl.setValue(this.moneyInputValue(this.initialExtraAmountPaise));
 
     booking.resources.forEach((resource) => {
@@ -259,11 +324,15 @@ export class BookingEditComponent implements OnInit {
     if (!this.booking) return null;
     const payload: UpdateBookingRequest = {};
     const notes = this.notesControl.value.trim();
-    const serviceIds = this.serviceIdsControl.value;
+    const serviceItems = this.selectedServiceItems();
     const extraAmountPaise = this.extraAmountPaise();
 
     if (extraAmountPaise < 0 || !Number.isSafeInteger(extraAmountPaise)) {
       this.errorMessage = 'Enter a valid non-negative extra charge.';
+      return null;
+    }
+    if (serviceItems.some((item) => !Number.isSafeInteger(item.quantity) || item.quantity < 1)) {
+      this.errorMessage = 'Each selected service needs a quantity of at least one.';
       return null;
     }
     if (notes !== this.initialNotes) payload.notes = notes;
@@ -274,7 +343,23 @@ export class BookingEditComponent implements OnInit {
     ) {
       payload.clientId = this.selectedClient._id;
     }
-    if (!this.sameIds(serviceIds, this.initialServiceIds)) payload.serviceIds = serviceIds;
+    if (!this.sameServiceItems(serviceItems, this.initialServiceItems)) {
+      payload.serviceItems = serviceItems;
+    }
+    const discountResult = this.formService.buildDiscount(
+      this.discountTypeControl.value,
+      this.discountValueControl.value,
+    );
+    if (typeof discountResult === 'string') {
+      this.errorMessage = discountResult;
+      return null;
+    }
+    const discountChanged =
+      this.discountTypeControl.value !== this.initialDiscountType ||
+      this.discountValueAsStored() !== this.initialDiscountValue;
+    if (discountChanged) {
+      payload.discount = discountResult;
+    }
     if (extraAmountPaise !== this.initialExtraAmountPaise)
       payload.extraAmountPaise = extraAmountPaise;
 
@@ -357,5 +442,29 @@ export class BookingEditComponent implements OnInit {
 
   private sameIds(first: string[], second: string[]): boolean {
     return first.length === second.length && first.every((id) => second.includes(id));
+  }
+
+  private sameServiceItems(
+    first: BookingServiceItemRequest[],
+    second: BookingServiceItemRequest[],
+  ): boolean {
+    return (
+      first.length === second.length &&
+      first.every((item) => {
+        return second.some((initialItem) => {
+          return initialItem.serviceId === item.serviceId && initialItem.quantity === item.quantity;
+        });
+      })
+    );
+  }
+
+  private discountValueAsStored(): number {
+    const value = Number(this.discountValueControl.value || 0);
+    if (!Number.isFinite(value)) {
+      return -1;
+    }
+    return this.discountTypeControl.value === 'amount'
+      ? Math.round(value * 100)
+      : Math.round(value * 100);
   }
 }

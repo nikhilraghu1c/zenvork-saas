@@ -6,7 +6,12 @@ import {
   ResourceService,
   ResourceTypeOption,
 } from '../../resources/services/resource.service';
-import { BookingService, CreateBookingRequest } from './booking.service';
+import {
+  BookingDiscountRequest,
+  BookingService,
+  BookingServiceItemRequest,
+  CreateBookingRequest,
+} from './booking.service';
 import { ServiceService } from '../../service/services/service.service';
 import { BusinessDateTimeService } from '../../../core/services/business-date-time.service';
 
@@ -27,7 +32,9 @@ export interface BookingFormValues {
   startTime: string;
   endTime: string;
   notes: string;
-  serviceIds: string[];
+  serviceItems: BookingServiceItemRequest[];
+  discountType: 'none' | 'amount' | 'percentage';
+  discountValue: string;
   extraAmount: string;
 }
 
@@ -103,6 +110,14 @@ export class BookingFormService {
           'Date, start time, and end time must all be provided for a scheduled booking.',
       };
     }
+    if (
+      values.serviceItems.some((item) => !Number.isSafeInteger(item.quantity) || item.quantity < 1)
+    ) {
+      return {
+        payload: null,
+        errorMessage: 'Each selected service needs a quantity of at least one.',
+      };
+    }
 
     const payload: CreateBookingRequest = {
       resourceIds: values.resourceIds,
@@ -116,7 +131,14 @@ export class BookingFormService {
     if (!Number.isSafeInteger(extraAmountPaise)) {
       return { payload: null, errorMessage: 'Extra charge is too large.' };
     }
-    if (values.serviceIds.length) payload.serviceIds = values.serviceIds;
+    if (values.serviceItems.length) {
+      payload.serviceItems = values.serviceItems;
+    }
+    const discountResult = this.buildDiscount(values.discountType, values.discountValue);
+    if (typeof discountResult === 'string') {
+      return { payload: null, errorMessage: discountResult };
+    }
+    payload.discount = discountResult;
     if (extraAmountPaise) payload.extraAmountPaise = extraAmountPaise;
     if (values.selectedClient) payload.clientId = values.selectedClient._id;
     if (values.isNewClient) {
@@ -144,5 +166,33 @@ export class BookingFormService {
   /** Submits a validated booking request through the domain booking API. */
   createBooking(payload: CreateBookingRequest) {
     return this.bookingService.createBooking(payload);
+  }
+
+  /** Converts the human-entered discount into paise or percentage basis points for the API. */
+  buildDiscount(
+    type: BookingFormValues['discountType'],
+    rawValue: string,
+  ): BookingDiscountRequest | string {
+    if (type === 'none') {
+      return { type: 'none' };
+    }
+    if (!/^\d+(?:\.\d{1,2})?$/.test(rawValue.trim())) {
+      return 'Enter a valid discount value.';
+    }
+    const value = Number(rawValue);
+    if (!Number.isFinite(value)) {
+      return 'Enter a valid discount value.';
+    }
+    if (type === 'amount') {
+      const amountPaise = Math.round(value * 100);
+      if (!Number.isSafeInteger(amountPaise)) {
+        return 'Discount amount is too large.';
+      }
+      return { type: 'amount', amountPaise };
+    }
+    if (value > 100) {
+      return 'Percentage discount cannot exceed 100%.';
+    }
+    return { type: 'percentage', percentageBasisPoints: Math.round(value * 100) };
   }
 }

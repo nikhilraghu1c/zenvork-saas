@@ -358,6 +358,46 @@ For a previously scheduled booking, the controller also checks an overlapping sc
 assigned resources. This prevents a resource from starting a walk-in or another appointment while it
 is already reserved for an intersecting time range.
 
+## Calculate quantity and discount totals from snapshots
+
+**Requirement:** group bookings must charge each selected service by its quantity, while a saved
+discount must remain explainable and historically accurate.
+
+A request sends line items such as `{ serviceId, quantity }`. The controller validates the service in
+the current tenant, then copies its name, price, duration, staffing rule, and quantity into the
+booking. It does not trust a price from the browser. The subtotal is calculated from those snapshots:
+
+```js
+const getServiceSubtotalPaise = (services) => {
+  return services.reduce((total, service) => {
+    return total + service.pricePaise * (service.quantity ?? 1);
+  }, 0);
+};
+```
+
+`reduce()` visits every line item and carries `total` into the next iteration. `quantity ?? 1` means
+historic bookings created before this feature still bill each line once when they are read or edited.
+
+The final calculation is:
+
+```text
+service subtotal = Σ(pricePaise × quantity)
+total = service subtotal − resolved discount + extraAmountPaise
+```
+
+The model keeps three discount fields for different jobs:
+
+| Field | Purpose |
+|---|---|
+| `discountType` | Says whether the saved rule was `none`, a fixed `amount`, or `percentage`. |
+| `discountValue` | Retains the original rule input: paise for an amount or basis points for a percentage (`10,000 = 100%`). |
+| `discountAmountPaise` | Stores the resolved rupee discount actually applied to this booking. |
+
+For example, a ₹2,000 subtotal with a 10% discount retains `discountType: 'percentage'`,
+`discountValue: 1000`, and `discountAmountPaise: 20000`. Keeping both the original rule and the
+resolved amount lets the edit UI recreate the percentage while receipts, reporting, and historic totals
+can show the exact deduction. The controller rejects a discount greater than the service subtotal.
+
 ## Booking lifecycle is a state machine
 
 The controller permits only these transitions:

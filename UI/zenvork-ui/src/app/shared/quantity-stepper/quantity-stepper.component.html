@@ -1,0 +1,24 @@
+<div
+  class="quantity-stepper"
+  [class.is-disabled]="disabled"
+  role="group"
+  [attr.aria-label]="ariaLabel"
+>
+  <button
+    type="button"
+    [disabled]="disabled || value <= min"
+    [attr.aria-label]="'Decrease ' + ariaLabel"
+    (click)="changeBy(-1)"
+  >
+    <mat-icon aria-hidden="true">remove</mat-icon>
+  </button>
+  <output [attr.aria-label]="ariaLabel">{{ value }}</output>
+  <button
+    type="button"
+    [disabled]="disabled || value >= max"
+    [attr.aria-label]="'Increase ' + ariaLabel"
+    (click)="changeBy(1)"
+  >
+    <mat-icon aria-hidden="true">add</mat-icon>
+  </button>
+</div>

@@ -32,6 +32,10 @@ export class AppInputComponent implements ControlValueAccessor {
   @Input() inputId = `app-input-${nextInputId++}`;
   /** Native input type used for appropriate browser behavior and keyboards. */
   @Input() type: 'email' | 'number' | 'password' | 'tel' | 'text' = 'text';
+  /** Optional native numeric lower bound for fields such as prices and percentages. */
+  @Input() min?: number;
+  /** Optional native numeric upper bound for fields such as percentage discounts. */
+  @Input() max?: number;
   @Input() placeholder = '';
   /** Optional text rendered before the input value, such as a currency symbol. */
   @Input() prefix = '';
@@ -73,7 +77,21 @@ export class AppInputComponent implements ControlValueAccessor {
 
   /** Sends the typed native-input value back to Angular's parent form control. */
   protected updateValue(event: Event): void {
-    this.value = (event.target as HTMLInputElement).value;
+    const input = event.target as HTMLInputElement;
+    const enteredValue = input.value;
+    const numericValue = Number(enteredValue);
+    if (this.type === 'number' && enteredValue && Number.isFinite(numericValue)) {
+      if (this.min !== undefined && numericValue < this.min) {
+        this.value = String(this.min);
+      } else if (this.max !== undefined && numericValue > this.max) {
+        this.value = String(this.max);
+      } else {
+        this.value = enteredValue;
+      }
+      input.value = this.value;
+    } else {
+      this.value = enteredValue;
+    }
     this.onChange(this.value);
   }
 

@@ -43,6 +43,8 @@ it provides the navigation-drawer control without repeating the page title.
 - Every component has `.ts`, `.html`, `.scss`, and `.spec.ts` files.
 - Component SCSS is parent-scoped and responsive.
 - Pages compose shared Zenvork UI wrappers instead of directly depending on Angular Material when a wrapper exists.
+- `QuantityStepperComponent` is the shared bounded `ControlValueAccessor` for positive line-item
+  quantities; it exposes decrement/increment buttons rather than a free-form numeric field.
 - Dense desktop data uses `AppDataGridComponent` (AG Grid Community); features own their column
   definitions and a mobile card presentation when appropriate. For already loaded lists, the wrapper
   exposes AG Grid's native client-side pagination inputs rather than requiring feature-owned pagers.

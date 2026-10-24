@@ -9,6 +9,7 @@ import { AppDatePickerComponent } from '../../../../shared/date-picker/date-pick
 import { AppInputComponent } from '../../../../shared/input/input.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
 import { AppTimePickerComponent } from '../../../../shared/time-picker/time-picker.component';
+import { QuantityStepperComponent } from '../../../../shared/quantity-stepper/quantity-stepper.component';
 import { ClientRecord } from '../../../client/services/client.service';
 import { ResourceRecord, ResourceTypeOption } from '../../../resources/services/resource.service';
 import { ServiceOption } from '../../../service/services/service.service';
@@ -25,6 +26,7 @@ import { BookingFormService } from '../../services/booking-form.service';
     AppSelectComponent,
     AppDatePickerComponent,
     AppTimePickerComponent,
+    QuantityStepperComponent,
   ],
   templateUrl: './booking-form.component.html',
   styleUrl: './booking-form.component.scss',
@@ -44,8 +46,16 @@ export class BookingFormComponent implements OnInit {
   protected readonly endTimeControl = new FormControl('', { nonNullable: true });
   protected readonly notesControl = new FormControl('', { nonNullable: true });
   protected readonly serviceIdsControl = new FormControl<string[]>([], { nonNullable: true });
+  protected readonly discountTypeControl = new FormControl<'none' | 'amount' | 'percentage'>(
+    'none',
+    {
+      nonNullable: true,
+    },
+  );
+  protected readonly discountValueControl = new FormControl('', { nonNullable: true });
   protected readonly extraAmountControl = new FormControl('', { nonNullable: true });
   protected readonly resourceSelections: Record<string, FormControl<string>> = {};
+  protected readonly serviceQuantities: Record<string, FormControl<string>> = {};
 
   protected clients: ClientRecord[] = [];
   protected resources: ResourceRecord[] = [];
@@ -59,6 +69,13 @@ export class BookingFormComponent implements OnInit {
 
   /** Loads only tenant-owned clients, resources, and configured resource types needed by the form. */
   ngOnInit(): void {
+    this.serviceIdsControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((serviceIds) => {
+        serviceIds.forEach((serviceId) => {
+          this.serviceQuantityControl(serviceId);
+        });
+      });
     this.formService
       .loadFormData()
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -135,7 +152,9 @@ export class BookingFormComponent implements OnInit {
       startTime: this.startTimeControl.value,
       endTime: this.endTimeControl.value,
       notes: this.notesControl.value,
-      serviceIds: this.serviceIdsControl.value,
+      serviceItems: this.selectedServiceItems(),
+      discountType: this.discountTypeControl.value,
+      discountValue: this.discountValueControl.value,
       extraAmount: this.extraAmountControl.value,
     });
     this.errorMessage = errorMessage;
@@ -177,7 +196,10 @@ export class BookingFormComponent implements OnInit {
 
   /** Displays selected resource names or an honest unassigned state in the confirmation summary. */
   protected summaryResource(type: ResourceTypeOption): string {
-    return this.formService.selectedResourceName(this.resourceControl(type.code)?.value, this.resources);
+    return this.formService.selectedResourceName(
+      this.resourceControl(type.code)?.value,
+      this.resources,
+    );
   }
 
   protected serviceOptionsForSelect(): AppSelectOption[] {
@@ -188,8 +210,36 @@ export class BookingFormComponent implements OnInit {
   }
 
   protected summaryServices(): string {
-    const count = this.serviceIdsControl.value.length;
-    return count ? `${count} selected` : 'Not selected';
+    const quantity = this.selectedServiceItems().reduce((total, item) => total + item.quantity, 0);
+    return quantity ? `${quantity} service${quantity === 1 ? '' : 's'} selected` : 'Not selected';
+  }
+
+  protected selectedServices(): ServiceOption[] {
+    const selectedIds = new Set(this.serviceIdsControl.value);
+    return this.serviceOptions.filter((service) => selectedIds.has(service._id));
+  }
+
+  /** Keeps a numeric quantity control for every currently selected service. */
+  protected serviceQuantityControl(serviceId: string): FormControl<string> {
+    if (!this.serviceQuantities[serviceId]) {
+      this.serviceQuantities[serviceId] = new FormControl('1', { nonNullable: true });
+    }
+    return this.serviceQuantities[serviceId];
+  }
+
+  protected discountOptions(): AppSelectOption[] {
+    return [
+      { value: 'none', label: 'No discount' },
+      { value: 'amount', label: 'Amount (₹)' },
+      { value: 'percentage', label: 'Percentage (%)' },
+    ];
+  }
+
+  protected selectedServiceItems(): { serviceId: string; quantity: number }[] {
+    return this.serviceIdsControl.value.map((serviceId) => {
+      const quantity = Number(this.serviceQuantityControl(serviceId).value);
+      return { serviceId, quantity };
+    });
   }
 
   /** A selected service can require a person only when the booking starts, not when it is created. */
@@ -207,15 +257,31 @@ export class BookingFormComponent implements OnInit {
   }
 
   protected estimatedTotal(): string {
-    const selectedIds = new Set(this.serviceIdsControl.value);
-    const serviceTotal = this.serviceOptions
-      .filter((service) => selectedIds.has(service._id))
-      .reduce((total, service) => total + service.pricePaise, 0);
+    const quantities = new Map(
+      this.selectedServiceItems().map((item) => [item.serviceId, item.quantity]),
+    );
+    const serviceTotal = this.serviceOptions.reduce((total, service) => {
+      return total + service.pricePaise * (quantities.get(service._id) ?? 0);
+    }, 0);
     const extra = Number(this.extraAmountControl.value || 0);
-    return this.formatAmount(serviceTotal + (Number.isFinite(extra) && extra >= 0 ? Math.round(extra * 100) : 0));
+    const discountValue = Number(this.discountValueControl.value || 0);
+    const discount =
+      this.discountTypeControl.value === 'amount'
+        ? Math.round(discountValue * 100)
+        : this.discountTypeControl.value === 'percentage'
+          ? Math.floor((serviceTotal * discountValue) / 100)
+          : 0;
+    return this.formatAmount(
+      Math.max(0, serviceTotal - discount) +
+        (Number.isFinite(extra) && extra >= 0 ? Math.round(extra * 100) : 0),
+    );
   }
 
   protected formatAmount(amountPaise: number): string {
-    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(amountPaise / 100);
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 2,
+    }).format(amountPaise / 100);
   }
 }

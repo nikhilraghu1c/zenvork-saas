@@ -348,8 +348,25 @@
       color: var(--text-dim);
       font-size: 14px;
     }
-    strong { color: var(--text); font-weight: 500; }
-    small { color: var(--text-mute); font-size: 12px; }
+    strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+    small {
+      color: var(--text-mute);
+      font-size: 12px;
+    }
+    .bill-line-editor {
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface-subtle);
+      > span {
+        display: grid;
+        gap: 3px;
+      }
+    }
   }
 
   .bill-adjustment,
@@ -373,7 +390,9 @@
     border-top: 1px solid var(--border);
     color: var(--text);
     font-size: 15px;
-    strong { font-size: 18px; }
+    strong {
+      font-size: 18px;
+    }
   }
 
   .payment-status {

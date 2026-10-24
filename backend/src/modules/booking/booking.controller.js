@@ -10,7 +10,11 @@ import {
   closeAppointmentReminderQueue,
   upsertPendingAppointmentReminder,
 } from "../reminder/reminder.lifecycle.js";
-import { tenantData, tenantFilter, tenantId } from "../../utils/tenant-scope.js";
+import {
+  tenantData,
+  tenantFilter,
+  tenantId,
+} from "../../utils/tenant-scope.js";
 import {
   canAssignResources,
   canCreateBookings,
@@ -41,10 +45,21 @@ const ALLOWED_STATUS_TRANSITIONS = {
 const EDITABLE_BOOKING_STATUSES = ["PENDING", "SCHEDULED", "CHECKED_IN"];
 
 // Escaping client input keeps the tenant-scoped name search a literal, bounded regular expression.
-const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeRegex = (value) => {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
 
-const getServiceSnapshots = async (req, serviceIds) => {
-  if (serviceIds.length === 0) return [];
+const getServiceSnapshots = async (req, serviceItems) => {
+  if (serviceItems.length === 0) {
+    return [];
+  }
+  // Legacy service-ID requests remain quantity one while the UI moves to line items.
+  const normalizedItems = serviceItems.map((item) => {
+    return typeof item === "string" ? { serviceId: item, quantity: 1 } : item;
+  });
+  const serviceIds = normalizedItems.map((item) => {
+    return item.serviceId;
+  });
 
   // Booking line items can only be created from active services in the authenticated tenant.
   const services = await Service.find(
@@ -52,25 +67,61 @@ const getServiceSnapshots = async (req, serviceIds) => {
   )
     .select("name pricePaise durationMinutes requiresPersonResource")
     .lean();
-  if (services.length !== serviceIds.length) return null;
+  if (services.length !== serviceIds.length) {
+    return null;
+  }
 
   const servicesById = new Map(
     services.map((service) => [service._id.toString(), service]),
   );
-  return serviceIds.map((serviceId) => {
+  return normalizedItems.map(({ serviceId, quantity }) => {
     const service = servicesById.get(serviceId);
     return {
       serviceId: service._id,
       name: service.name,
       pricePaise: service.pricePaise,
+      quantity,
       durationMinutes: service.durationMinutes,
       requiresPersonResource: service.requiresPersonResource === true,
     };
   });
 };
 
-const getTotalAmountPaise = (services, extraAmountPaise = 0) =>
-  services.reduce((total, service) => total + service.pricePaise, extraAmountPaise);
+const getServiceSubtotalPaise = (services) => {
+  return services.reduce((total, service) => {
+    return total + service.pricePaise * (service.quantity ?? 1);
+  }, 0);
+};
+
+const getDiscountAmountPaise = (subtotalPaise, discount) => {
+  if (!discount || discount.type === "none") {
+    return 0;
+  }
+  if (discount.type === "amount") {
+    return discount.amountPaise;
+  }
+  return Math.floor((subtotalPaise * discount.percentageBasisPoints) / 10000);
+};
+
+const getTotalAmountPaise = (
+  services,
+  extraAmountPaise = 0,
+  discountAmountPaise = 0,
+) => {
+  return (
+    getServiceSubtotalPaise(services) - discountAmountPaise + extraAmountPaise
+  );
+};
+
+const getDiscountValue = (discount) => {
+  if (discount.type === "amount") {
+    return discount.amountPaise;
+  }
+  if (discount.type === "percentage") {
+    return discount.percentageBasisPoints;
+  }
+  return 0;
+};
 
 // Historic bookings without this snapshot predate the optional staff requirement.
 const requiresPersonResource = (services) =>
@@ -78,22 +129,33 @@ const requiresPersonResource = (services) =>
 
 const getResourceTypeNames = async (req) => {
   // Type labels come only from the authenticated tenant's configured business type.
-  const business = await Business.findById(tenantId(req)).select("businessTypeId").lean();
+  const business = await Business.findById(tenantId(req))
+    .select("businessTypeId")
+    .lean();
   if (!business) return new Map();
   const businessType = await BusinessType.findById(business.businessTypeId)
     .select("resourceTypes")
     .lean();
-  return new Map((businessType?.resourceTypes ?? []).map((type) => [type.code, type.name]));
+  return new Map(
+    (businessType?.resourceTypes ?? []).map((type) => [type.code, type.name]),
+  );
 };
 
-const toPublicBooking = (booking, includeServices = false, capabilities, resourceTypeNames = new Map()) => {
-  const source = typeof booking.toObject === "function" ? booking.toObject() : booking;
+const toPublicBooking = (
+  booking,
+  includeServices = false,
+  capabilities,
+  resourceTypeNames = new Map(),
+) => {
+  const source =
+    typeof booking.toObject === "function" ? booking.toObject() : booking;
   const response = {
     _id: source._id,
     client: source.clientId,
     resources: (source.resourceIds ?? []).map((resource) => ({
       ...resource,
-      resourceTypeName: resourceTypeNames.get(resource.resourceType) ?? resource.resourceType,
+      resourceTypeName:
+        resourceTypeNames.get(resource.resourceType) ?? resource.resourceType,
     })),
     scheduledStartAt: source.scheduledStartAt,
     scheduledEndAt: source.scheduledEndAt,
@@ -101,6 +163,9 @@ const toPublicBooking = (booking, includeServices = false, capabilities, resourc
     actualEndAt: source.actualEndAt,
     status: source.status,
     extraAmountPaise: source.extraAmountPaise ?? 0,
+    discountType: source.discountType ?? "none",
+    discountValue: source.discountValue ?? 0,
+    discountAmountPaise: source.discountAmountPaise ?? 0,
     totalAmountPaise: source.totalAmountPaise ?? 0,
     paymentStatus: source.paymentStatus ?? "unpaid",
     paidAt: source.paidAt,
@@ -115,10 +180,12 @@ const toPublicBooking = (booking, includeServices = false, capabilities, resourc
 
   // Audit entries expose the lifecycle timeline without leaking staff or tenant identifiers.
   if (Object.hasOwn(source, "statusHistory")) {
-    response.statusHistory = source.statusHistory.map(({ status, changedAt }) => ({
-      status,
-      changedAt,
-    }));
+    response.statusHistory = source.statusHistory.map(
+      ({ status, changedAt }) => ({
+        status,
+        changedAt,
+      }),
+    );
   }
 
   return response;
@@ -159,7 +226,7 @@ const getAllBookings = async (req, res) => {
     const [bookings, total, resourceTypeNames] = await Promise.all([
       Booking.find(filter)
         .select(
-          "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt services status extraAmountPaise totalAmountPaise paymentStatus paidAt notes createdAt updatedAt",
+          "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt services status extraAmountPaise discountType discountValue discountAmountPaise totalAmountPaise paymentStatus paidAt notes createdAt updatedAt",
         )
         .populate("clientId", "name mobile")
         .populate("resourceIds", "name resourceType")
@@ -195,13 +262,16 @@ const getAllBookings = async (req, res) => {
 
 const getBookingCalendarSummary = async (req, res) => {
   try {
-    const { from, to, statusValues, resourceId } = validateBookingCalendarSummaryQuery(req.query);
+    const { from, to, statusValues, resourceId } =
+      validateBookingCalendarSummaryQuery(req.query);
     // Aggregate in the business timezone so a late-evening appointment belongs to its visible calendar day.
     const filter = {
       businessId: new mongoose.Types.ObjectId(tenantId(req)),
       scheduledStartAt: { $gte: from, $lt: to },
       ...(statusValues.length && { status: { $in: statusValues } }),
-      ...(resourceId && { resourceIds: new mongoose.Types.ObjectId(resourceId) }),
+      ...(resourceId && {
+        resourceIds: new mongoose.Types.ObjectId(resourceId),
+      }),
     };
     const days = await Booking.aggregate([
       { $match: filter },
@@ -228,7 +298,9 @@ const getBookingCalendarSummary = async (req, res) => {
     }
 
     console.error("Failed to retrieve booking calendar summary:", error);
-    return res.status(500).json({ message: "Unable to retrieve booking calendar summary" });
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve booking calendar summary" });
   }
 };
 
@@ -239,9 +311,11 @@ const getBookingById = async (req, res) => {
     }
 
     // Load one tenant-owned booking with the same public summaries used by the list endpoint.
-    const booking = await Booking.findOne(tenantFilter(req, { _id: req.params.id }))
+    const booking = await Booking.findOne(
+      tenantFilter(req, { _id: req.params.id }),
+    )
       .select(
-        "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt services extraAmountPaise totalAmountPaise paymentStatus paidAt status statusHistory notes createdAt updatedAt",
+        "clientId resourceIds scheduledStartAt scheduledEndAt actualStartAt actualEndAt services extraAmountPaise discountType discountValue discountAmountPaise totalAmountPaise paymentStatus paidAt status statusHistory notes createdAt updatedAt",
       )
       .populate("clientId", "name mobile email")
       .populate("resourceIds", "name resourceType")
@@ -260,7 +334,9 @@ const getBookingById = async (req, res) => {
     });
   } catch (error) {
     console.error("Failed to retrieve booking details:", error);
-    return res.status(500).json({ message: "Unable to retrieve booking details" });
+    return res
+      .status(500)
+      .json({ message: "Unable to retrieve booking details" });
   }
 };
 
@@ -272,24 +348,39 @@ const updateBooking = async (req, res) => {
 
     const updateData = validateBookingUpdate(req.body);
     // Tenant scope prevents changes to a booking owned by another business.
-    const booking = await Booking.findOne(tenantFilter(req, { _id: req.params.id }));
+    const booking = await Booking.findOne(
+      tenantFilter(req, { _id: req.params.id }),
+    );
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
     if (!(await canManageBooking(req, booking))) {
-      return res.status(403).json({ message: "You can manage only your assigned or unassigned bookings" });
+      return res
+        .status(403)
+        .json({
+          message: "You can manage only your assigned or unassigned bookings",
+        });
     }
     if (!EDITABLE_BOOKING_STATUSES.includes(booking.status)) {
-      return res.status(409).json({ message: "This booking can no longer be edited" });
+      return res
+        .status(409)
+        .json({ message: "This booking can no longer be edited" });
     }
-    if (booking.status === "CHECKED_IN" && (updateData.hasClientId || updateData.hasSchedule)) {
+    if (
+      booking.status === "CHECKED_IN" &&
+      (updateData.hasClientId || updateData.hasSchedule)
+    ) {
       return res.status(409).json({
         message: "Client and schedule cannot be updated after check-in",
       });
     }
     if (updateData.hasClientId && booking.status !== "PENDING") {
       // A scheduled appointment must not be silently transferred to another client.
-      return res.status(409).json({ message: "Client can only be changed while a booking is pending" });
+      return res
+        .status(409)
+        .json({
+          message: "Client can only be changed while a booking is pending",
+        });
     }
     if (
       booking.status === "PENDING" &&
@@ -298,7 +389,8 @@ const updateBooking = async (req, res) => {
       !updateData.hasSchedule
     ) {
       return res.status(400).json({
-        message: "Pending bookings can receive resources only when being scheduled",
+        message:
+          "Pending bookings can receive resources only when being scheduled",
       });
     }
 
@@ -313,7 +405,9 @@ const updateBooking = async (req, res) => {
     }
     if (updateData.hasResourceIds && updateData.resourceIds.length > 0) {
       if (!(await canAssignResources(req, updateData.resourceIds))) {
-        return res.status(403).json({ message: "You can assign only your linked resource" });
+        return res
+          .status(403)
+          .json({ message: "You can assign only your linked resource" });
       }
       // Assigned resources must be active and belong to the booking's tenant.
       const resourceCount = await Resource.countDocuments(
@@ -329,10 +423,15 @@ const updateBooking = async (req, res) => {
       }
     }
     let serviceSnapshots = null;
-    if (updateData.hasServiceIds) {
-      serviceSnapshots = await getServiceSnapshots(req, updateData.serviceIds);
+    if (updateData.hasServiceItems) {
+      serviceSnapshots = await getServiceSnapshots(
+        req,
+        updateData.serviceItems,
+      );
       if (!serviceSnapshots) {
-        return res.status(400).json({ message: "One or more services are invalid or inactive" });
+        return res
+          .status(400)
+          .json({ message: "One or more services are invalid or inactive" });
       }
     }
     const scheduledStartAt = updateData.hasSchedule
@@ -347,7 +446,8 @@ const updateBooking = async (req, res) => {
     const services = serviceSnapshots ?? booking.services;
     if (booking.status === "CHECKED_IN" && resourceIds.length === 0) {
       return res.status(400).json({
-        message: "Assign at least one resource while this booking is checked in",
+        message:
+          "Assign at least one resource while this booking is checked in",
       });
     }
     if (
@@ -359,7 +459,8 @@ const updateBooking = async (req, res) => {
         message: "Assign a person before saving a service that requires one",
       });
     }
-    const becomesScheduled = booking.status === "PENDING" && updateData.hasSchedule;
+    const becomesScheduled =
+      booking.status === "PENDING" && updateData.hasSchedule;
     if (
       (becomesScheduled || booking.status === "SCHEDULED") &&
       (updateData.hasSchedule || updateData.hasResourceIds) &&
@@ -377,7 +478,8 @@ const updateBooking = async (req, res) => {
       );
       if (conflictingBooking) {
         return res.status(409).json({
-          message: "One or more selected resources are unavailable at this time",
+          message:
+            "One or more selected resources are unavailable at this time",
         });
       }
     }
@@ -392,7 +494,8 @@ const updateBooking = async (req, res) => {
       );
       if (activeResourceBooking) {
         return res.status(409).json({
-          message: "One or more selected resources are currently serving another booking",
+          message:
+            "One or more selected resources are currently serving another booking",
         });
       }
       if (scheduledStartAt && scheduledEndAt) {
@@ -408,7 +511,8 @@ const updateBooking = async (req, res) => {
         );
         if (scheduledConflict) {
           return res.status(409).json({
-            message: "One or more selected resources are unavailable at this time",
+            message:
+              "One or more selected resources are unavailable at this time",
           });
         }
       }
@@ -427,10 +531,44 @@ const updateBooking = async (req, res) => {
     if (updateData.hasExtraAmountPaise) {
       booking.extraAmountPaise = updateData.extraAmountPaise;
     }
-    if (serviceSnapshots || updateData.hasExtraAmountPaise) {
+    const discount = updateData.hasDiscount
+      ? updateData.discount
+      : {
+          type: booking.discountType ?? "none",
+          ...(booking.discountType === "amount" && {
+            amountPaise: booking.discountValue ?? 0,
+          }),
+          ...(booking.discountType === "percentage" && {
+            percentageBasisPoints: booking.discountValue ?? 0,
+          }),
+        };
+    const serviceSubtotalPaise = getServiceSubtotalPaise(services);
+    const discountAmountPaise = getDiscountAmountPaise(
+      serviceSubtotalPaise,
+      discount,
+    );
+    if (discountAmountPaise > serviceSubtotalPaise) {
+      return res
+        .status(400)
+        .json({ message: "Discount cannot exceed the service subtotal" });
+    }
+    // A percentage discount must be resolved again whenever service quantities change.
+    if (serviceSnapshots || updateData.hasDiscount) {
+      booking.discountAmountPaise = discountAmountPaise;
+    }
+    if (updateData.hasDiscount) {
+      booking.discountType = discount.type;
+      booking.discountValue = getDiscountValue(discount);
+    }
+    if (
+      serviceSnapshots ||
+      updateData.hasExtraAmountPaise ||
+      updateData.hasDiscount
+    ) {
       booking.totalAmountPaise = getTotalAmountPaise(
         booking.services,
         booking.extraAmountPaise,
+        booking.discountAmountPaise,
       );
     }
     if (becomesScheduled) {
@@ -484,12 +622,18 @@ const updateBookingStatus = async (req, res) => {
     const statusUpdate = validateBookingStatusUpdate(req.body);
     const { status: nextStatus, resourceIds } = statusUpdate;
     // Tenant scope prevents staff from transitioning a booking owned by another business.
-    const booking = await Booking.findOne(tenantFilter(req, { _id: req.params.id }));
+    const booking = await Booking.findOne(
+      tenantFilter(req, { _id: req.params.id }),
+    );
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
     if (!(await canManageBooking(req, booking))) {
-      return res.status(403).json({ message: "You can manage only your assigned or unassigned bookings" });
+      return res
+        .status(403)
+        .json({
+          message: "You can manage only your assigned or unassigned bookings",
+        });
     }
 
     if (!ALLOWED_STATUS_TRANSITIONS[booking.status].includes(nextStatus)) {
@@ -505,16 +649,22 @@ const updateBookingStatus = async (req, res) => {
     if (
       ["CHECKED_IN", "COMPLETED"].includes(nextStatus) &&
       requiresPersonResource(booking.services ?? []) &&
-      !(await hasPersonResource(req, nextStatus === "CHECKED_IN" ? resourceIds : booking.resourceIds))
+      !(await hasPersonResource(
+        req,
+        nextStatus === "CHECKED_IN" ? resourceIds : booking.resourceIds,
+      ))
     ) {
       return res.status(409).json({
-        message: "Assign a person before checking in or completing this booking",
+        message:
+          "Assign a person before checking in or completing this booking",
       });
     }
 
     if (nextStatus === "CHECKED_IN") {
       if (!(await canAssignResources(req, resourceIds))) {
-        return res.status(403).json({ message: "You can assign only your linked resource" });
+        return res
+          .status(403)
+          .json({ message: "You can assign only your linked resource" });
       }
       // Restricted staff can claim unassigned work only when check-in assigns their own person resource.
       if (
@@ -522,7 +672,9 @@ const updateBookingStatus = async (req, res) => {
         req.user.bookingAccessScope === "OWN_AND_UNASSIGNED" &&
         !(await hasOwnPersonResource(req, resourceIds))
       ) {
-        return res.status(403).json({ message: "Check-in requires your linked person resource" });
+        return res
+          .status(403)
+          .json({ message: "Check-in requires your linked person resource" });
       }
       // Check-in assigns only active resources from the authenticated business.
       const resourceCount = await Resource.countDocuments(
@@ -547,7 +699,8 @@ const updateBookingStatus = async (req, res) => {
       );
       if (activeResourceBooking) {
         return res.status(409).json({
-          message: "One or more selected resources are currently serving another booking",
+          message:
+            "One or more selected resources are currently serving another booking",
         });
       }
 
@@ -564,7 +717,8 @@ const updateBookingStatus = async (req, res) => {
         );
         if (scheduledConflict) {
           return res.status(409).json({
-            message: "One or more selected resources are unavailable at this time",
+            message:
+              "One or more selected resources are unavailable at this time",
           });
         }
       }
@@ -628,14 +782,17 @@ const createBooking = async (req, res) => {
     const {
       client: newClientData,
       clientId: existingClientId,
-      serviceIds,
+      serviceItems,
+      discount,
       extraAmountPaise,
       ...bookingFields
     } = bookingData;
     let createdBooking;
 
     if (!canCreateBookings(req)) {
-      return res.status(403).json({ message: "Booking creation is not permitted" });
+      return res
+        .status(403)
+        .json({ message: "Booking creation is not permitted" });
     }
 
     if (existingClientId) {
@@ -650,7 +807,9 @@ const createBooking = async (req, res) => {
 
     if (bookingFields.resourceIds.length > 0) {
       if (!(await canAssignResources(req, bookingFields.resourceIds))) {
-        return res.status(403).json({ message: "You can assign only your linked resource" });
+        return res
+          .status(403)
+          .json({ message: "You can assign only your linked resource" });
       }
       // Every assigned resource must be active and owned by this business.
       const resourceCount = await Resource.countDocuments(
@@ -666,16 +825,36 @@ const createBooking = async (req, res) => {
       }
     }
 
-    const serviceSnapshots = await getServiceSnapshots(req, serviceIds);
+    const serviceSnapshots = await getServiceSnapshots(req, serviceItems);
     if (!serviceSnapshots) {
-      return res.status(400).json({ message: "One or more services are invalid or inactive" });
+      return res
+        .status(400)
+        .json({ message: "One or more services are invalid or inactive" });
+    }
+    const serviceSubtotalPaise = getServiceSubtotalPaise(serviceSnapshots);
+    const discountAmountPaise = getDiscountAmountPaise(
+      serviceSubtotalPaise,
+      discount,
+    );
+    if (discountAmountPaise > serviceSubtotalPaise) {
+      return res
+        .status(400)
+        .json({ message: "Discount cannot exceed the service subtotal" });
     }
     const bookingServiceFields = {
       ...bookingFields,
       services: serviceSnapshots,
       extraAmountPaise,
-      totalAmountPaise: getTotalAmountPaise(serviceSnapshots, extraAmountPaise),
+      discountType: discount.type,
+      discountValue: getDiscountValue(discount),
+      discountAmountPaise,
+      totalAmountPaise: 0,
     };
+    bookingServiceFields.totalAmountPaise = getTotalAmountPaise(
+      serviceSnapshots,
+      extraAmountPaise,
+      bookingServiceFields.discountAmountPaise,
+    );
 
     if (
       bookingFields.status === "SCHEDULED" &&
@@ -691,12 +870,10 @@ const createBooking = async (req, res) => {
         }),
       );
       if (conflictingBooking) {
-        return res
-          .status(409)
-          .json({
-            message:
-              "One or more selected resources are unavailable at this time",
-          });
+        return res.status(409).json({
+          message:
+            "One or more selected resources are unavailable at this time",
+        });
       }
     }
 
@@ -773,13 +950,23 @@ const updateBookingPaymentStatus = async (req, res) => {
     }
     const { paymentStatus } = validateBookingPaymentStatusUpdate(req.body);
     // Payment state is only meaningful for a completed, tenant-owned booking.
-    const booking = await Booking.findOne(tenantFilter(req, { _id: req.params.id }));
+    const booking = await Booking.findOne(
+      tenantFilter(req, { _id: req.params.id }),
+    );
     if (!booking) return res.status(404).json({ message: "Booking not found" });
     if (!(await canManageBooking(req, booking))) {
-      return res.status(403).json({ message: "You can manage only your assigned or unassigned bookings" });
+      return res
+        .status(403)
+        .json({
+          message: "You can manage only your assigned or unassigned bookings",
+        });
     }
     if (booking.status !== "COMPLETED") {
-      return res.status(409).json({ message: "Only completed bookings can be marked paid or unpaid" });
+      return res
+        .status(409)
+        .json({
+          message: "Only completed bookings can be marked paid or unpaid",
+        });
     }
     // The settlement timestamp changes only on a real status transition, not on repeated requests.
     if (paymentStatus === "paid" && booking.paymentStatus !== "paid") {

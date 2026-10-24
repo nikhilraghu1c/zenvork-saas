@@ -1,8 +1,10 @@
 <section class="booking-edit-page" aria-label="Edit booking">
   <nav class="breadcrumb" aria-label="Breadcrumb">
-    <a routerLink="/app/booking" queryParamsHandling="preserve">Bookings</a><span aria-hidden="true">/</span>
+    <a routerLink="/app/booking" queryParamsHandling="preserve">Bookings</a
+    ><span aria-hidden="true">/</span>
     @if (booking) {
-      <a [routerLink]="['/app/booking', booking._id]" queryParamsHandling="preserve">Booking details</a
+      <a [routerLink]="['/app/booking', booking._id]" queryParamsHandling="preserve"
+        >Booking details</a
       ><span aria-hidden="true">/</span>
     }
     <span aria-current="page">Edit booking</span>
@@ -13,12 +15,17 @@
   } @else if (!booking) {
     <div class="page-state is-error" role="alert">
       <p>{{ errorMessage }}</p>
-      <app-button variant="tertiary" routerLink="/app/booking" queryParamsHandling="preserve">Back to bookings</app-button>
+      <app-button variant="tertiary" routerLink="/app/booking" queryParamsHandling="preserve"
+        >Back to bookings</app-button
+      >
     </div>
   } @else if (!canEdit) {
     <div class="page-state is-error" role="alert">
       <p>This booking can no longer be edited.</p>
-      <app-button variant="tertiary" [routerLink]="['/app/booking', booking._id]" queryParamsHandling="preserve"
+      <app-button
+        variant="tertiary"
+        [routerLink]="['/app/booking', booking._id]"
+        queryParamsHandling="preserve"
         >Back to booking</app-button
       >
     </div>
@@ -47,16 +54,25 @@
                 @for (client of matchingClients(); track client._id) {
                   <button type="button" class="client-option" (click)="selectClient(client)">
                     <span class="avatar" aria-hidden="true">{{ client.name.charAt(0) }}</span>
-                    <span><strong>{{ client.name }}</strong><small>{{ client.mobile }}</small></span>
+                    <span
+                      ><strong>{{ client.name }}</strong
+                      ><small>{{ client.mobile }}</small></span
+                    >
                   </button>
                 }
               </div>
             } @else {
               <div class="selected-client">
-                <span class="avatar" aria-hidden="true">{{ selectedClient?.name?.charAt(0) ?? booking.client?.name?.charAt(0) ?? '?' }}</span>
+                <span class="avatar" aria-hidden="true">{{
+                  selectedClient?.name?.charAt(0) ?? booking.client?.name?.charAt(0) ?? '?'
+                }}</span>
                 <div>
-                  <strong>{{ selectedClient?.name ?? booking.client?.name ?? 'Client unavailable' }}</strong>
-                  <span>{{ selectedClient?.mobile ?? booking.client?.mobile ?? 'No mobile number' }}</span>
+                  <strong>{{
+                    selectedClient?.name ?? booking.client?.name ?? 'Client unavailable'
+                  }}</strong>
+                  <span>{{
+                    selectedClient?.mobile ?? booking.client?.mobile ?? 'No mobile number'
+                  }}</span>
                 </div>
                 @if (canEditClient) {
                   <button type="button" (click)="changeClient()">Change</button>
@@ -76,7 +92,11 @@
                 <div class="person-requirement" [class.is-satisfied]="hasSelectedPersonResource()">
                   <span class="person-requirement__icon" aria-hidden="true">●</span>
                   <p>
-                    <strong>{{ hasSelectedPersonResource() ? 'Team member or professional assigned' : personRequirementText() }}</strong>
+                    <strong>{{
+                      hasSelectedPersonResource()
+                        ? 'Team member or professional assigned'
+                        : personRequirementText()
+                    }}</strong>
                     <span>This service cannot be checked in or completed without one.</span>
                   </p>
                 </div>
@@ -94,7 +114,6 @@
               }
             </div>
           </section>
-
         }
 
         @if (canEditSchedule) {
@@ -142,6 +161,49 @@
                 [options]="serviceOptionsForSelect()"
                 placeholder="Select services"
               />
+              @if (selectedServices().length) {
+                <div class="service-quantities" aria-label="Service quantities">
+                  @for (service of selectedServices(); track service._id) {
+                    <div class="service-quantity-row">
+                      <span
+                        ><strong>{{ service.name }}</strong
+                        ><small>{{ formatAmount(service.pricePaise) }} each</small></span
+                      >
+                      <app-quantity-stepper
+                        [formControl]="serviceQuantityControl(service._id)"
+                        [ariaLabel]="'Quantity for ' + service.name"
+                      />
+                    </div>
+                  }
+                </div>
+              }
+              <div class="discount-fields">
+                <app-select
+                  [formControl]="discountTypeControl"
+                  label="Discount"
+                  labelPlacement="outside"
+                  subscriptSizing="dynamic"
+                  [options]="discountOptions()"
+                />
+                @if (discountTypeControl.value !== 'none') {
+                  <app-input
+                    [formControl]="discountValueControl"
+                    type="number"
+                    [label]="
+                      discountTypeControl.value === 'amount'
+                        ? 'Discount amount'
+                        : 'Discount percentage'
+                    "
+                    labelPlacement="outside"
+                    [prefix]="discountTypeControl.value === 'amount' ? '₹ ' : ''"
+                    [suffix]="discountTypeControl.value === 'percentage' ? '%' : ''"
+                    [min]="0"
+                    [max]="discountTypeControl.value === 'percentage' ? 100 : undefined"
+                    placeholder="0"
+                    subscriptSizing="dynamic"
+                  />
+                }
+              </div>
               <app-input
                 [formControl]="extraAmountControl"
                 type="number"
@@ -152,7 +214,8 @@
                 subscriptSizing="dynamic"
               />
               <p class="field-hint">
-                The total is recalculated securely from selected services and the extra charge.
+                The total is recalculated securely from service quantities, discount, and the extra
+                charge.
               </p>
             </div>
           </section>
@@ -175,7 +238,8 @@
       <aside class="summary" aria-label="Booking summary">
         <h2>Booking summary</h2>
         <div class="summary-row">
-          <span>Client</span><strong>{{ selectedClient?.name ?? booking.client?.name ?? 'Not available' }}</strong>
+          <span>Client</span
+          ><strong>{{ selectedClient?.name ?? booking.client?.name ?? 'Not available' }}</strong>
         </div>
         <div class="summary-row">
           <span>Status</span><strong>{{ booking.status.replace('_', ' ') }}</strong>
@@ -205,14 +269,14 @@
           <p class="form-error" role="alert">{{ errorMessage }}</p>
         }
         <div class="summary-actions">
-          <app-button variant="secondary" [disabled]="saving" [fullWidth]="true" (clicked)="cancel()"
-            >Cancel</app-button
-          >
           <app-button
-            [loading]="saving"
+            variant="secondary"
             [disabled]="saving"
             [fullWidth]="true"
-            (clicked)="save()"
+            (clicked)="cancel()"
+            >Cancel</app-button
+          >
+          <app-button [loading]="saving" [disabled]="saving" [fullWidth]="true" (clicked)="save()"
             >Save changes</app-button
           >
         </div>
