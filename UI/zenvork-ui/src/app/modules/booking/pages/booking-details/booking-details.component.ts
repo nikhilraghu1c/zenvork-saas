@@ -111,6 +111,11 @@ export class BookingDetailsComponent implements OnInit {
     if (!booking.scheduledStartAt) return 'Awaiting schedule';
     const start = this.formatDateTime(booking.scheduledStartAt);
     if (!booking.scheduledEndAt) return start;
+    const startDate = this.dateTime.format(booking.scheduledStartAt, 'date');
+    const endDate = this.dateTime.format(booking.scheduledEndAt, 'date');
+    if (startDate !== endDate) {
+      return `${start} → ${this.formatDateTime(booking.scheduledEndAt)}`;
+    }
     return `${start} – ${this.dateTime.format(booking.scheduledEndAt, 'time')}`;
   }
 

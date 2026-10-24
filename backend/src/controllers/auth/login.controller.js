@@ -43,10 +43,11 @@ const login = async (req, res) => {
       return invalidCredentials(res);
     }
 
+    let business = null;
     if (user.role !== "PLATFORM_ADMIN") {
       // Deny unavailable tenants during login as well as during their subsequent API requests.
-      const business = await Business.findById(user.businessId)
-        .select("status planExpiresAt")
+      business = await Business.findById(user.businessId)
+        .select("name status planExpiresAt")
         .lean();
       const isExpired =
         business?.planExpiresAt &&
@@ -79,6 +80,8 @@ const login = async (req, res) => {
         mobile: user.mobile,
         role: user.role,
         businessId: user.businessId ?? null,
+        // The sidebar needs only the active tenant's display name, never the full business record.
+        businessName: user.role === "PLATFORM_ADMIN" ? null : business.name,
         bookingAccessScope:
           user.role === "OWNER" ? "ALL" : (user.bookingAccessScope ?? "NONE"),
         canSendReminders:

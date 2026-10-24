@@ -172,8 +172,13 @@
   }
   .schedule-fields {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
+    app-checkbox {
+      align-self: end;
+      grid-column: 1 / -1;
+      padding-bottom: 9px;
+    }
   }
   .field-hint {
     margin: 9px 0 0;

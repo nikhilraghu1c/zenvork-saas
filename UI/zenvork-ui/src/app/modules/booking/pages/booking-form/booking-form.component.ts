@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
+import { AppCheckboxComponent } from '../../../../shared/checkbox/checkbox.component';
 import { AppDatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { AppInputComponent } from '../../../../shared/input/input.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
@@ -22,6 +23,7 @@ import { BookingFormService } from '../../services/booking-form.service';
     RouterLink,
     MatIconModule,
     AppButtonComponent,
+    AppCheckboxComponent,
     AppInputComponent,
     AppSelectComponent,
     AppDatePickerComponent,
@@ -42,6 +44,8 @@ export class BookingFormComponent implements OnInit {
   protected readonly newClientMobileControl = new FormControl('', { nonNullable: true });
   protected readonly newClientEmailControl = new FormControl('', { nonNullable: true });
   protected readonly dateControl = new FormControl('', { nonNullable: true });
+  protected readonly endDateControl = new FormControl('', { nonNullable: true });
+  protected readonly multiDayControl = new FormControl(false, { nonNullable: true });
   protected readonly startTimeControl = new FormControl('', { nonNullable: true });
   protected readonly endTimeControl = new FormControl('', { nonNullable: true });
   protected readonly notesControl = new FormControl('', { nonNullable: true });
@@ -69,6 +73,18 @@ export class BookingFormComponent implements OnInit {
 
   /** Loads only tenant-owned clients, resources, and configured resource types needed by the form. */
   ngOnInit(): void {
+    this.dateControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((date) => {
+      if (!this.multiDayControl.value) {
+        this.endDateControl.setValue(date, { emitEvent: false });
+      }
+    });
+    this.multiDayControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((isMultiDay) => {
+        if (!isMultiDay) {
+          this.endDateControl.setValue(this.dateControl.value, { emitEvent: false });
+        }
+      });
     this.serviceIdsControl.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((serviceIds) => {
@@ -148,7 +164,8 @@ export class BookingFormComponent implements OnInit {
       resourceIds: this.resourceTypes
         .map((type) => this.resourceControl(type.code)?.value)
         .filter((value): value is string => Boolean(value)),
-      date: this.dateControl.value,
+      startDate: this.dateControl.value,
+      endDate: this.endDateControl.value,
       startTime: this.startTimeControl.value,
       endTime: this.endTimeControl.value,
       notes: this.notesControl.value,

@@ -124,7 +124,7 @@
             <div class="card schedule-fields">
               <app-date-picker
                 [formControl]="dateControl"
-                label="Date"
+                label="Start date"
                 labelPlacement="outside"
                 subscriptSizing="dynamic"
                 [min]="dateTime.businessDateInputValue()"
@@ -135,12 +135,22 @@
                 labelPlacement="outside"
                 subscriptSizing="dynamic"
               />
+              @if (multiDayControl.value) {
+                <app-date-picker
+                  [formControl]="endDateControl"
+                  label="End date"
+                  labelPlacement="outside"
+                  subscriptSizing="dynamic"
+                  [min]="dateControl.value || dateTime.businessDateInputValue()"
+                />
+              }
               <app-time-picker
                 [formControl]="endTimeControl"
                 label="End time"
                 labelPlacement="outside"
                 subscriptSizing="dynamic"
               />
+              <app-checkbox [formControl]="multiDayControl" label="Spans multiple days" />
             </div>
             @if (booking.status === 'PENDING') {
               <p class="field-hint">Adding a complete date and time schedules this booking.</p>
@@ -248,7 +258,9 @@
           <div class="summary-row">
             <span>Date</span
             ><strong [class.empty]="!dateControl.value">{{
-              dateControl.value || 'Unscheduled'
+              dateControl.value
+                ? dateControl.value + (multiDayControl.value ? ' – ' + endDateControl.value : '')
+                : 'Unscheduled'
             }}</strong>
           </div>
           <div class="summary-row">

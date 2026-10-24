@@ -598,20 +598,32 @@ export const validateBookingListQuery = (query) => {
     // Each status enters Today's work through its own business-relevant timestamp.
     filter.$or = [
       { status: "PENDING", createdAt: dateRange },
-      { status: "SCHEDULED", scheduledStartAt: dateRange },
+      {
+        status: "SCHEDULED",
+        scheduledStartAt: { $lt: toDate },
+        scheduledEndAt: { $gt: fromDate },
+      },
       { status: "CHECKED_IN", actualStartAt: dateRange },
       { status: "COMPLETED", actualEndAt: dateRange },
       { status: "CANCELLED", updatedAt: dateRange },
       { status: "NO_SHOW", updatedAt: dateRange },
     ];
   } else if (fromDate || toDate) {
-    // All bookings can be narrowed by the staff-selected activity, creation, or planned-start date.
+    // A planned booking belongs in every range that its scheduled interval overlaps.
     const dateFieldMap = {
       modified: "updatedAt",
       created: "createdAt",
-      scheduled: "scheduledStartAt",
     };
-    filter[dateFieldMap[dateField]] = dateRange;
+    if (dateField === "scheduled") {
+      if (toDate) {
+        filter.scheduledStartAt = { $lt: toDate };
+      }
+      if (fromDate) {
+        filter.scheduledEndAt = { $gt: fromDate };
+      }
+    } else {
+      filter[dateFieldMap[dateField]] = dateRange;
+    }
   }
   // Status choices are alternatives, while they still intersect with date and resource criteria.
   if (statusValues.length) filter.status = { $in: statusValues };

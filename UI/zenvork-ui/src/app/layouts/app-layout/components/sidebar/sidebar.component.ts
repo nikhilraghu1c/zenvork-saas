@@ -113,7 +113,11 @@ export class SidebarComponent {
   }
 
   protected get userWorkspaceLabel(): string {
-    return this.auth.getCurrentUser()?.role === 'PLATFORM_ADMIN' ? 'Platform Admin' : 'Your Business';
+    const user = this.auth.getCurrentUser();
+    if (user?.role === 'PLATFORM_ADMIN') {
+      return 'Platform Admin';
+    }
+    return user?.businessName ?? 'Your Business';
   }
 
   /** Hides workspaces the signed-in user is not permitted to access. */

@@ -41,9 +41,11 @@ and still combine with date, resource, assignment, and search filters.
 
 `view=all` is the default and returns history ordered by `updatedAt` newest first. When a date range is
 provided for that view, it applies to `updatedAt` by default; set `dateField=created` to filter by
-booking creation or `dateField=scheduled` to filter by planned start. `view=today` requires a complete business-day
-`from`/`to` range. It includes pending bookings created in that range, scheduled bookings whose planned
-start is in the range, checked-in bookings whose actual start is in the range, completed bookings whose
+booking creation or `dateField=scheduled` to filter by planned schedule overlap. A scheduled booking is
+returned when `scheduledStartAt < to` and `scheduledEndAt > from`, so an overnight or multi-day booking
+is visible on every date it occupies. `view=today` requires a complete business-day `from`/`to` range.
+It includes pending bookings created in that range, scheduled bookings whose planned interval overlaps
+the range, checked-in bookings whose actual start is in the range, completed bookings whose
 actual end is in the range, and cancelled/no-show bookings updated in the range. Both views use
 `updatedAt` newest first with `_id` as a final tie-breaker, so a status change keeps a today booking
 visible and moves it to the top rather than making it disappear.
@@ -54,9 +56,11 @@ visible and moves it to the top rather than making it disappear.
 GET /api/bookings/calendar-summary?from=2026-10-01T18:30:00.000Z&to=2026-11-01T18:30:00.000Z
 ```
 
-Returns `{ days: [{ date: "YYYY-MM-DD", total: number }] }` for scheduled bookings grouped by
-business-calendar date. `from` and `to` are required ISO date-times with an explicit timezone; the
-range may not exceed 62 days. Optional `status` and `resourceId` filters match the list endpoint.
+Returns `{ days: [{ date: "YYYY-MM-DD", total: number }] }` for scheduled bookings by
+business-calendar date. A continuous booking contributes one presence count to every calendar date it
+overlaps; the totals therefore are not a unique-booking total for the whole month. `from` and `to` are
+required ISO date-times with an explicit timezone; the range may not exceed 62 days. Optional `status`
+and `resourceId` filters match the list endpoint.
 This endpoint is for Month view only: it deliberately returns counts rather than every booking record.
 
 ### Modified-on migration safety
@@ -107,7 +111,8 @@ is `PENDING`, `SCHEDULED`, or `CHECKED_IN`.
 Terminal bookings cannot be edited.
 
 Send scheduled start and end together; they must be ISO date-times with a timezone and form a valid
-range, with a start time that is not in the past. The server verifies tenant-owned active resources
+continuous range, including ranges that cross midnight or span multiple dates, with a start time that
+is not in the past. The server verifies tenant-owned active resources
 and checks conflicts, excluding the booking being rescheduled. Supplying a time range for a `PENDING` booking automatically changes it to
 `SCHEDULED` and adds a status-history entry. A pending booking cannot receive resources until it is
 being scheduled. A checked-in booking may update resources only to support the work being delivered;

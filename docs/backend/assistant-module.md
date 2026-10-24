@@ -100,13 +100,18 @@ the response model cannot modify amounts, counts, appointment names, or statuses
 ```js
 {
   businessId,
-  scheduledStartAt: { $gte: businessDayRange.from, $lt: businessDayRange.to },
+  scheduledStartAt: { $lt: businessDayRange.to },
+  scheduledEndAt: { $gt: businessDayRange.from },
 }
 ```
 
-The range represents one `Asia/Kolkata` business calendar day. The query sorts by appointment start
-time, loads at most 21 records to detect truncation, and returns only the first 20. It exposes client
-name, service names, status, and resource names—not contact data, notes, payments, or internal IDs.
+The range represents one `Asia/Kolkata` business calendar day. The two strict bounds select every
+schedule interval that overlaps that day, so an appointment running from late today into tomorrow
+appears in both one-day agendas. The query sorts by appointment start time, loads at most 21 records to
+detect truncation, and returns only the first 20. Its local formatter compares each interval with the
+requested date: same-day work shows a compact time range, while crossing work says whether it continues
+from a prior day or until a later day. It exposes client name, service names, status, and resource
+names—not contact data, notes, payments, or internal IDs.
 
 `assistant-appointment-agenda-query-instruction.js` asks the provider only for a constrained date
 intent: `ONE_DAY`, `DATE_RANGE`, or `UNCLEAR`. Date ranges currently return a local one-day-only message
@@ -121,8 +126,8 @@ only `{ fromDate, toDate }`; it does not calculate or phrase the revenue result.
 ### Current-day appointment counts
 
 `today-appointment-summary.tool.js` uses a tenant-scoped MongoDB aggregation over bookings whose
-`scheduledStartAt` falls inside today's business-day range. It counts each booking's *current* status,
-and `remainingCount` currently requires `PENDING` or `SCHEDULED` plus a future `scheduledStartAt`.
+scheduled interval overlaps today's business-day range. It counts each booking's *current* status, and
+`remainingCount` still requires `PENDING` or `SCHEDULED` plus a future `scheduledStartAt`.
 
 ### How the current count query works
 
@@ -133,7 +138,8 @@ documents, client data, or resources into Node.js.
 Booking.aggregate([
   { $match: {
     businessId,
-    scheduledStartAt: { $gte: businessDayRange.from, $lt: businessDayRange.to },
+    scheduledStartAt: { $lt: businessDayRange.to },
+    scheduledEndAt: { $gt: businessDayRange.from },
   } },
   { $group: {
     _id: null,
@@ -148,8 +154,9 @@ The stages run in this order:
 
 1. `$match.businessId` is the server-derived tenant ID. It prevents one business's Assistant from
    counting another business's bookings.
-2. `$match.scheduledStartAt` selects one `Asia/Kolkata` calendar day. `$gte` includes the day's start;
-   `$lt` excludes the next day's start, so adjacent days never overlap.
+2. `$match.scheduledStartAt` and `$match.scheduledEndAt` together select schedule intervals that overlap
+   one `Asia/Kolkata` calendar day. Strict boundaries prevent a booking ending exactly at midnight from
+   appearing on the following day.
 3. `$group._id: null` puts every matched booking into one summary bucket instead of one bucket per
    status.
 4. Each `$sum` / `$cond` adds `1` only when that booking's current `status` matches; otherwise it adds

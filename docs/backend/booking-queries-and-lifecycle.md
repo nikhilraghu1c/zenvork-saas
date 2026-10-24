@@ -152,7 +152,7 @@ sent as one value, such as `status=SCHEDULED`.
 ### Choose the All bookings date field
 
 **Requirement:** staff may ask different questions of the same calendar date: *what changed*, *what
-was created*, or *what is scheduled*.
+was created*, or *what occupies this date*.
 
 The `dateField` query parameter maps a validated UI value to a stored MongoDB timestamp field:
 
@@ -160,15 +160,19 @@ The `dateField` query parameter maps a validated UI value to a stored MongoDB ti
 const dateFieldMap = {
   modified: 'updatedAt',
   created: 'createdAt',
-  scheduled: 'scheduledStartAt',
 };
 filter[dateFieldMap[dateField]] = { $gte: from, $lt: to };
+
+// A planned interval is present when it intersects the requested interval.
+filter.scheduledStartAt = { $lt: to };
+filter.scheduledEndAt = { $gt: from };
 ```
 
 Bracket notation (`filter[fieldName]`) uses the mapped field name as a key. The allow-list is
 important: callers cannot choose an arbitrary database field. `modified` is the default, preserving
-the existing All bookings activity behavior. A scheduled-date filter naturally excludes unscheduled
-pending bookings because they have no `scheduledStartAt` value.
+the existing All bookings activity behavior. `scheduled` is deliberately an interval-overlap filter,
+not a planned-start filter: an appointment from 22 Oct 10 PM to 23 Oct 10 AM appears for both dates.
+It naturally excludes unscheduled pending bookings because they have no schedule range.
 
 The list controller runs two independent queries in parallel:
 
@@ -198,62 +202,36 @@ The All bookings view sorts by `{ updatedAt: -1, _id: -1 }`. `-1` means descendi
 ## Summarise Month calendar bookings
 
 **Requirement:** show a month overview without loading every booking record. The calendar summary
-accepts a short scheduled-time range plus optional lifecycle-status and resource filters. It groups
-the tenant-scoped matches into one count for each business-calendar date:
+accepts a short scheduled-time range plus optional lifecycle-status and resource filters. It counts a
+booking on every business-calendar date that its continuous schedule interval occupies.
 
 ```js
 Booking.aggregate([
-  { $match: filter },
-  { $group: {
-    _id: { $dateToString: {
-      date: '$scheduledStartAt',
-      format: '%Y-%m-%d',
-      timezone: BUSINESS_TIME_ZONE,
-    } },
-    total: { $sum: 1 },
+  { $match: {
+    businessId,
+    scheduledStartAt: { $lt: rangeEnd },
+    scheduledEndAt: { $gt: rangeStart },
   } },
+  // Clamp to the requested range, then expand the interval into visible business days.
+  { $project: { visibleStart: { $max: ['$scheduledStartAt', rangeStart] }, visibleEnd: { $min: ['$scheduledEndAt', rangeEnd] } } },
+  { $project: { startDay: { $dateTrunc: { date: '$visibleStart', unit: 'day', timezone: BUSINESS_TIME_ZONE } }, endDay: { $dateTrunc: { date: { $dateSubtract: { startDate: '$visibleEnd', unit: 'millisecond', amount: 1 } }, unit: 'day', timezone: BUSINESS_TIME_ZONE } } } },
+  { $project: { startDay: 1, dayOffsets: { $range: [0, { $add: [{ $dateDiff: { startDate: '$startDay', endDate: '$endDay', unit: 'day', timezone: BUSINESS_TIME_ZONE } }, 1] }] } } },
+  { $unwind: '$dayOffsets' },
+  { $project: { date: { $dateToString: { date: { $dateAdd: { startDate: '$startDay', unit: 'day', amount: '$dayOffsets', timezone: BUSINESS_TIME_ZONE } }, format: '%Y-%m-%d', timezone: BUSINESS_TIME_ZONE } } } },
+  { $group: { _id: '$date', total: { $sum: 1 } } },
   { $project: { _id: 0, date: '$_id', total: 1 } },
   { $sort: { date: 1 } },
 ]);
 ```
 
-`$match` runs first, so MongoDB works only with the selected tenant's scheduled bookings.
-`$dateToString` converts each UTC schedule time to the business timezone before grouping; this avoids
-placing a late-evening appointment under the wrong visible date. `$sum: 1` counts each booking,
-`$project` exposes only `{ date, total }`, and `$sort` returns days in calendar order. A user taps a
-count to enter Day view, where the normal booking list query returns the actual booking records.
-
-### Read the group stage line by line
-
-Given scheduled bookings at `22 Oct 10:00`, `22 Oct 14:00`, and `23 Oct 11:00`, this stage:
-
-```js
-{
-  $group: {
-    _id: { $dateToString: { date: '$scheduledStartAt', format: '%Y-%m-%d', timezone: BUSINESS_TIME_ZONE } },
-    total: { $sum: 1 },
-  },
-}
-```
-
-means:
-
-1. `'$scheduledStartAt'` reads the schedule timestamp from each matching booking document.
-2. `$dateToString` changes each timestamp into a date key such as `2026-10-22`; the timezone makes
-   that key match the business's visible calendar day instead of the database/server's UTC day.
-3. `_id` is the grouping key, so all bookings whose key is `2026-10-22` go into the same bucket.
-4. `$sum: 1` adds one for every booking in that bucket.
-
-The group-stage output is therefore:
-
-```js
-[
-  { _id: '2026-10-22', total: 2 },
-  { _id: '2026-10-23', total: 1 },
-]
-```
-
-The following `$project` stage simply renames `_id` to `date` before returning it to the frontend.
+`$match` runs first, so MongoDB works only with the selected tenant's overlapping scheduled bookings.
+The strict `<` and `>` boundaries treat the end as exclusive: a booking ending exactly at midnight does
+not count for the following day. `$max` and `$min` clamp a crossing booking to the visible range.
+`$dateTrunc`, `$dateDiff`, `$range`, and `$dateAdd` create one date key per business day occupied by
+each matching booking. `$sum: 1` then counts calendar presence, so a booking from 22 Oct 10 PM to
+23 Oct 10 AM contributes one count to both 22 Oct and 23 Oct. `$project` exposes only `{ date, total }`,
+and `$sort` returns days in calendar order. A user taps a count to enter Day view, where the normal
+scheduled-overlap list query returns the actual booking records.
 
 ## Populate references
 

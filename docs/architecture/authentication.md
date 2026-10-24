@@ -16,7 +16,9 @@ cookie defaults to `SameSite=Strict` locally and is marked `Secure` in productio
 frontend and API use different sites configure `COOKIE_SAME_SITE=none`; they must use HTTPS and an
 explicit `CLIENT_ORIGIN` allowlist. `POST /api/logout` clears the cookie with the same attributes.
 
-Login returns only safe user data; the JWT is not included in the JSON response.
+Login returns only safe user data; the JWT is not included in the JSON response. For tenant users,
+that safe metadata includes the active business's display name so the authenticated sidebar can identify
+the workspace without a second API request; platform administrators receive `businessName: null`.
 
 ## Frontend implementation
 

@@ -37,6 +37,7 @@ describe('AuthService', () => {
         mobile: '9876543210',
         role: 'OWNER',
         businessId: 'business-1',
+        businessName: 'Example Business',
       },
     });
     expect(service.isAuthenticated()).toBeTrue();

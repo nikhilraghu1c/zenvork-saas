@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
+import { AppCheckboxComponent } from '../../../../shared/checkbox/checkbox.component';
 import { AppDatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { AppInputComponent } from '../../../../shared/input/input.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
@@ -28,6 +29,7 @@ import { BookingFormService } from '../../services/booking-form.service';
     ReactiveFormsModule,
     RouterLink,
     AppButtonComponent,
+    AppCheckboxComponent,
     AppInputComponent,
     AppSelectComponent,
     AppDatePickerComponent,
@@ -46,6 +48,8 @@ export class BookingEditComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly dateControl = new FormControl('', { nonNullable: true });
+  protected readonly endDateControl = new FormControl('', { nonNullable: true });
+  protected readonly multiDayControl = new FormControl(false, { nonNullable: true });
   protected readonly clientSearchControl = new FormControl('', { nonNullable: true });
   protected readonly startTimeControl = new FormControl('', { nonNullable: true });
   protected readonly endTimeControl = new FormControl('', { nonNullable: true });
@@ -69,6 +73,7 @@ export class BookingEditComponent implements OnInit {
   protected saving = false;
   protected errorMessage = '';
   private initialDate = '';
+  private initialEndDate = '';
   private initialStartTime = '';
   private initialEndTime = '';
   private initialNotes = '';
@@ -80,6 +85,18 @@ export class BookingEditComponent implements OnInit {
 
   /** Loads the tenant-owned booking and the active choices needed for fields that may be edited. */
   ngOnInit(): void {
+    this.dateControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((date) => {
+      if (!this.multiDayControl.value) {
+        this.endDateControl.setValue(date, { emitEvent: false });
+      }
+    });
+    this.multiDayControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((isMultiDay) => {
+        if (!isMultiDay) {
+          this.endDateControl.setValue(this.dateControl.value, { emitEvent: false });
+        }
+      });
     this.serviceIdsControl.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((serviceIds) => {
@@ -284,6 +301,7 @@ export class BookingEditComponent implements OnInit {
     const start = this.dateTime.businessDateTimeInputValues(booking.scheduledStartAt);
     const end = this.dateTime.businessDateTimeInputValues(booking.scheduledEndAt);
     this.initialDate = start?.date ?? '';
+    this.initialEndDate = end?.date ?? this.initialDate;
     this.initialStartTime = start?.time ?? '';
     this.initialEndTime = end?.time ?? '';
     this.initialNotes = booking.notes;
@@ -296,7 +314,9 @@ export class BookingEditComponent implements OnInit {
     this.initialExtraAmountPaise = booking.extraAmountPaise;
     this.initialResourceIds = booking.resources.map((resource) => resource._id);
     this.selectedClient = this.clients.find((client) => client._id === booking.client?._id) ?? null;
+    this.multiDayControl.setValue(this.initialEndDate !== this.initialDate, { emitEvent: false });
     this.dateControl.setValue(this.initialDate);
+    this.endDateControl.setValue(this.initialEndDate);
     this.startTimeControl.setValue(this.initialStartTime);
     this.endTimeControl.setValue(this.initialEndTime);
     this.notesControl.setValue(this.initialNotes);
@@ -382,15 +402,19 @@ export class BookingEditComponent implements OnInit {
     if (!this.canEditSchedule) return payload;
     const hasScheduleValue = [
       this.dateControl.value,
+      this.endDateControl.value,
       this.startTimeControl.value,
       this.endTimeControl.value,
     ].some(Boolean);
     if (
       hasScheduleValue &&
-      (!this.dateControl.value || !this.startTimeControl.value || !this.endTimeControl.value)
+      (!this.dateControl.value ||
+        !this.endDateControl.value ||
+        !this.startTimeControl.value ||
+        !this.endTimeControl.value)
     ) {
       this.errorMessage =
-        'Date, start time, and end time must all be provided for a scheduled booking.';
+        'Start date, end date, start time, and end time must all be provided for a scheduled booking.';
       return null;
     }
     if (this.booking.status === 'SCHEDULED' && !hasScheduleValue) {
@@ -403,6 +427,7 @@ export class BookingEditComponent implements OnInit {
     }
     const scheduleChanged =
       this.dateControl.value !== this.initialDate ||
+      this.endDateControl.value !== this.initialEndDate ||
       this.startTimeControl.value !== this.initialStartTime ||
       this.endTimeControl.value !== this.initialEndTime;
     if (scheduleChanged && hasScheduleValue) {
@@ -412,7 +437,7 @@ export class BookingEditComponent implements OnInit {
           this.startTimeControl.value,
         );
         const scheduledEndAt = this.dateTime.toBusinessDateTimeIso(
-          this.dateControl.value,
+          this.endDateControl.value,
           this.endTimeControl.value,
         );
         if (scheduledEndAt <= scheduledStartAt) {

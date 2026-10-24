@@ -14,6 +14,7 @@ export interface AuthenticatedUser {
   mobile: string;
   role: 'PLATFORM_ADMIN' | 'OWNER' | 'STAFF';
   businessId: string | null;
+  businessName: string | null;
   bookingAccessScope: 'NONE' | 'OWN_AND_UNASSIGNED' | 'ALL';
   canSendReminders: boolean;
   passwordChangedAt: string | null;

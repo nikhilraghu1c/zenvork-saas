@@ -39,10 +39,11 @@ const getAppointmentAgenda = async ({ businessId, userRole, date }) => {
     throw new AssistantToolValidationError("Please provide a valid appointment date");
   }
 
-  // Fetching one extra record reveals truncation without exposing or loading an unbounded agenda.
+  // Include every scheduled interval that occupies the requested business day.
   const appointments = await Booking.find({
     businessId,
-    scheduledStartAt: { $gte: businessDayRange.from, $lt: businessDayRange.to },
+    scheduledStartAt: { $lt: businessDayRange.to },
+    scheduledEndAt: { $gt: businessDayRange.from },
   })
     .select("clientId resourceIds scheduledStartAt scheduledEndAt services status")
     .populate("clientId", "name")

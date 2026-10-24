@@ -28,7 +28,8 @@ export interface BookingFormValues {
   newClientMobile: string;
   newClientEmail: string;
   resourceIds: string[];
-  date: string;
+  startDate: string;
+  endDate: string;
   startTime: string;
   endTime: string;
   notes: string;
@@ -90,7 +91,12 @@ export class BookingFormService {
 
   /** Validates and converts business-local form values into the backend booking contract. */
   buildPayload(values: BookingFormValues): BookingPayloadResult {
-    const hasScheduleValue = [values.date, values.startTime, values.endTime].some(Boolean);
+    const hasScheduleValue = [
+      values.startDate,
+      values.endDate,
+      values.startTime,
+      values.endTime,
+    ].some(Boolean);
     if (!values.selectedClient && !values.isNewClient) {
       return { payload: null, errorMessage: 'Select an existing client or add a new client.' };
     }
@@ -103,11 +109,14 @@ export class BookingFormService {
     if (values.isNewClient && !/^\d{10}$/.test(values.newClientMobile.trim())) {
       return { payload: null, errorMessage: 'New client mobile number must contain 10 digits.' };
     }
-    if (hasScheduleValue && (!values.date || !values.startTime || !values.endTime)) {
+    if (
+      hasScheduleValue &&
+      (!values.startDate || !values.endDate || !values.startTime || !values.endTime)
+    ) {
       return {
         payload: null,
         errorMessage:
-          'Date, start time, and end time must all be provided for a scheduled booking.',
+          'Start date, end date, start time, and end time must all be provided for a scheduled booking.',
       };
     }
     if (
@@ -150,10 +159,14 @@ export class BookingFormService {
     }
     if (hasScheduleValue) {
       try {
-        const scheduledStartAt = this.dateTime.toBusinessDateTimeIso(values.date, values.startTime);
-        const scheduledEndAt = this.dateTime.toBusinessDateTimeIso(values.date, values.endTime);
-        if (scheduledEndAt <= scheduledStartAt)
+        const scheduledStartAt = this.dateTime.toBusinessDateTimeIso(
+          values.startDate,
+          values.startTime,
+        );
+        const scheduledEndAt = this.dateTime.toBusinessDateTimeIso(values.endDate, values.endTime);
+        if (scheduledEndAt <= scheduledStartAt) {
           return { payload: null, errorMessage: 'End time must be after start time.' };
+        }
         payload.scheduledStartAt = scheduledStartAt;
         payload.scheduledEndAt = scheduledEndAt;
       } catch {

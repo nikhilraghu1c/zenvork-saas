@@ -8,7 +8,7 @@ const toBusinessDate = (date) => {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 };
 
-// Calculates tenant-scoped operational counts from scheduled bookings without returning booking records.
+// Calculates tenant-scoped operational counts from bookings occupying today's business-day range.
 const getTodayAppointmentSummary = async ({ businessId, userRole, now = new Date() }) => {
   if (!["OWNER", "STAFF"].includes(userRole)) {
     throw new AssistantToolAuthorizationError("You do not have access to appointment information");
@@ -19,7 +19,8 @@ const getTodayAppointmentSummary = async ({ businessId, userRole, now = new Date
     {
       $match: {
         businessId: new mongoose.Types.ObjectId(businessId),
-        scheduledStartAt: { $gte: businessDayRange.from, $lt: businessDayRange.to },
+        scheduledStartAt: { $lt: businessDayRange.to },
+        scheduledEndAt: { $gt: businessDayRange.from },
       },
     },
     {

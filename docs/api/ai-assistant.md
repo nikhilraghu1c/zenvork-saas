@@ -48,9 +48,10 @@ Every provider classification also contains one allowlisted tool route. `DATA_QU
 validates it and calls its internal owner-only revenue tool. The tool returns only aggregate billed,
 collected, and pending-payment facts, which are formatted locally rather than being sent to a response
 model. `GET_APPOINTMENT_AGENDA` extracts one business-calendar day, then lets an owner or staff member
-view up to 20 tenant appointments scheduled that day. The locally formatted agenda contains only
-appointment time, client name, service names, status, and resource names. Appointment date ranges are
-not supported yet. `GET_REMAINING_APPOINTMENTS` lets an owner or staff member retrieve a current-day
+view up to 20 tenant appointments occupying that day. The locally formatted agenda contains only
+appointment time, client name, service names, status, and resource names; an appointment that crosses
+the selected day's boundary explicitly indicates that it continues from or into another date.
+Appointment date ranges are not supported yet. `GET_REMAINING_APPOINTMENTS` lets an owner or staff member retrieve a current-day
 count of pending or scheduled appointments whose scheduled start time has not passed; checked-in work is
 separate from that remaining count. `GET_DAILY_APPOINTMENT_STATUS_SUMMARY` returns a current-day
 tenant-scoped count of upcoming, in-progress, completed, cancelled, and no-show appointments. Other

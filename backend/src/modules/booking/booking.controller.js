@@ -264,10 +264,11 @@ const getBookingCalendarSummary = async (req, res) => {
   try {
     const { from, to, statusValues, resourceId } =
       validateBookingCalendarSummaryQuery(req.query);
-    // Aggregate in the business timezone so a late-evening appointment belongs to its visible calendar day.
+    // Match appointments that overlap the requested calendar range, not only those that start inside it.
     const filter = {
       businessId: new mongoose.Types.ObjectId(tenantId(req)),
-      scheduledStartAt: { $gte: from, $lt: to },
+      scheduledStartAt: { $lt: to },
+      scheduledEndAt: { $gt: from },
       ...(statusValues.length && { status: { $in: statusValues } }),
       ...(resourceId && {
         resourceIds: new mongoose.Types.ObjectId(resourceId),
@@ -276,17 +277,79 @@ const getBookingCalendarSummary = async (req, res) => {
     const days = await Booking.aggregate([
       { $match: filter },
       {
-        $group: {
-          _id: {
+        $project: {
+          // Clamp each interval to the visible range before expanding it into calendar days.
+          visibleStart: { $max: ["$scheduledStartAt", from] },
+          visibleEnd: { $min: ["$scheduledEndAt", to] },
+        },
+      },
+      {
+        $project: {
+          startDay: {
+            $dateTrunc: {
+              date: "$visibleStart",
+              unit: "day",
+              timezone: BUSINESS_TIME_ZONE,
+            },
+          },
+          endDay: {
+            $dateTrunc: {
+              date: {
+                $dateSubtract: {
+                  startDate: "$visibleEnd",
+                  unit: "millisecond",
+                  amount: 1,
+                },
+              },
+              unit: "day",
+              timezone: BUSINESS_TIME_ZONE,
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          startDay: 1,
+          dayOffsets: {
+            $range: [
+              0,
+              {
+                $add: [
+                  {
+                    $dateDiff: {
+                      startDate: "$startDay",
+                      endDate: "$endDay",
+                      unit: "day",
+                      timezone: BUSINESS_TIME_ZONE,
+                    },
+                  },
+                  1,
+                ],
+              },
+            ],
+          },
+        },
+      },
+      { $unwind: "$dayOffsets" },
+      {
+        $project: {
+          date: {
             $dateToString: {
-              date: "$scheduledStartAt",
+              date: {
+                $dateAdd: {
+                  startDate: "$startDay",
+                  unit: "day",
+                  amount: "$dayOffsets",
+                  timezone: BUSINESS_TIME_ZONE,
+                },
+              },
               format: "%Y-%m-%d",
               timezone: BUSINESS_TIME_ZONE,
             },
           },
-          total: { $sum: 1 },
         },
       },
+      { $group: { _id: "$date", total: { $sum: 1 } } },
       { $project: { _id: 0, date: "$_id", total: 1 } },
       { $sort: { date: 1 } },
     ]);
@@ -355,11 +418,9 @@ const updateBooking = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
     if (!(await canManageBooking(req, booking))) {
-      return res
-        .status(403)
-        .json({
-          message: "You can manage only your assigned or unassigned bookings",
-        });
+      return res.status(403).json({
+        message: "You can manage only your assigned or unassigned bookings",
+      });
     }
     if (!EDITABLE_BOOKING_STATUSES.includes(booking.status)) {
       return res
@@ -376,11 +437,9 @@ const updateBooking = async (req, res) => {
     }
     if (updateData.hasClientId && booking.status !== "PENDING") {
       // A scheduled appointment must not be silently transferred to another client.
-      return res
-        .status(409)
-        .json({
-          message: "Client can only be changed while a booking is pending",
-        });
+      return res.status(409).json({
+        message: "Client can only be changed while a booking is pending",
+      });
     }
     if (
       booking.status === "PENDING" &&
@@ -629,11 +688,9 @@ const updateBookingStatus = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
     if (!(await canManageBooking(req, booking))) {
-      return res
-        .status(403)
-        .json({
-          message: "You can manage only your assigned or unassigned bookings",
-        });
+      return res.status(403).json({
+        message: "You can manage only your assigned or unassigned bookings",
+      });
     }
 
     if (!ALLOWED_STATUS_TRANSITIONS[booking.status].includes(nextStatus)) {
@@ -955,18 +1012,14 @@ const updateBookingPaymentStatus = async (req, res) => {
     );
     if (!booking) return res.status(404).json({ message: "Booking not found" });
     if (!(await canManageBooking(req, booking))) {
-      return res
-        .status(403)
-        .json({
-          message: "You can manage only your assigned or unassigned bookings",
-        });
+      return res.status(403).json({
+        message: "You can manage only your assigned or unassigned bookings",
+      });
     }
     if (booking.status !== "COMPLETED") {
-      return res
-        .status(409)
-        .json({
-          message: "Only completed bookings can be marked paid or unpaid",
-        });
+      return res.status(409).json({
+        message: "Only completed bookings can be marked paid or unpaid",
+      });
     }
     // The settlement timestamp changes only on a real status transition, not on repeated requests.
     if (paymentStatus === "paid" && booking.paymentStatus !== "paid") {

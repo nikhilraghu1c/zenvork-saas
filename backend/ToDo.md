@@ -50,24 +50,6 @@ Add an app-wide English/Hindi language preference using translation keys for sta
 - Persist the chosen language for the signed-in user or device.
 - Introduce translations incrementally by feature, without mixing untranslated hard-coded strings into new UI.
 
-# Continuous multi-day bookings (planned)
-
-Allow one booking to run continuously across midnight or multiple calendar dates, such as 22 Oct
-10 PM through 23 Oct 10 AM.
-
-- Keep the existing `scheduledStartAt` and `scheduledEndAt` model; it already represents a continuous
-  cross-date range.
-- Update booking create and edit UI to allow choosing an end date separately from the start date.
-- Preserve resource conflict checks across the full continuous time range.
-- Render one event spanning the relevant dates in future Day, Week, and Month calendar views.
-- Change calendar Day/Week retrieval from a start-date filter to an overlap filter:
-  `scheduledStartAt < rangeEnd && scheduledEndAt > rangeStart`. This ensures an overnight booking
-  remains visible on every date it occupies.
-- Change the Month summary aggregation so it counts a continuous booking on every business-calendar
-  date it overlaps, rather than grouping only by `scheduledStartAt`. Define this as calendar presence
-  counts, not a summed unique-booking total across the month.
-- Treat multiple non-contiguous sessions as a separate future feature with a different data model.
-
 # Booking token and queue system (deferred)
 
 Build the core Booking create/list flow before adding queue functionality.
