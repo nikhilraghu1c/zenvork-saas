@@ -29,6 +29,7 @@ import {
   BookingFilterSelection,
 } from '../../components/booking-filter-dialog/booking-filter-dialog.component';
 import { BookingGridActionsComponent } from '../../components/booking-grid-actions/booking-grid-actions.component';
+import { BookingScheduleGridCellComponent } from '../../components/booking-schedule-grid-cell/booking-schedule-grid-cell.component';
 import { BookingStatusGridCellComponent } from '../../components/booking-status-grid-cell/booking-status-grid-cell.component';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
 import { ResourceRecord, ResourceService } from '../../../resources/services/resource.service';
@@ -136,24 +137,10 @@ export class BookingListComponent implements OnInit, OnDestroy {
       },
       {
         field: 'scheduledStartAt',
-        headerName: 'Date',
-        minWidth: 142,
-        flex: 0.9,
-        valueFormatter: ({ data }) => this.formatDate(this.appointmentAt(data)),
-      },
-      {
-        field: 'scheduledStartAt',
-        headerName: 'Time',
-        minWidth: 142,
-        flex: 0.9,
-        valueFormatter: ({ data }) => (data ? this.bookingTimeLabel(data) : '—'),
-      },
-      {
-        field: 'updatedAt',
-        headerName: 'Modified',
-        minWidth: 138,
-        flex: 0.85,
-        valueFormatter: ({ data }) => this.formatDate(this.activityAt(data)),
+        headerName: 'Schedule',
+        minWidth: 224,
+        flex: 1.25,
+        cellRenderer: BookingScheduleGridCellComponent,
       },
       {
         field: 'resources',
@@ -189,6 +176,13 @@ export class BookingListComponent implements OnInit, OnDestroy {
               : 'var(--text-mute)',
           fontWeight: data?.status === 'COMPLETED' ? '600' : '400',
         }),
+      },
+      {
+        field: 'updatedAt',
+        headerName: 'Modified',
+        minWidth: 138,
+        flex: 0.85,
+        valueFormatter: ({ data }) => this.formatDate(this.activityAt(data)),
       },
       {
         headerName: 'Actions',
@@ -324,37 +318,39 @@ export class BookingListComponent implements OnInit, OnDestroy {
     return booking?.updatedAt ?? null;
   }
 
-  /** Shows planned timing before check-in and recorded timing once work has started. */
-  protected appointmentAt(booking: BookingRecord | undefined): string | null {
-    if (!booking) return null;
+  /** Formats planned start/end values as a compact, readable mobile schedule. */
+  protected mobileScheduleLabel(booking: BookingRecord): string {
+    const { startAt, endAt } = this.bookingTimeRange(booking);
+    if (!startAt) {
+      return 'Awaiting schedule';
+    }
 
-    return booking.status === 'CHECKED_IN' || booking.status === 'COMPLETED'
-      ? (booking.actualStartAt ?? booking.scheduledStartAt)
-      : booking.scheduledStartAt;
+    const startDate = this.dateTime.format(startAt, 'compactDate');
+    const startTime = this.formatTime(startAt);
+    if (!endAt) {
+      return `${startDate} · ${startTime}`;
+    }
+
+    const endTime = this.formatTime(endAt);
+    if (this.isSameBusinessDay(startAt, endAt)) {
+      return `${startDate}\n${startTime} – ${endTime}`;
+    }
+    return `${startDate} · ${startTime}\n→ ${this.dateTime.format(endAt, 'compactDate')} · ${endTime}`;
   }
 
-  /** Displays the relevant planned or actual time range for the booking lifecycle state. */
-  protected bookingTimeLabel(booking: BookingRecord): string {
-    const startAt = this.appointmentAt(booking);
-    if (!startAt) return 'Awaiting schedule';
-
-    const start = this.formatTime(startAt);
-    const endAt =
-      booking.status === 'COMPLETED'
-        ? booking.actualEndAt
-        : booking.status === 'SCHEDULED' ||
-            booking.status === 'CANCELLED' ||
-            booking.status === 'NO_SHOW'
-          ? booking.scheduledEndAt
-          : null;
-
-    return endAt ? `${start} – ${this.formatTime(endAt)}` : start;
+  /** Uses scheduled values consistently; actual timestamps are available from booking details. */
+  private bookingTimeRange(booking: BookingRecord): { startAt: string | null; endAt: string | null } {
+    return { startAt: booking.scheduledStartAt, endAt: booking.scheduledEndAt };
   }
 
-  /** Keeps the booking date short enough to share a mobile row with the appointment time. */
-  protected formatMobileAppointmentDate(booking: BookingRecord): string {
-    const appointmentAt = this.appointmentAt(booking);
-    return appointmentAt ? this.dateTime.format(appointmentAt, 'compactDate') : 'Unscheduled';
+  /** Compares business-calendar dates without depending on the browser or server timezone. */
+  private isSameBusinessDay(startAt: string, endAt: string): boolean {
+    const startDate = this.dateTime.businessDateTimeInputValues(startAt)?.date;
+    const endDate = this.dateTime.businessDateTimeInputValues(endAt)?.date;
+    if (!startDate || !endDate) {
+      return true;
+    }
+    return startDate === endDate;
   }
 
   protected todayLabel(): string {

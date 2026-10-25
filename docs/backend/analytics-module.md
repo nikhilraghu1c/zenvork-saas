@@ -37,6 +37,10 @@ Completed + unpaid → pending payment for its completion period
 validates a reporting period and passes its authenticated business ID and validated date range to the
 service; internal consumers use the same service rather than duplicating report queries.
 
+The report also returns `discountsPaise` and `discountedBookingsCount` from completed bookings in the
+selected `actualEndAt` range. Service revenue stays gross (snapshot price × quantity): a booking-level
+discount cannot be truthfully assigned to one of several services without a future allocation rule.
+
 Payment transactions, refunds, or partial payments would require a ledger-based reporting model later.
 
 ## Why filters are functions
@@ -127,15 +131,19 @@ Booking.aggregate([
   { $group: {
     _id: '$services.serviceId',
     name: { $first: '$services.name' },
-    revenuePaise: { $sum: '$services.pricePaise' },
+    revenuePaise: {
+      $sum: {
+        $multiply: ['$services.pricePaise', { $ifNull: ['$services.quantity', 1] }],
+      },
+    },
     bookingsCount: { $sum: 1 },
   } },
   { $sort: { revenuePaise: -1, name: 1 } },
 ]);
 ```
 
-This query counts service line items. A booking with two services contributes once to each selected
-service's revenue/count.
+This query totals each service snapshot's price × quantity. A booking with two services contributes once to
+each selected service's revenue/count; records written before quantities existed safely use quantity one.
 
 ## Payment timestamp rule
 

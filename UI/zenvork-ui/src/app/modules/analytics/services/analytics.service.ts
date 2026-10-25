@@ -34,6 +34,8 @@ export interface RevenueAnalytics {
     outstandingPaise: number;
     outstandingBookingsCount: number;
     extraChargesPaise: number;
+    discountsPaise: number;
+    discountedBookingsCount: number;
   };
   daily: RevenueDailyTotal[];
   services: ServiceRevenue[];

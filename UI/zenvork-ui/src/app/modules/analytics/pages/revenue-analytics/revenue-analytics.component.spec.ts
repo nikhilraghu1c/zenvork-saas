@@ -30,6 +30,8 @@ describe('RevenueAnalyticsComponent', () => {
                   outstandingPaise: 0,
                   outstandingBookingsCount: 0,
                   extraChargesPaise: 0,
+                  discountsPaise: 0,
+                  discountedBookingsCount: 0,
                 },
                 daily: [],
                 services: [],

@@ -33,7 +33,9 @@ The response has this shape:
     "previousCollectedPaise": 83000,
     "outstandingPaise": 19000,
     "outstandingBookingsCount": 3,
-    "extraChargesPaise": 4000
+    "extraChargesPaise": 4000,
+    "discountsPaise": 7000,
+    "discountedBookingsCount": 4
   },
   "daily": [{
     "date": "2026-09-20",
@@ -46,15 +48,22 @@ The response has this shape:
 }
 ```
 
+Each service's `revenuePaise` is its immutable snapshot price multiplied by its booked quantity. Bookings
+created before quantities existed are treated as quantity `1`; `bookingsCount` remains the number of
+completed bookings containing that service, not the number of units sold.
+
 Definitions:
 
 - **Billed** is the total of completed bookings by `actualEndAt` in the selected period.
 - **Collected** is the total of completed bookings marked `paid` by `paidAt` in the selected period.
 - **Pending payment** is the total of bookings completed in the selected period that are currently
   `unpaid`. It is returned in the existing `outstandingPaise` and `outstandingBookingsCount` fields.
+- **Discounts given** is the resolved discount amount on completed bookings by `actualEndAt` in the
+  selected period. `discountedBookingsCount` excludes completed bookings with no discount.
 - **Service revenue** uses immutable booking service snapshots, so later catalog price/name edits do
-  not rewrite reporting history. `extraChargesPaise` is reported separately because it is not tied to
-  a service.
+  not rewrite reporting history. It is gross revenue before booking-level discounts; discounts are not
+  attributed to individual services. `extraChargesPaise` is also reported separately because it is not
+  tied to a service.
 - Each daily row includes the number of completed bookings contributing to **Billed** and the number
   of paid bookings contributing to **Collected**.
 

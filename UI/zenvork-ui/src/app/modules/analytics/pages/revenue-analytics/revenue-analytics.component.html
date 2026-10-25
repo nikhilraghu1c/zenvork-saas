@@ -70,6 +70,16 @@
         <span>{{ report.revenue.outstandingBookingsCount }} completed booking{{ report.revenue.outstandingBookingsCount === 1 ? '' : 's' }} pending payment</span>
         <small>Completed in this period and not yet paid</small>
       </article>
+
+      <article class="metric-card metric-card--discounts">
+        <div class="metric-card__heading">
+          <span class="metric-card__icon" aria-hidden="true"><mat-icon>sell</mat-icon></span>
+          <p class="metric-card__label">Discounts given</p>
+        </div>
+        <strong>{{ formatMoney(report.revenue.discountsPaise) }}</strong>
+        <span>{{ report.revenue.discountedBookingsCount }} completed booking{{ report.revenue.discountedBookingsCount === 1 ? '' : 's' }} discounted</span>
+        <small>Applied to completed bookings in this period</small>
+      </article>
     </section>
 
     <p class="revenue-analytics-page__definition">
@@ -81,7 +91,7 @@
         <div class="analytics-panel__header">
           <div>
             <p class="analytics-panel__eyebrow">COMPLETED WORK</p>
-            <h2>Revenue by service</h2>
+            <h2>Gross service revenue</h2>
           </div>
           <strong>{{ formatMoney(totalServiceRevenuePaise) }}</strong>
         </div>
@@ -107,6 +117,9 @@
             Extra charges: {{ formatMoney(report.revenue.extraChargesPaise) }}
           </p>
         }
+        <p class="analytics-panel__footnote">
+          Service revenue is before booking-level discounts. Discounts are shown above because they are not assigned to one service.
+        </p>
       </article>
 
       <article class="analytics-panel">

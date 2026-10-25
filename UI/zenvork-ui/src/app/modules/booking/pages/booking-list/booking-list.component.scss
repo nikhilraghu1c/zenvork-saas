@@ -500,14 +500,24 @@
 
       &__schedule {
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
         gap: 12px;
 
-        span:last-child {
-          justify-content: flex-end;
-          text-align: right;
+        &-label {
+          display: flex;
+          min-width: 0;
+          align-items: flex-start;
+          gap: 6px;
+
+          span {
+            display: block;
+            min-width: 0;
+            white-space: pre-line;
+            line-height: 1.45;
+          }
         }
+
         strong {
           color: var(--text);
           font-size: 13px;

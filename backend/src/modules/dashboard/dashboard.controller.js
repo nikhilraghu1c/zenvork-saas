@@ -21,7 +21,7 @@ const countCompletedRevenue = async (req, from, to) => {
   return result?.totalAmountPaise ?? 0;
 };
 
-// Uses booking service snapshots so catalog price changes cannot rewrite historical service revenue.
+// Uses booking service snapshots and defaults legacy records to one unit for accurate historical service revenue.
 const getTopServicesByRevenue = (req, from, to) =>
   Booking.aggregate([
     {
@@ -36,7 +36,11 @@ const getTopServicesByRevenue = (req, from, to) =>
       $group: {
         _id: "$services.serviceId",
         name: { $first: "$services.name" },
-        revenuePaise: { $sum: "$services.pricePaise" },
+        revenuePaise: {
+          $sum: {
+            $multiply: ["$services.pricePaise", { $ifNull: ["$services.quantity", 1] }],
+          },
+        },
         bookingsCount: { $sum: 1 },
       },
     },

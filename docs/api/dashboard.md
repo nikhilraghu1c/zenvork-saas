@@ -66,7 +66,8 @@ within the period, so unresolved upcoming appointments do not distort it. `activ
 enabled resources whose configured business type marks them as people; it is not an attendance count.
 
 `topServices` contains at most three services by snapshot line-item revenue from completed bookings
-within the selected `period`; manual extra charges are not attributed to a service.
+within the selected `period`. Each line's revenue is snapshot price multiplied by its quantity (legacy
+bookings without quantity count as one); manual extra charges are not attributed to a service.
 `topStaff` contains at most three enabled person resources by completed-booking count in the selected
 period. Rooms, chairs, and other non-person resource types are excluded.
 

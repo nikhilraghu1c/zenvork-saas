@@ -47,7 +47,7 @@ const getDailyRevenue = (filter, dateField) =>
     },
   ]);
 
-// Uses immutable line-item snapshots so catalogue edits never alter historical service revenue.
+// Uses immutable line-item snapshots and defaults legacy records to one unit for accurate historical service revenue.
 const getServiceRevenue = (filter) =>
   Booking.aggregate([
     { $match: filter },
@@ -56,7 +56,11 @@ const getServiceRevenue = (filter) =>
       $group: {
         _id: "$services.serviceId",
         name: { $first: "$services.name" },
-        revenuePaise: { $sum: "$services.pricePaise" },
+        revenuePaise: {
+          $sum: {
+            $multiply: ["$services.pricePaise", { $ifNull: ["$services.quantity", 1] }],
+          },
+        },
         bookingsCount: { $sum: 1 },
       },
     },
@@ -89,6 +93,8 @@ const getRevenueAnalyticsReport = async ({ businessId, period, month, reportingR
     paymentStatus: "unpaid",
     actualEndAt: { $gte: from, $lt: to },
   };
+  // Only completed bookings with a resolved discount contribute to the discount summary.
+  const discountedBookingsInRange = { ...billedInRange, discountAmountPaise: { $gt: 0 } };
 
   const [
     billed,
@@ -97,6 +103,7 @@ const getRevenueAnalyticsReport = async ({ businessId, period, month, reportingR
     previousCollected,
     pendingPayment,
     extraCharges,
+    discountsGiven,
     billedDaily,
     collectedDaily,
     services,
@@ -107,6 +114,7 @@ const getRevenueAnalyticsReport = async ({ businessId, period, month, reportingR
     getAmountSummary(collectedFilter(businessId, previousFrom, previousTo)),
     getAmountSummary(pendingPaymentInRange),
     getAmountSummary(billedInRange, "extraAmountPaise"),
+    getAmountSummary(discountedBookingsInRange, "discountAmountPaise"),
     getDailyRevenue(billedInRange, "actualEndAt"),
     getDailyRevenue(collectedInRange, "paidAt"),
     getServiceRevenue(billedInRange),
@@ -149,6 +157,8 @@ const getRevenueAnalyticsReport = async ({ businessId, period, month, reportingR
       outstandingPaise: pendingPayment.amountPaise,
       outstandingBookingsCount: pendingPayment.bookingsCount,
       extraChargesPaise: extraCharges.amountPaise,
+      discountsPaise: discountsGiven.amountPaise,
+      discountedBookingsCount: discountsGiven.bookingsCount,
     },
     daily: [...dailyByDate.values()].sort((first, second) =>
       first.date.localeCompare(second.date),

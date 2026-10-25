@@ -101,7 +101,11 @@ Booking.aggregate([
   { $group: {
     _id: '$services.serviceId',
     name: { $first: '$services.name' },
-    revenuePaise: { $sum: '$services.pricePaise' },
+    revenuePaise: {
+      $sum: {
+        $multiply: ['$services.pricePaise', { $ifNull: ['$services.quantity', 1] }],
+      },
+    },
     bookingsCount: { $sum: 1 },
   } },
   { $sort: { revenuePaise: -1, name: 1 } },

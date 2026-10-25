@@ -30,6 +30,8 @@ select bookings → group/calculate → order groups → shape the response
 | `$match` | Filter documents before doing calculations. It should be early so MongoDB processes only relevant tenant records. | Keep this business's completed bookings in a date range. |
 | `$group` | Combine matching documents into summary buckets. | One bucket per day, service, payment state, or one overall total. |
 | `$sum` | Add monetary values, or count documents with `$sum: 1`. | `₹200 + ₹650 = ₹850`; `1 + 1 = 2 bookings`. |
+| `$multiply` | Calculate a line-item amount before it is summed. | `₹650 × quantity 5 = ₹3,250`. |
+| `$ifNull` | Supply a safe fallback when an older document lacks a field. | A legacy service without `quantity` uses `1`. |
 | `$unwind` | Turn each item in an array into its own pipeline row before grouping. | A booking with Haircut + Spa Service contributes to both service totals. |
 | `$sort` | Give summaries a deterministic business order. | Daily rows oldest to newest; top services highest revenue first. |
 | `$project` | Choose/rename only the fields returned to Node.js. | Replace internal group `_id` with public `date`. |
@@ -48,7 +50,9 @@ Booking.aggregate([
   { $unwind: '$services' },
   { $group: {
     _id: '$services.name',
-    revenuePaise: { $sum: '$services.pricePaise' },
+    revenuePaise: {
+      $sum: { $multiply: ['$services.pricePaise', { $ifNull: ['$services.quantity', 1] }] },
+    },
     bookingsCount: { $sum: 1 },
   } },
   { $sort: { revenuePaise: -1 } },
@@ -174,7 +178,9 @@ Booking.aggregate([
   { $group: {
     _id: '$services.serviceId',
     name: { $first: '$services.name' },
-    revenuePaise: { $sum: '$services.pricePaise' },
+    revenuePaise: {
+      $sum: { $multiply: ['$services.pricePaise', { $ifNull: ['$services.quantity', 1] }] },
+    },
     bookingsCount: { $sum: 1 },
   } },
   { $sort: { revenuePaise: -1, name: 1 } },
@@ -186,8 +192,10 @@ Booking.aggregate([
 rewrite history.
 
 `$unwind` produces one row per stored service snapshot. Grouping by `serviceId` gives one bucket per
-service. `$first` retains one snapshot name from that bucket; `$sum` adds snapshot prices and counts
-line items. The final `$project` hides MongoDB's internal grouping key and exposes it as `serviceId`.
+service. `$first` retains one snapshot name from that bucket; `$multiply` calculates price × quantity,
+`$ifNull` makes older snapshots quantity one, and `$sum` adds those line totals. `bookingsCount` still
+counts service line items. The final `$project` hides MongoDB's internal grouping key and exposes it as
+`serviceId`.
 
 > Current limitation: if a catalogue service is renamed, historical snapshots for the same `serviceId`
 > can have different names. Because there is no sort before `$group`, `$first` may choose either
