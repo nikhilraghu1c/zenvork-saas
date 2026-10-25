@@ -1,6 +1,7 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
@@ -28,6 +29,7 @@ import { BookingFormService } from '../../services/booking-form.service';
   imports: [
     ReactiveFormsModule,
     RouterLink,
+    MatIconModule,
     AppButtonComponent,
     AppCheckboxComponent,
     AppInputComponent,
@@ -69,6 +71,7 @@ export class BookingEditComponent implements OnInit {
   protected resources: ResourceRecord[] = [];
   protected resourceTypes: ResourceTypeOption[] = [];
   protected serviceOptions: ServiceOption[] = [];
+  protected showOptionalDetails = false;
   protected loading = true;
   protected saving = false;
   protected errorMessage = '';
@@ -235,6 +238,11 @@ export class BookingEditComponent implements OnInit {
 
   protected personRequirementText(): string {
     return 'Assign a team member or professional';
+  }
+
+  /** Reveals non-essential price adjustments and notes only when staff need them. */
+  protected toggleOptionalDetails(): void {
+    this.showOptionalDetails = !this.showOptionalDetails;
   }
 
   protected estimatedTotal(): string {

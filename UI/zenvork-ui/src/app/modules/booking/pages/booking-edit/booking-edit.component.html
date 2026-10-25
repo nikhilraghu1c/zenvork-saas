@@ -84,34 +84,36 @@
           </div>
         </section>
 
-        @if (canEditResources) {
-          <section class="form-section" aria-labelledby="resources-title">
-            <h2 id="resources-title">Assign resources</h2>
-            <div class="card resource-fields">
-              @if (requiresPersonResource()) {
-                <div class="person-requirement" [class.is-satisfied]="hasSelectedPersonResource()">
-                  <span class="person-requirement__icon" aria-hidden="true">●</span>
-                  <p>
-                    <strong>{{
-                      hasSelectedPersonResource()
-                        ? 'Team member or professional assigned'
-                        : personRequirementText()
-                    }}</strong>
-                    <span>This service cannot be checked in or completed without one.</span>
-                  </p>
+        @if (canEditBill) {
+          <section class="form-section" aria-labelledby="services-title">
+            <h2 id="services-title">Services</h2>
+            <div class="card service-fields">
+              <app-select
+                [formControl]="serviceIdsControl"
+                label="Services"
+                labelPlacement="outside"
+                subscriptSizing="dynamic"
+                [multiple]="true"
+                [options]="serviceOptionsForSelect()"
+                placeholder="Select services"
+              />
+              @if (selectedServices().length) {
+                <div class="service-quantities" aria-label="Service quantities">
+                  @for (service of selectedServices(); track service._id) {
+                    <div class="service-quantity-row">
+                      <span
+                        ><strong>{{ service.name }}</strong
+                        ><small>{{ formatAmount(service.pricePaise) }} each</small></span
+                      >
+                      <app-quantity-stepper
+                        [formControl]="serviceQuantityControl(service._id)"
+                        [ariaLabel]="'Quantity for ' + service.name"
+                      />
+                    </div>
+                  }
                 </div>
               }
-              @for (type of resourceTypes; track type.code) {
-                <app-select
-                  [formControl]="resourceControl(type.code)"
-                  [label]="type.name"
-                  labelPlacement="outside"
-                  subscriptSizing="dynamic"
-                  [options]="resourceOptions(type)"
-                />
-              } @empty {
-                <p class="field-hint">No resource types are configured for this business.</p>
-              }
+              <p class="field-hint">You can adjust the bill or add notes below when needed.</p>
             </div>
           </section>
         }
@@ -158,89 +160,110 @@
           </section>
         }
 
-        @if (canEditBill) {
-          <section class="form-section" aria-labelledby="services-title">
-            <h2 id="services-title">Services and bill</h2>
-            <div class="card service-fields">
-              <app-select
-                [formControl]="serviceIdsControl"
-                label="Services"
-                labelPlacement="outside"
-                subscriptSizing="dynamic"
-                [multiple]="true"
-                [options]="serviceOptionsForSelect()"
-                placeholder="Select services"
-              />
-              @if (selectedServices().length) {
-                <div class="service-quantities" aria-label="Service quantities">
-                  @for (service of selectedServices(); track service._id) {
-                    <div class="service-quantity-row">
-                      <span
-                        ><strong>{{ service.name }}</strong
-                        ><small>{{ formatAmount(service.pricePaise) }} each</small></span
-                      >
-                      <app-quantity-stepper
-                        [formControl]="serviceQuantityControl(service._id)"
-                        [ariaLabel]="'Quantity for ' + service.name"
-                      />
-                    </div>
-                  }
+        @if (canEditResources) {
+          <section class="form-section" aria-labelledby="resources-title">
+            <h2 id="resources-title">Assign resources</h2>
+            <div class="card resource-fields">
+              @if (requiresPersonResource()) {
+                <div class="person-requirement" [class.is-satisfied]="hasSelectedPersonResource()">
+                  <span class="person-requirement__icon" aria-hidden="true">●</span>
+                  <p>
+                    <strong>{{
+                      hasSelectedPersonResource()
+                        ? 'Team member or professional assigned'
+                        : personRequirementText()
+                    }}</strong>
+                    <span>This service cannot be checked in or completed without one.</span>
+                  </p>
                 </div>
               }
-              <div class="discount-fields">
+              @for (type of resourceTypes; track type.code) {
                 <app-select
-                  [formControl]="discountTypeControl"
-                  label="Discount"
+                  [formControl]="resourceControl(type.code)"
+                  [label]="type.name"
                   labelPlacement="outside"
                   subscriptSizing="dynamic"
-                  [options]="discountOptions()"
+                  [options]="resourceOptions(type)"
                 />
-                @if (discountTypeControl.value !== 'none') {
-                  <app-input
-                    [formControl]="discountValueControl"
-                    type="number"
-                    [label]="
-                      discountTypeControl.value === 'amount'
-                        ? 'Discount amount'
-                        : 'Discount percentage'
-                    "
-                    labelPlacement="outside"
-                    [prefix]="discountTypeControl.value === 'amount' ? '₹ ' : ''"
-                    [suffix]="discountTypeControl.value === 'percentage' ? '%' : ''"
-                    [min]="0"
-                    [max]="discountTypeControl.value === 'percentage' ? 100 : undefined"
-                    placeholder="0"
-                    subscriptSizing="dynamic"
-                  />
-                }
-              </div>
-              <app-input
-                [formControl]="extraAmountControl"
-                type="number"
-                label="Extra charge"
-                labelPlacement="outside"
-                prefix="₹ "
-                placeholder="0"
-                subscriptSizing="dynamic"
-              />
-              <p class="field-hint">
-                The total is recalculated securely from service quantities, discount, and the extra
-                charge.
-              </p>
+              } @empty {
+                <p class="field-hint">No resource types are configured for this business.</p>
+              }
             </div>
           </section>
         }
 
-        <section class="form-section" aria-labelledby="notes-title">
-          <h2 id="notes-title">Booking notes</h2>
+        <section class="form-section" aria-label="Optional booking details">
           <div class="card">
-            <label class="native-field"
-              ><span>Notes</span
-              ><textarea
-                [formControl]="notesControl"
-                placeholder="Any special requests or details…"
-              ></textarea>
-            </label>
+            <div class="optional-details">
+              <button
+                type="button"
+                class="optional-details__trigger"
+                [attr.aria-expanded]="showOptionalDetails"
+                aria-controls="optional-booking-details"
+                (click)="toggleOptionalDetails()"
+              >
+                <span class="optional-details__heading">
+                  <span>Adjustments &amp; notes</span>
+                  <small>Discount, extra charge or special request</small>
+                </span>
+                <span class="optional-details__indicator" aria-hidden="true">
+                  @if (showOptionalDetails) {
+                    <mat-icon>expand_less</mat-icon>
+                  } @else {
+                    <mat-icon>expand_more</mat-icon>
+                  }
+                </span>
+              </button>
+              @if (showOptionalDetails) {
+                <div id="optional-booking-details" class="optional-details__content">
+                  @if (canEditBill) {
+                    <div class="discount-fields">
+                      <app-select
+                        [formControl]="discountTypeControl"
+                        label="Discount"
+                        labelPlacement="outside"
+                        subscriptSizing="dynamic"
+                        [options]="discountOptions()"
+                      />
+                      @if (discountTypeControl.value !== 'none') {
+                        <app-input
+                          [formControl]="discountValueControl"
+                          type="number"
+                          [label]="
+                            discountTypeControl.value === 'amount'
+                              ? 'Discount amount'
+                              : 'Discount percentage'
+                          "
+                          labelPlacement="outside"
+                          [prefix]="discountTypeControl.value === 'amount' ? '₹ ' : ''"
+                          [suffix]="discountTypeControl.value === 'percentage' ? '%' : ''"
+                          [min]="0"
+                          [max]="discountTypeControl.value === 'percentage' ? 100 : undefined"
+                          placeholder="0"
+                          subscriptSizing="dynamic"
+                        />
+                      }
+                    </div>
+                    <app-input
+                      [formControl]="extraAmountControl"
+                      type="number"
+                      label="Extra charge"
+                      labelPlacement="outside"
+                      prefix="₹ "
+                      placeholder="0"
+                      subscriptSizing="dynamic"
+                    />
+                  }
+                  <label class="native-field"
+                    ><span>Notes</span
+                    ><textarea
+                      [formControl]="notesControl"
+                      placeholder="Any special requests or details…"
+                    ></textarea>
+                  </label>
+                </div>
+              }
+            </div>
           </div>
         </section>
       </div>

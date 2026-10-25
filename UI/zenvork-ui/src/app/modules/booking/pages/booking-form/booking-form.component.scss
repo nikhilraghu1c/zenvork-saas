@@ -291,6 +291,54 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
+  .optional-details {
+    &__trigger {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      font: inherit;
+      text-align: left;
+
+      &:focus-visible {
+        outline: 2px solid var(--cyan);
+        outline-offset: 4px;
+      }
+
+    }
+
+    &__heading {
+      display: grid;
+      gap: 3px;
+    }
+
+    &__heading small {
+      color: var(--text-mute);
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    &__indicator {
+      display: grid;
+      flex: 0 0 auto;
+      place-items: center;
+    }
+
+    &__content {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+  }
   .native-field {
     display: grid;
     min-width: 0;
@@ -358,6 +406,12 @@
   .form-error {
     margin: 14px 0 0;
     color: var(--mat-sys-error);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .summary-hint {
+    margin: 14px 0 0;
+    color: var(--text-mute);
     font-size: 12px;
     line-height: 1.4;
   }

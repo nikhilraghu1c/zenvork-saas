@@ -131,6 +131,46 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
+  .optional-details__trigger {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+  }
+  .optional-details__trigger:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 4px;
+  }
+  .optional-details__heading {
+    display: grid;
+    gap: 3px;
+  }
+  .optional-details__heading small {
+    color: var(--text-mute);
+    font-size: 12px;
+    font-weight: 400;
+  }
+  .optional-details__indicator {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+  }
+  .optional-details__content {
+    display: grid;
+    gap: 14px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
   .person-requirement {
     display: flex;
     align-items: flex-start;

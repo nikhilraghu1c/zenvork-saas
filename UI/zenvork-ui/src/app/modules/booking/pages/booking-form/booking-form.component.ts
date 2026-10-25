@@ -67,6 +67,7 @@ export class BookingFormComponent implements OnInit {
   protected serviceOptions: ServiceOption[] = [];
   protected selectedClient: ClientRecord | null = null;
   protected showNewClientForm = false;
+  protected showOptionalDetails = false;
   protected loading = true;
   protected submitting = false;
   protected errorMessage = '';
@@ -209,6 +210,33 @@ export class BookingFormComponent implements OnInit {
     return this.showNewClientForm
       ? this.newClientNameControl.value.trim() || 'New client'
       : 'Not selected';
+  }
+
+  /** Keeps the primary action unavailable until the form has the only required booking identity. */
+  protected canConfirmBooking(): boolean {
+    if (this.selectedClient) {
+      return true;
+    }
+    if (!this.showNewClientForm) {
+      return false;
+    }
+    return (
+      Boolean(this.newClientNameControl.value.trim()) &&
+      /^\d{10}$/.test(this.newClientMobileControl.value.trim())
+    );
+  }
+
+  /** Explains the disabled confirmation action without making optional schedule fields look required. */
+  protected confirmationHint(): string {
+    if (this.showNewClientForm) {
+      return 'Enter the new client’s name and 10-digit mobile number to continue.';
+    }
+    return 'Select or add a client to continue.';
+  }
+
+  /** Reveals non-essential price adjustments and notes only when staff need them. */
+  protected toggleOptionalDetails(): void {
+    this.showOptionalDetails = !this.showOptionalDetails;
   }
 
   /** Displays selected resource names or an honest unassigned state in the confirmation summary. */
