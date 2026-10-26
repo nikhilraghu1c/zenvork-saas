@@ -41,11 +41,41 @@ describe('unauthorizedInterceptor', () => {
     sessionStorage.clear();
   });
 
-  it('clears cached user data and redirects a protected-request 401 to login', () => {
+  it('refreshes the session and retries a protected request after an expired access cookie', () => {
     http.get('http://localhost:4001/api/bookings').subscribe({ error: () => undefined });
 
     httpTesting
       .expectOne('http://localhost:4001/api/bookings')
+      .flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
+
+    httpTesting.expectOne('http://localhost:4001/api/refresh').flush({
+      user: {
+        id: 'user-1',
+        name: 'Owner',
+        email: 'owner@example.com',
+        mobile: '9876543210',
+        role: 'OWNER',
+        businessId: 'business-1',
+        businessName: 'Example Business',
+        bookingAccessScope: 'ALL',
+        canSendReminders: true,
+        passwordChangedAt: null,
+      },
+    });
+
+    httpTesting.expectOne('http://localhost:4001/api/bookings').flush({ bookings: [] });
+    expect(auth.isAuthenticated()).toBeTrue();
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('clears cached user data and redirects when refresh cannot recover the session', () => {
+    http.get('http://localhost:4001/api/bookings').subscribe({ error: () => undefined });
+
+    httpTesting
+      .expectOne('http://localhost:4001/api/bookings')
+      .flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
+    httpTesting
+      .expectOne('http://localhost:4001/api/refresh')
       .flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
 
     expect(auth.isAuthenticated()).toBeFalse();

@@ -10,6 +10,8 @@ export const environment = {
   COOKIE_SAME_SITE: process.env.COOKIE_SAME_SITE || "strict",
   ACCESS_TKN_SECRET: process.env.ACCESS_TKN_SECRET,
   ACCESS_TKN_EXPIRE: process.env.ACCESS_TKN_EXPIRE,
+  // Refresh sessions are opaque database-backed tokens rather than JWTs and may outlive access tokens.
+  REFRESH_TKN_EXPIRE: process.env.REFRESH_TKN_EXPIRE || "30d",
   AI_PROVIDER: (process.env.AI_PROVIDER || "mock").toLowerCase(),
   AI_MODEL: process.env.AI_MODEL || "",
   AI_CLASSIFIER_MODEL: process.env.AI_CLASSIFIER_MODEL || process.env.AI_MODEL || "",

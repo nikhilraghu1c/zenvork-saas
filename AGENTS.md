@@ -22,6 +22,12 @@
 - Verify the live contract in `backend/src` before implementing a frontend API call.
 - Display API error messages returned as `{ "message": "..." }` to the user where appropriate.
 
+## Sensitive configuration
+
+- Never read or modify real `.env` files. Ask the user to verify real environment values themselves.
+- Use `.env.example` for documented defaults and setup guidance; never copy real environment values into
+  source code, documentation, or tool output.
+
 ## Backend code conventions
 
 - Add a concise one-line comment before non-obvious controller, model, and validation logic,

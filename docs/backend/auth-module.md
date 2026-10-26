@@ -12,8 +12,8 @@ decides whether that user may use a protected feature.
 POST /api/login
 → find user by email or mobile
 → compare submitted password with bcrypt hash
-→ sign JWT
-→ store JWT in HttpOnly cookie
+→ issue short-lived access JWT in HttpOnly cookie
+→ create hashed, rotating refresh session
 ```
 
 ## Login query
@@ -42,13 +42,16 @@ an unknown account, and an incorrect password all return the same `401` response
 reveal which accounts exist.
 
 ```text
-login → signed cookie → userAuth verifies each protected request → logout clears cookie
+login → access + refresh cookies → userAuth verifies access cookie → refresh rotates session → logout revokes session
 ```
 
-The server has no separate session collection today. A deleted or explicitly deactivated user cannot
-keep using an otherwise valid token because `userAuth` reloads the user from MongoDB for every protected
-request and rejects `isActive === false`. For owners and staff, login and `userAuth` also load the
-business and reject `SUSPENDED` or expired accounts with `403`. `PLATFORM_ADMIN` users have no
+`AuthSession` stores a SHA-256 hash, user ID, and expiry for each opaque refresh token. Its TTL index
+removes expired records. The raw token remains only in the browser's HttpOnly cookie. Refresh finds the
+hash, validates the user and tenant lifecycle, then atomically replaces the hash with a new token. This
+prevents an old token from being reused after a successful refresh. A deleted or explicitly deactivated
+user cannot keep using an otherwise valid access or refresh session because `userAuth` and refresh both
+reload the user from MongoDB and reject `isActive === false`. For owners and staff, login, refresh, and
+`userAuth` also reject `SUSPENDED` or expired accounts with `403`. `PLATFORM_ADMIN` users have no
 business and bypass that tenant lifecycle check.
 
 ## JWT and middleware
@@ -68,6 +71,8 @@ check used for owner-only actions such as service changes, staff management, and
 
 ## Cookie security
 
-Login sends the token as an HttpOnly cookie. JavaScript in the browser cannot read an HttpOnly cookie,
-which reduces the impact of many XSS mistakes. Login and logout share `authCookieOptions` so clearing
-uses the same cookie attributes.
+Login sends access and refresh tokens as HttpOnly cookies. JavaScript in the browser cannot read either
+cookie, which reduces the impact of many XSS mistakes. The refresh token is opaque, persisted only as a
+one-way hash, and configured through `REFRESH_TKN_EXPIRE` (default `30d`; whole-number `s`, `m`, `h`,
+or `d` duration). Login and logout share cookie attributes so clearing uses the same path and security
+settings.

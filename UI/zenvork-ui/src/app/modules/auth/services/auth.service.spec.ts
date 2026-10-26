@@ -51,4 +51,28 @@ describe('AuthService', () => {
     expect(service.isAuthenticated()).toBeFalse();
     expect(service.getCurrentUser()).toBeNull();
   });
+
+  it('should restore safe user metadata from the current cookie session', () => {
+    service.restoreSession().subscribe();
+
+    const sessionRequest = httpTesting.expectOne('http://localhost:4001/api/me');
+    expect(sessionRequest.request.withCredentials).toBeTrue();
+    sessionRequest.flush({
+      user: {
+        id: 'user-1',
+        name: 'Owner',
+        email: 'owner@example.com',
+        mobile: '9876543210',
+        role: 'OWNER',
+        businessId: 'business-1',
+        businessName: 'Example Business',
+        bookingAccessScope: 'ALL',
+        canSendReminders: true,
+        passwordChangedAt: null,
+      },
+    });
+
+    expect(service.isAuthenticated()).toBeTrue();
+    expect(service.getCurrentUser()?.businessName).toBe('Example Business');
+  });
 });

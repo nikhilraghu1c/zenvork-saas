@@ -52,6 +52,13 @@ export class LoginComponent {
     if (this.route.snapshot.queryParamMap.get('reason') === 'expired') {
       this.sessionMessage = 'Your session has expired. Please sign in again.';
     }
+    if (this.auth.isAuthenticated()) {
+      const destination =
+        this.auth.getCurrentUser()?.role === 'PLATFORM_ADMIN'
+          ? '/admin/dashboard'
+          : '/app/dashboard';
+      void this.router.navigateByUrl(destination);
+    }
   }
 
   /** Validates credentials locally, then starts the backend cookie session. */

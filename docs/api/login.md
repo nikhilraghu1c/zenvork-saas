@@ -19,8 +19,8 @@ POST /api/login
 
 ## Successful response
 
-The endpoint returns HTTP `200`, safe user data, and sets an HttpOnly `accessToken` cookie. The JWT
-is not returned in the response body.
+The endpoint returns HTTP `200`, safe user data, and sets HttpOnly `accessToken` and `refreshToken`
+cookies. Neither token is returned in the response body.
 
 ```json
 {
@@ -44,3 +44,31 @@ response to prevent account enumeration.
 ```json
 { "message": "Invalid credentials" }
 ```
+
+## Restore the current session
+
+```http
+GET /api/me
+```
+
+Requires a valid `accessToken` cookie. It returns the same safe `user` object as login and lets a new
+tab restore its signed-in state without exposing a token to JavaScript.
+
+## Refresh an expired access session
+
+```http
+POST /api/refresh
+```
+
+Requires a valid `refreshToken` cookie and no request body. The server rotates the opaque refresh token,
+sets fresh `accessToken` and `refreshToken` cookies, and returns a safe `user` object. An expired,
+revoked, reused, inactive, or unavailable-account refresh session returns `401` or `403` and clears the
+authentication cookies.
+
+## Log out
+
+```http
+POST /api/logout
+```
+
+Revokes the current refresh session and clears both authentication cookies.

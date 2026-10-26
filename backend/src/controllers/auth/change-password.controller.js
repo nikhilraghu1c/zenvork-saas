@@ -1,8 +1,16 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import User from "../../modules/users/user.model.js";
-import { environment } from "../../config/environment.js";
-import { authCookieOptions } from "../../utils/auth-cookie-options.js";
+import {
+  createAccessToken,
+} from "../../modules/auth/auth-account.service.js";
+import {
+  createRefreshSession,
+  revokeAllRefreshSessions,
+} from "../../modules/auth/auth-session.service.js";
+import {
+  authCookieOptions,
+  refreshCookieOptions,
+} from "../../utils/auth-cookie-options.js";
 
 const isStrongPassword = (password) =>
   typeof password === "string" &&
@@ -32,17 +40,11 @@ const changePassword = async (req, res) => {
     user.password = newPassword;
     user.passwordChangedAt = new Date();
     await user.save();
-    // Replace the invalidated cookie immediately so the current user remains signed in.
-    const token = jwt.sign(
-      {
-        userId: user._id.toString(),
-        businessId: user.businessId?.toString() ?? null,
-        role: user.role,
-      },
-      environment.ACCESS_TKN_SECRET,
-      { expiresIn: environment.ACCESS_TKN_EXPIRE },
-    );
-    res.cookie("accessToken", token, authCookieOptions);
+    // Password rotation revokes every remembered browser, then creates a fresh session for this browser.
+    await revokeAllRefreshSessions(user._id);
+    const refreshToken = await createRefreshSession(user._id);
+    res.cookie("accessToken", createAccessToken(user), authCookieOptions);
+    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
     return res.status(200).json({ message: "Password changed successfully" });
   } catch (error) {
     console.error("Password change failed:", error);

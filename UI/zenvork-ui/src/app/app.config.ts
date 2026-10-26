@@ -1,5 +1,7 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
+  inject,
+  provideAppInitializer,
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
@@ -11,6 +13,7 @@ import { provideMarkdown, SANITIZE } from 'ngx-markdown';
 
 import { routes } from './app.routes';
 import { unauthorizedInterceptor } from './core/interceptors/unauthorized.interceptor';
+import { AuthService } from './modules/auth/services/auth.service';
 
 // Assistant-generated Markdown can use only these presentation tags and safe link attributes.
 const sanitizeMarkdown = (html: string): string => DOMPurify.sanitize(html, {
@@ -25,6 +28,8 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
+    // Resolve the cookie session before route guards decide whether a new tab may enter the app.
+    provideAppInitializer(() => inject(AuthService).restoreSession()),
     provideRouter(
       routes,
       withInMemoryScrolling({

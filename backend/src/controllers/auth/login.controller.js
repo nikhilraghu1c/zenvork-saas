@@ -1,11 +1,15 @@
-import jwt from "jsonwebtoken";
 import validator from "validator";
-import { environment } from "../../config/environment.js";
 import User from "../../modules/users/user.model.js";
-import Business from "../../modules/business/business.model.js";
-import { authCookieOptions } from "../../utils/auth-cookie-options.js";
-
-const { ACCESS_TKN_SECRET, ACCESS_TKN_EXPIRE } = environment;
+import {
+  authenticatedUserResponse,
+  createAccessToken,
+  getAccessibleBusiness,
+} from "../../modules/auth/auth-account.service.js";
+import { createRefreshSession } from "../../modules/auth/auth-session.service.js";
+import {
+  authCookieOptions,
+  refreshCookieOptions,
+} from "../../utils/auth-cookie-options.js";
 
 const invalidCredentials = (res) =>
   res.status(401).json({ message: "Invalid credentials" });
@@ -43,51 +47,22 @@ const login = async (req, res) => {
       return invalidCredentials(res);
     }
 
-    let business = null;
-    if (user.role !== "PLATFORM_ADMIN") {
-      // Deny unavailable tenants during login as well as during their subsequent API requests.
-      business = await Business.findById(user.businessId)
-        .select("name status planExpiresAt")
-        .lean();
-      const isExpired =
-        business?.planExpiresAt &&
-        business.planExpiresAt.getTime() < Date.now();
-      if (!business || business.status !== "ACTIVE" || isExpired) {
-        return res.status(403).json({
-          message: "Business account is unavailable. Please contact support.",
-        });
-      }
+    let business;
+    try {
+      // Login validates the tenant lifecycle before creating either browser session cookie.
+      business = await getAccessibleBusiness(user);
+    } catch (error) {
+      return res.status(error.statusCode ?? 401).json({ message: error.message });
     }
 
-    const token = jwt.sign(
-      {
-        userId: user._id.toString(),
-        businessId: user.businessId?.toString() ?? null,
-        role: user.role,
-      },
-      ACCESS_TKN_SECRET,
-      { expiresIn: ACCESS_TKN_EXPIRE },
-    );
-
-    res.cookie("accessToken", token, authCookieOptions);
+    const accessToken = createAccessToken(user);
+    const refreshToken = await createRefreshSession(user._id);
+    res.cookie("accessToken", accessToken, authCookieOptions);
+    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
 
     return res.status(200).json({
       message: "Login successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email ?? null,
-        mobile: user.mobile,
-        role: user.role,
-        businessId: user.businessId ?? null,
-        // The sidebar needs only the active tenant's display name, never the full business record.
-        businessName: user.role === "PLATFORM_ADMIN" ? null : business.name,
-        bookingAccessScope:
-          user.role === "OWNER" ? "ALL" : (user.bookingAccessScope ?? "NONE"),
-        canSendReminders:
-          user.role === "OWNER" || user.canSendReminders === true,
-        passwordChangedAt: user.passwordChangedAt,
-      },
+      user: authenticatedUserResponse(user, business),
     });
   } catch (error) {
     console.error("Login failed:", error);
