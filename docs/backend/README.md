@@ -6,15 +6,18 @@ MongoDB implement it.
 
 ## Suggested reading order
 
-1. [Express request flow](express-request-flow.md) — how an HTTP request reaches a controller.
-2. [Booking queries and lifecycle](booking-queries-and-lifecycle.md) — tenant-scoped lookups,
+1. [Backend interview playbook](interview-backend-playbook.md) ([PDF](zenvork-backend-interview-playbook.pdf))
+   — one visual, interview-focused map of the practical Node.js, Express, Mongoose, MongoDB, and SaaS
+   concepts used in Zenvork.
+2. [Express request flow](express-request-flow.md) — how an HTTP request reaches a controller.
+3. [Booking queries and lifecycle](booking-queries-and-lifecycle.md) — tenant-scoped lookups,
    availability, lifecycle changes, and pagination.
-3. [MongoDB aggregation](mongodb-aggregation.md) — how dashboard and revenue totals are calculated.
-4. [Tenant security patterns](tenant-security.md) — why every business-owned query uses a tenant scope.
-5. [Reminder module](reminder-module.md) — manual reminder lifecycle, queue filters, and TTL retention.
-6. [Reminder flow chart](reminder-flow.md) — visual map of queue tabs, staff actions, booking events,
+4. [MongoDB aggregation](mongodb-aggregation.md) — how dashboard and revenue totals are calculated.
+5. [Tenant security patterns](tenant-security.md) — why every business-owned query uses a tenant scope.
+6. [Reminder module](reminder-module.md) — manual reminder lifecycle, queue filters, and TTL retention.
+7. [Reminder flow chart](reminder-flow.md) — visual map of queue tabs, staff actions, booking events,
    and cleanup.
-7. [AI Assistant module](assistant-module.md) — private conversation lifecycle, provider safety, and
+8. [AI Assistant module](assistant-module.md) — private conversation lifecycle, provider safety, and
    controlled business-data tools.
 
 ## Module guides

@@ -8,6 +8,7 @@ Documentation is maintained with the code and reviewed in the same change that a
 - [Frontend architecture](architecture/frontend.md)
 - [Backend architecture](architecture/backend.md)
 - [Backend learning guide](backend/README.md)
+- [Backend interview playbook](backend/interview-backend-playbook.md) ([PDF](backend/zenvork-backend-interview-playbook.pdf))
 - [AI Assistant learning guide](backend/assistant-module.md)
 - [Authentication](architecture/authentication.md)
 - [Render deployment](setup/render-deployment.md)
