@@ -1,14 +1,19 @@
-<aside class="app-sidebar" aria-label="Application navigation">
-  <a class="brand" [routerLink]="dashboardRoute" (click)="selectNavigation()" aria-label="Zenvork dashboard">
+<aside class="app-sidebar" [attr.aria-label]="'navigation.application' | translate">
+  <a
+    class="brand"
+    [routerLink]="dashboardRoute"
+    (click)="selectNavigation()"
+    [attr.aria-label]="'navigation.zenvorkDashboard' | translate"
+  >
     <img class="brand-mark" src="/images/brand/zenvork-mark.webp" alt="" />
     <span class="brand-wordmark">envork</span>
   </a>
 
   <mat-nav-list>
-    @for (group of navigationGroups; track group.label) {
+    @for (group of navigationGroups; track group.labelKey) {
       @if (canViewGroup(group)) {
-        <p class="nav-group-label">{{ group.label }}</p>
-        @for (item of group.items; track item.label) {
+        <p class="nav-group-label">{{ group.labelKey | translate }}</p>
+        @for (item of group.items; track item.labelKey) {
           @if (canView(item)) {
             <a
               mat-list-item
@@ -17,7 +22,7 @@
               (click)="selectNavigation()"
             >
               <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-              <span matListItemTitle>{{ item.label }}</span>
+              <span matListItemTitle>{{ item.labelKey | translate }}</span>
             </a>
           }
         }
@@ -42,16 +47,18 @@
       mat-button
       type="button"
       class="theme-button"
-      [attr.aria-label]="theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+      [attr.aria-label]="
+        theme.theme() === 'dark' ? ('theme.switchToLight' | translate) : ('theme.switchToDark' | translate)
+      "
       (click)="theme.toggleTheme()"
     >
       <mat-icon>{{ theme.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
-      {{ theme.theme() === 'dark' ? 'Light mode' : 'Dark mode' }}
+      {{ theme.theme() === 'dark' ? ('theme.light' | translate) : ('theme.dark' | translate) }}
     </button>
 
     <button mat-button type="button" class="logout-button" [disabled]="loadingLogout" (click)="logout()">
       <mat-icon>logout</mat-icon>
-      {{ loadingLogout ? 'Logging Out…' : 'Log Out' }}
+      {{ loadingLogout ? ('auth.loggingOut' | translate) : ('auth.logOut' | translate) }}
     </button>
   </div>
 </aside>

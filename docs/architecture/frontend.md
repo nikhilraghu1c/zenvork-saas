@@ -77,21 +77,30 @@ Do not add NgRx preemptively or duplicate the current `AuthService` state. Befor
 propose the smallest appropriate store and obtain approval. Consider classic NgRx Store and Effects
 later for genuinely cross-feature workflows, WebSocket events, or optimistic updates.
 
-## Planned localization
+## Localization
 
-- Add an owner- or staff-selectable UI locale, beginning with `en-IN` and `hi-IN`.
-- Translate application labels, lifecycle display labels, validation copy, and frontend-mapped API error
-  codes using runtime translation dictionaries; do not translate user-entered client, service, or note
-  data.
-- Make `BusinessDateTimeService`, money formatting, and Angular locale data use the active locale while
-  retaining the business timezone and INR as independent settings.
-- Return stable backend error codes before translating server-originated failures in the frontend.
+`LanguageService` provides a device-level runtime interface preference with `en` as the default and
+`hi` as the initial Hindi option. It persists the selected value in browser `localStorage`, updates the
+document's `lang` attribute, and resolves static copy through `TranslatePipe`.
 
-## Planned authentication and layout hardening
+Translations are code-split by ownership. `core/i18n/core.translations.ts` ships with the authenticated
+shell because navigation, theme, and logout labels are needed before any feature opens. Each lazy module
+owns an `i18n/<feature>.translations.ts` catalogue and registers it through
+`provideFeatureTranslations(...)` in its route injector. This means, for example, Client translations
+download only after `/app/clients` loads. Settings and Client are the first migrated features; other
+features should follow this same pattern rather than growing a global dictionary.
 
-- After the backend provides `GET /api/me`, restore and validate the cookie session at application
-  startup instead of using `sessionStorage` metadata alone for client route access.
-- Use Angular's `takeUntilDestroyed()` for `AppLayoutComponent` breakpoint and router subscriptions.
+Never translate tenant-entered data such as client names, service names, notes, or business names.
+Backend-originated error messages remain unchanged until the API provides stable error codes that the
+frontend can map to localized copy. Future work can make Angular date/number formatting follow the
+active locale while keeping the business timezone and INR as independent settings.
+
+## Authentication and layout hardening
+
+`AuthService.restoreSession()` calls authenticated `GET /api/me` during app initialization. When an
+access cookie has expired, the HTTP interceptor uses the refresh-token flow once and retries the failed
+protected request. `AppLayoutComponent` uses Angular's `takeUntilDestroyed()` for breakpoint and router
+subscriptions.
 
 ## Business date and time
 

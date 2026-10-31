@@ -6,10 +6,13 @@ import { MatListModule } from '@angular/material/list';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../modules/auth/services/auth.service';
+import { CoreTranslationKey } from '../../../../core/i18n/core.translations';
 import { ThemeService } from '../../../../core/services/theme.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 
 interface NavigationItem {
-  label: string;
+  labelKey: CoreTranslationKey;
   icon: string;
   route: string;
   requiresOwner?: boolean;
@@ -17,7 +20,7 @@ interface NavigationItem {
 }
 
 interface NavigationGroup {
-  label: string;
+  labelKey: CoreTranslationKey;
   items: NavigationItem[];
 }
 
@@ -30,6 +33,7 @@ interface NavigationGroup {
     MatListModule,
     RouterLink,
     RouterLinkActive,
+    TranslatePipe,
   ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
@@ -41,47 +45,47 @@ export class SidebarComponent {
   /** Every planned workspace is available as a route for navigation preview. */
   private readonly tenantNavigationGroups: NavigationGroup[] = [
     {
-      label: 'Overview',
-      items: [{ label: 'Dashboard', icon: 'dashboard', route: '/app/dashboard' }],
+      labelKey: 'navigation.overview',
+      items: [{ labelKey: 'navigation.dashboard', icon: 'dashboard', route: '/app/dashboard' }],
     },
     {
-      label: 'Workspace',
+      labelKey: 'navigation.workspace',
       items: [
-        { label: 'Booking', icon: 'calendar_month', route: '/app/booking' },
-        { label: 'Clients', icon: 'groups', route: '/app/clients', requiresOwner: true },
-        { label: 'Staff', icon: 'badge', route: '/app/staff', requiresOwner: true },
-        { label: 'Resources', icon: 'inventory_2', route: '/app/resources' },
-        { label: 'Services', icon: 'miscellaneous_services', route: '/app/services' },
+        { labelKey: 'navigation.bookings', icon: 'calendar_month', route: '/app/booking' },
+        { labelKey: 'navigation.clients', icon: 'groups', route: '/app/clients', requiresOwner: true },
+        { labelKey: 'navigation.staff', icon: 'badge', route: '/app/staff', requiresOwner: true },
+        { labelKey: 'navigation.resources', icon: 'inventory_2', route: '/app/resources' },
+        { labelKey: 'navigation.services', icon: 'miscellaneous_services', route: '/app/services' },
         {
-          label: 'Reminders',
+          labelKey: 'navigation.reminders',
           icon: 'notifications',
           route: '/app/reminders',
           requiresReminderAccess: true,
         },
-        { label: 'AI Assistant', icon: 'auto_awesome', route: '/app/ai-assistant' },
+        { labelKey: 'navigation.aiAssistant', icon: 'auto_awesome', route: '/app/ai-assistant' },
       ],
     },
     {
-      label: 'Insights',
+      labelKey: 'navigation.insights',
       items: [
-        { label: 'Analytics', icon: 'analytics', route: '/app/analytics', requiresOwner: true },
+        { labelKey: 'navigation.analytics', icon: 'analytics', route: '/app/analytics', requiresOwner: true },
       ],
     },
     {
-      label: 'Business',
-      items: [{ label: 'Settings', icon: 'settings', route: '/app/settings' }],
+      labelKey: 'navigation.business',
+      items: [{ labelKey: 'navigation.settings', icon: 'settings', route: '/app/settings' }],
     },
   ];
 
   private readonly adminNavigationGroups: NavigationGroup[] = [
     {
-      label: 'Platform',
+      labelKey: 'navigation.platform',
       items: [
-        { label: 'Dashboard', icon: 'dashboard', route: '/admin/dashboard' },
-        { label: 'Businesses', icon: 'business', route: '/admin/businesses' },
-        { label: 'Business Types', icon: 'category', route: '/admin/business-types' },
-        { label: 'Resource Types', icon: 'inventory_2', route: '/admin/resource-types' },
-        { label: 'Settings', icon: 'settings', route: '/admin/settings' },
+        { labelKey: 'navigation.dashboard', icon: 'dashboard', route: '/admin/dashboard' },
+        { labelKey: 'navigation.businesses', icon: 'business', route: '/admin/businesses' },
+        { labelKey: 'navigation.businessTypes', icon: 'category', route: '/admin/business-types' },
+        { labelKey: 'navigation.resourceTypes', icon: 'inventory_2', route: '/admin/resource-types' },
+        { labelKey: 'navigation.settings', icon: 'settings', route: '/admin/settings' },
       ],
     },
   ];
@@ -89,6 +93,7 @@ export class SidebarComponent {
   protected loadingLogout = false;
   protected logoutError = '';
   protected readonly theme = inject(ThemeService);
+  protected readonly language = inject(LanguageService);
 
   constructor(
     private readonly auth: AuthService,
@@ -97,7 +102,7 @@ export class SidebarComponent {
 
   /** Returns the signed-in user's name, with a safe fallback during startup. */
   protected get userName(): string {
-    return this.auth.getCurrentUser()?.name ?? 'Business User';
+    return this.auth.getCurrentUser()?.name ?? this.language.translate('account.businessUser');
   }
 
   protected get navigationGroups(): NavigationGroup[] {
@@ -115,9 +120,9 @@ export class SidebarComponent {
   protected get userWorkspaceLabel(): string {
     const user = this.auth.getCurrentUser();
     if (user?.role === 'PLATFORM_ADMIN') {
-      return 'Platform Admin';
+      return this.language.translate('account.platformAdmin');
     }
-    return user?.businessName ?? 'Your Business';
+    return user?.businessName ?? this.language.translate('account.yourBusiness');
   }
 
   /** Hides workspaces the signed-in user is not permitted to access. */
@@ -144,7 +149,7 @@ export class SidebarComponent {
       .pipe(finalize(() => (this.loadingLogout = false)))
       .subscribe({
         next: () => this.router.navigateByUrl('/login'),
-        error: () => (this.logoutError = 'Unable to log out. Please try again.'),
+        error: () => (this.logoutError = this.language.translate('auth.logoutFailed')),
       });
   }
 

@@ -1,13 +1,13 @@
 <section class="client-list-page" aria-labelledby="clients-title">
   <header class="client-list-page__header">
     <div>
-      <p class="eyebrow">Client Directory</p>
+      <p class="eyebrow">{{ 'client.directory' | translate }}</p>
       <div class="client-title-row">
-        <h1 id="clients-title">Clients</h1>
-        <span class="client-count">{{ clients.length }} Clients</span>
+        <h1 id="clients-title">{{ 'client.title' | translate }}</h1>
+        <span class="client-count">{{ clients.length }} {{ 'client.count' | translate }}</span>
       </div>
       <p class="client-description">
-        Find the contact details and notes for everyone your business serves.
+        {{ 'client.description' | translate }}
       </p>
     </div>
   </header>
@@ -15,26 +15,26 @@
   <div class="client-list-page__search">
     <app-input
       [formControl]="searchControl"
-      label="Search clients"
+      [label]="'client.searchLabel' | translate"
       labelPlacement="floating"
       subscriptSizing="dynamic"
       prefixIcon="search"
-      placeholder="Search by name, mobile, or email"
+      [placeholder]="'client.searchPlaceholder' | translate"
     />
   </div>
 
   @if (loading) {
-    <p class="page-state" role="status">Loading clients…</p>
+    <p class="page-state" role="status">{{ 'client.loading' | translate }}</p>
   } @else if (errorMessage) {
     <p class="page-state is-error" role="alert">{{ errorMessage }}</p>
   } @else if (!clients.length) {
     <div class="empty-state">
       <mat-icon aria-hidden="true">groups</mat-icon>
-      <h2>No Clients Yet</h2>
-      <p>Clients added while creating bookings will appear here.</p>
+      <h2>{{ 'client.noneYetTitle' | translate }}</h2>
+      <p>{{ 'client.noneYetDescription' | translate }}</p>
     </div>
   } @else if (!filteredClients.length) {
-    <p class="page-state" role="status">No clients match your search.</p>
+    <p class="page-state" role="status">{{ 'client.noMatches' | translate }}</p>
   } @else {
     <app-data-grid
       class="client-grid desktop-grid"
@@ -57,7 +57,7 @@
           <div class="client-card__details">
             <p>
               <mat-icon aria-hidden="true">mail_outline</mat-icon>
-              <span>{{ client.email || 'Email not provided' }}</span>
+              <span>{{ client.email || ('client.emailNotProvided' | translate) }}</span>
             </p>
             @if (client.notes) {
               <p>
@@ -66,7 +66,7 @@
               </p>
             }
           </div>
-          <footer>Added {{ client.createdAt | businessDate }}</footer>
+          <footer>{{ 'client.added' | translate }} {{ client.createdAt | businessDate }}</footer>
         </article>
       }
     </div>

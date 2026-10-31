@@ -2,10 +2,11 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-topbar',
-  imports: [MatButtonModule, MatIconModule, MatToolbarModule],
+  imports: [MatButtonModule, MatIconModule, MatToolbarModule, TranslatePipe],
   templateUrl: './topbar.component.html',
   styleUrl: './topbar.component.scss',
 })

@@ -1,16 +1,5 @@
 # Email OTP Verification while creating businesses
 
-# Expose business types for registration
-
-Add an endpoint that returns the enabled business types. The frontend should use this response
-instead of maintaining Salon and Clinic options locally, keeping business-type support data-driven.
-
-# Add authenticated session recovery
-
-Add a credentialed endpoint such as `GET /api/me` that validates the HttpOnly access-token cookie
-and returns safe current-user data. The frontend will use it to restore authentication after a page
-reload or in a newly opened browser tab without exposing the JWT to JavaScript.
-
 # Atomic checked-in resource protection (deferred)
 
 The current check-in flow verifies that a selected resource is not already `CHECKED_IN` before it
@@ -41,14 +30,6 @@ resource as free and then both succeed.
 - Show client, scheduled time, assigned resources, and lifecycle status, with a **View booking** action
   that navigates to the full detail page.
 - Keep Month count clicks as a shortcut to Day view, not as booking-detail dialogs.
-
-# Hindi language support (planned)
-
-Add an app-wide English/Hindi language preference using translation keys for static UI text.
-
-- Keep tenant-entered data such as client names, services, notes, and business names unchanged.
-- Persist the chosen language for the signed-in user or device.
-- Introduce translations incrementally by feature, without mixing untranslated hard-coded strings into new UI.
 
 # Booking token and queue system (deferred)
 

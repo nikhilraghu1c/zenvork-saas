@@ -5,6 +5,9 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../auth/services/auth.service';
 import { AppButtonComponent } from '../../shared/button/button.component';
 import { AppInputComponent } from '../../shared/input/input.component';
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
+import { LanguageService } from '../../core/services/language.service';
+import { LanguageSwitcherComponent } from '../../shared/language-switcher/language-switcher.component';
 
 const isStrongPassword = (value: string): boolean =>
   value.length >= 8 &&
@@ -19,13 +22,20 @@ const strongPasswordValidator = (control: AbstractControl): ValidationErrors | n
 
 @Component({
   selector: 'app-settings',
-  imports: [ReactiveFormsModule, AppButtonComponent, AppInputComponent],
+  imports: [
+    ReactiveFormsModule,
+    AppButtonComponent,
+    AppInputComponent,
+    TranslatePipe,
+    LanguageSwitcherComponent,
+  ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
 })
 export class SettingsComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly auth = inject(AuthService);
+  private readonly language = inject(LanguageService);
 
   protected readonly passwordForm = this.formBuilder.nonNullable.group({
     currentPassword: ['', Validators.required],
@@ -60,7 +70,8 @@ export class SettingsComponent {
           this.submitted = false;
         },
         error: (error: HttpErrorResponse) => {
-          this.errorMessage = error.error?.message ?? 'Unable to change password.';
+          this.errorMessage =
+            error.error?.message ?? this.language.translate('settings.passwordChangeFailed');
         },
       });
   }
@@ -68,15 +79,21 @@ export class SettingsComponent {
   /** Provides concise validation feedback without exposing any password value. */
   protected fieldError(field: 'currentPassword' | 'newPassword' | 'confirmPassword'): string {
     const control = this.passwordForm.controls[field];
-    if (!(this.submitted || control.touched)) return '';
-    if (control.hasError('required')) return 'This field is required.';
+    if (!(this.submitted || control.touched)) {
+      return '';
+    }
+    if (control.hasError('required')) {
+      return this.language.translate('settings.required');
+    }
     if (control.hasError('strength')) {
-      return 'Use 8+ characters with uppercase, lowercase, number, and symbol.';
+      return this.language.translate('settings.passwordStrength');
     }
     if (field === 'newPassword' && !this.passwordDiffersFromCurrent()) {
-      return 'New password must be different from current password.';
+      return this.language.translate('settings.passwordMustDiffer');
     }
-    if (field === 'confirmPassword' && !this.passwordsMatch()) return 'Passwords do not match.';
+    if (field === 'confirmPassword' && !this.passwordsMatch()) {
+      return this.language.translate('settings.passwordsDoNotMatch');
+    }
     return '';
   }
 

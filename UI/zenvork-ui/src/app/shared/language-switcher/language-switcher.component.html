@@ -1,0 +1,27 @@
+<section class="language-switcher" [class.is-panel]="appearance === 'panel'">
+  @if (appearance === 'panel') {
+    <div class="language-switcher__copy">
+      <h2>{{ 'settings.languageTitle' | translate }}</h2>
+      <p>{{ 'language.description' | translate }}</p>
+    </div>
+  }
+
+  <div class="language-switcher__choices" role="group" [attr.aria-label]="'language.switcherLabel' | translate">
+    <button
+      type="button"
+      [class.is-selected]="language.language() === 'en'"
+      [attr.aria-pressed]="language.language() === 'en'"
+      (click)="setLanguage('en')"
+    >
+      {{ 'language.english' | translate }}
+    </button>
+    <button
+      type="button"
+      [class.is-selected]="language.language() === 'hi'"
+      [attr.aria-pressed]="language.language() === 'hi'"
+      (click)="setLanguage('hi')"
+    >
+      {{ 'language.hindi' | translate }}
+    </button>
+  </div>
+</section>

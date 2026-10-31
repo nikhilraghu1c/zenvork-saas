@@ -1,5 +1,10 @@
 <mat-toolbar class="app-topbar">
-  <button mat-icon-button type="button" aria-label="Open navigation" (click)="menuToggle.emit()">
+  <button
+    mat-icon-button
+    type="button"
+    [attr.aria-label]="'navigation.open' | translate"
+    (click)="menuToggle.emit()"
+  >
     <mat-icon>menu</mat-icon>
   </button>
   <span class="app-topbar__title">{{ title }}</span>
