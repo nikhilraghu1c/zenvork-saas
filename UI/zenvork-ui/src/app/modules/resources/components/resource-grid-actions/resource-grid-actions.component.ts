@@ -7,20 +7,37 @@ import {
   AppActionMenuItem,
 } from '../../../../shared/action-menu/action-menu.component';
 import { ResourceRecord } from '../../services/resource.service';
+import { LanguageService } from '../../../../core/services/language.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-resource-grid-actions',
-  imports: [AppActionMenuComponent],
+  imports: [AppActionMenuComponent, TranslatePipe],
   templateUrl: './resource-grid-actions.component.html',
   styleUrl: './resource-grid-actions.component.scss',
 })
 export class ResourceGridActionsComponent implements ICellRendererAngularComp {
   private readonly router = inject(Router);
+  private readonly language = inject(LanguageService);
   protected resource!: ResourceRecord;
   protected readonly actions: AppActionMenuItem[] = [
-    { id: 'details', label: 'Details', icon: 'visibility' },
-    { id: 'edit', label: 'Edit', icon: 'edit', disabled: true },
-    { id: 'delete', label: 'Delete', icon: 'person_off', disabled: true },
+    {
+      id: 'details',
+      label: this.language.translate('resources.actionDetails'),
+      icon: 'visibility',
+    },
+    {
+      id: 'edit',
+      label: this.language.translate('resources.actionEdit'),
+      icon: 'edit',
+      disabled: true,
+    },
+    {
+      id: 'delete',
+      label: this.language.translate('resources.actionDelete'),
+      icon: 'person_off',
+      disabled: true,
+    },
   ];
 
   /** Receives the resource record rendered by the AG Grid action cell. */

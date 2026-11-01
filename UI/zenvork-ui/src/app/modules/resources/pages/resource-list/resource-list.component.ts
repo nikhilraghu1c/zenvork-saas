@@ -7,6 +7,8 @@ import { catchError, finalize, forkJoin, of } from 'rxjs';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppInputComponent } from '../../../../shared/input/input.component';
 import { AuthService } from '../../../auth/services/auth.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 import {
   ResourceRecord,
   ResourceService,
@@ -21,12 +23,20 @@ interface ResourceGroup {
 
 @Component({
   selector: 'app-resource-list',
-  imports: [ReactiveFormsModule, RouterLink, MatIconModule, AppButtonComponent, AppInputComponent],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    MatIconModule,
+    AppButtonComponent,
+    AppInputComponent,
+    TranslatePipe,
+  ],
   templateUrl: './resource-list.component.html',
   styleUrl: './resource-list.component.scss',
 })
 export class ResourceListComponent implements OnInit {
   private readonly service = inject(ResourceService);
+  private readonly language = inject(LanguageService);
   protected readonly isOwner = inject(AuthService).getCurrentUser()?.role === 'OWNER';
 
   /** Search value used to narrow resource names and types. */
@@ -55,8 +65,7 @@ export class ResourceListComponent implements OnInit {
   /** Groups the current filtered result by resource type for a predictable, scan-friendly list. */
   protected get resourceGroups(): ResourceGroup[] {
     const filtered = this.resources.filter((resource) => this.matchesFilters(resource));
-    const groupCodes =
-      this.selectedType === 'ALL' ? this.orderedTypeCodes() : [this.selectedType];
+    const groupCodes = this.selectedType === 'ALL' ? this.orderedTypeCodes() : [this.selectedType];
 
     return groupCodes
       .map((code) => {
@@ -85,8 +94,7 @@ export class ResourceListComponent implements OnInit {
           this.resources = resources.resources;
           this.types = options.resourceTypes;
         },
-        error: (error) =>
-          (this.errorMessage = error.error?.message ?? 'Unable to load resources.'),
+        error: (error) => (this.errorMessage = error.error?.message ?? 'Unable to load resources.'),
       });
   }
 
@@ -136,14 +144,28 @@ export class ResourceListComponent implements OnInit {
 
   /** Gives each row only metadata that the current API actually supplies. */
   protected resourceSummary(resource: ResourceRecord): string {
-    if (!resource.isActive) return 'Inactive and unavailable for new bookings';
-    if (!resource.isPerson) return 'Available for bookings';
-    return resource.linkedUserId ? 'Login account linked' : 'No login account linked';
+    if (!resource.isActive) {
+      return this.language.translate('resources.summaryInactive');
+    }
+    if (!resource.isPerson) {
+      return this.language.translate('resources.summaryAvailable');
+    }
+    return resource.linkedUserId
+      ? this.language.translate('resources.summaryLoginLinked')
+      : this.language.translate('resources.summaryNoLogin');
   }
 
   /** Returns an accessible text label for the row's resource type. */
   protected resourceTypeName(resource: ResourceRecord): string {
     return this.typeName(resource.resourceType);
+  }
+
+  /** Builds an accessible action label while retaining the resource's tenant-entered name. */
+  protected resourceStatusActionLabel(resource: ResourceRecord): string {
+    const action = this.language.translate(
+      resource.isActive ? 'resources.deactivate' : 'resources.activate',
+    );
+    return `${action} ${resource.name}`;
   }
 
   private matchesFilters(resource: ResourceRecord): boolean {
@@ -154,8 +176,9 @@ export class ResourceListComponent implements OnInit {
       (this.selectedStatus === 'ACTIVE' ? resource.isActive : !resource.isActive);
     const searchMatches =
       !query ||
-      [resource.name, resource.resourceType, this.typeName(resource.resourceType)]
-        .some((value) => value.toLowerCase().includes(query));
+      [resource.name, resource.resourceType, this.typeName(resource.resourceType)].some((value) =>
+        value.toLowerCase().includes(query),
+      );
 
     return typeMatches && statusMatches && searchMatches;
   }

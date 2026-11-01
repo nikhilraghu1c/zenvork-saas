@@ -13,6 +13,8 @@ import { StaffGridActionsComponent } from '../../components/staff-grid-actions/s
 import { StaffStatusGridCellComponent } from '../../components/staff-status-grid-cell/staff-status-grid-cell.component';
 import { NameAvatarGridCellComponent } from '../../../../shared/data-grid/components/name-avatar-grid-cell/name-avatar-grid-cell.component';
 import { StaffService, StaffUser } from '../../services/staff.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 
 @Component({
   selector: 'app-staff-list',
@@ -22,12 +24,14 @@ import { StaffService, StaffUser } from '../../services/staff.service';
     AppButtonComponent,
     AppDataGridComponent,
     AppInputComponent,
+    TranslatePipe,
   ],
   templateUrl: './staff-list.component.html',
   styleUrl: './staff-list.component.scss',
 })
 export class StaffListComponent implements OnInit {
   private readonly dateTime = inject(BusinessDateTimeService);
+  private readonly language = inject(LanguageService);
   /** Search value used to narrow the visible staff list. */
   protected readonly searchControl = new FormControl('', { nonNullable: true });
   protected staff: StaffUser[] = [];
@@ -36,39 +40,45 @@ export class StaffListComponent implements OnInit {
   protected errorMessage = '';
   protected actionErrorMessage = '';
   protected readonly gridContext = {
-    updateStaffStatus: (staffId: string, isActive: boolean) => this.updateStaffStatus(staffId, isActive),
+    updateStaffStatus: (staffId: string, isActive: boolean) =>
+      this.updateStaffStatus(staffId, isActive),
   };
   protected readonly columnDefs: ColDef<StaffUser>[] = [
     {
       field: 'name',
-      headerName: 'Staff Member',
+      headerName: this.language.translate('staff.columnMember'),
       minWidth: 190,
       flex: 1.3,
       cellRenderer: NameAvatarGridCellComponent,
     },
     {
       field: 'email',
-      headerName: 'Email',
+      headerName: this.language.translate('staff.columnEmail'),
       minWidth: 210,
-      valueFormatter: ({ value }) => value || 'Not Provided',
+      valueFormatter: ({ value }) => value || this.language.translate('staff.notProvided'),
     },
-    { field: 'mobile', headerName: 'Mobile', minWidth: 140 },
-    { headerName: 'Access', valueGetter: () => 'Staff', minWidth: 110, maxWidth: 130 },
+    { field: 'mobile', headerName: this.language.translate('staff.columnMobile'), minWidth: 140 },
+    {
+      headerName: this.language.translate('staff.columnAccess'),
+      valueGetter: () => this.language.translate('staff.role'),
+      minWidth: 110,
+      maxWidth: 130,
+    },
     {
       field: 'isActive',
-      headerName: 'Status',
+      headerName: this.language.translate('staff.columnStatus'),
       minWidth: 110,
       maxWidth: 130,
       cellRenderer: StaffStatusGridCellComponent,
     },
     {
       field: 'createdAt',
-      headerName: 'Added',
+      headerName: this.language.translate('staff.columnAdded'),
       minWidth: 130,
       valueFormatter: ({ value }) => this.dateTime.format(value, 'date'),
     },
     {
-      headerName: 'Actions',
+      headerName: this.language.translate('staff.columnActions'),
       cellRenderer: StaffGridActionsComponent,
       sortable: false,
       resizable: false,
@@ -99,7 +109,7 @@ export class StaffListComponent implements OnInit {
         this.loading = false;
       },
       error: (error: HttpErrorResponse) => {
-        this.errorMessage = error.error?.message ?? 'Unable to load staff right now.';
+        this.errorMessage = error.error?.message ?? this.language.translate('staff.loadNowFailed');
         this.loading = false;
       },
     });
@@ -137,7 +147,8 @@ export class StaffListComponent implements OnInit {
         this.applySearch();
       },
       error: (error: HttpErrorResponse) => {
-        this.actionErrorMessage = error.error?.message ?? 'Unable to update staff access.';
+        this.actionErrorMessage =
+          error.error?.message ?? this.language.translate('staff.updateAccessFailed');
       },
     });
   }

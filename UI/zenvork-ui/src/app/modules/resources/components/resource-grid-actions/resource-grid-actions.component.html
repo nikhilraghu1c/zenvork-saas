@@ -1,5 +1,5 @@
 <app-action-menu
-  ariaLabel="Resource actions"
+  [ariaLabel]="'resources.actions' | translate"
   [items]="actions"
   (actionSelected)="handleAction($event)"
 />

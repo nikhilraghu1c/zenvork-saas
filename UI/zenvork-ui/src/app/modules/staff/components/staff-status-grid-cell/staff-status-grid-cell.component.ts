@@ -3,10 +3,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
 import { StaffUser } from '../../services/staff.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-staff-status-grid-cell',
-  imports: [MatIconModule],
+  imports: [MatIconModule, TranslatePipe],
   templateUrl: './staff-status-grid-cell.component.html',
   styleUrl: './staff-status-grid-cell.component.scss',
 })

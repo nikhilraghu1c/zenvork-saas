@@ -9,10 +9,18 @@ import { AppInputComponent } from '../../../../shared/input/input.component';
 import { AuthService } from '../../../auth/services/auth.service';
 import { StaffService } from '../../../staff/services/staff.service';
 import { ResourceService, ResourceTypeOption } from '../../services/resource.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 
 @Component({
   selector: 'app-resource-form',
-  imports: [ReactiveFormsModule, AppSelectComponent, AppButtonComponent, AppInputComponent],
+  imports: [
+    ReactiveFormsModule,
+    AppSelectComponent,
+    AppButtonComponent,
+    AppInputComponent,
+    TranslatePipe,
+  ],
   templateUrl: './resource-form.component.html',
   styleUrl: './resource-form.component.scss',
 })
@@ -22,6 +30,7 @@ export class ResourceFormComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly language = inject(LanguageService);
   /** Reactive form matching the current resource-creation API contract. */
   protected readonly resourceForm = inject(FormBuilder).nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
@@ -45,7 +54,7 @@ export class ResourceFormComponent implements OnInit {
   /** Provides an optional login link using the available business accounts. */
   protected get accountOptions(): AppSelectOption[] {
     return [
-      { value: '', label: 'No login linked' },
+      { value: '', label: this.language.translate('resources.noLogin') },
       ...this.accounts.map((account) => ({ value: account.id, label: account.label })),
     ];
   }
@@ -84,7 +93,8 @@ export class ResourceFormComponent implements OnInit {
           ];
         },
         error: (error) =>
-          (this.optionsError = error.error?.message ?? 'Unable to load resource options.'),
+          (this.optionsError =
+            error.error?.message ?? this.language.translate('resources.loadOptionsFailed')),
       });
   }
   /** Validates and creates a resource with an optional linked account. */
@@ -107,7 +117,9 @@ export class ResourceFormComponent implements OnInit {
       )
       .subscribe({
         next: () => void this.router.navigateByUrl('/app/resources'),
-        error: (error) => (this.serverError = error.error?.message ?? 'Unable to create resource.'),
+        error: (error) =>
+          (this.serverError =
+            error.error?.message ?? this.language.translate('resources.createFailed')),
       });
   }
   /** Returns to the resource list without creating a resource. */
@@ -117,9 +129,11 @@ export class ResourceFormComponent implements OnInit {
   /** Returns validation feedback after the resource name has been visited. */
   protected nameError(): string {
     const control = this.resourceForm.controls.name;
-    if (!control.touched || !control.invalid) return '';
+    if (!control.touched || !control.invalid) {
+      return '';
+    }
     return control.hasError('required')
-      ? 'Resource name is required.'
-      : 'Use between 3 and 50 characters.';
+      ? this.language.translate('resources.nameRequired')
+      : this.language.translate('resources.nameLength');
   }
 }

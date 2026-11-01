@@ -2,19 +2,25 @@ import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
-import { AppActionMenuComponent, AppActionMenuItem } from '../../../../shared/action-menu/action-menu.component';
+import {
+  AppActionMenuComponent,
+  AppActionMenuItem,
+} from '../../../../shared/action-menu/action-menu.component';
 import { StaffUser } from '../../services/staff.service';
+import { LanguageService } from '../../../../core/services/language.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 
 type StaffStatusUpdateHandler = (staffId: string, isActive: boolean) => void;
 
 @Component({
   selector: 'app-staff-grid-actions',
-  imports: [AppActionMenuComponent],
+  imports: [AppActionMenuComponent, TranslatePipe],
   templateUrl: './staff-grid-actions.component.html',
   styleUrl: './staff-grid-actions.component.scss',
 })
 export class StaffGridActionsComponent implements ICellRendererAngularComp {
   private readonly router = inject(Router);
+  private readonly language = inject(LanguageService);
   private params!: ICellRendererParams<StaffUser>;
   protected staffMember!: StaffUser;
   protected actions: AppActionMenuItem[] = [];
@@ -49,10 +55,18 @@ export class StaffGridActionsComponent implements ICellRendererAngularComp {
     this.params = params;
     this.staffMember = params.data!;
     this.actions = [
-      { id: 'details', label: 'Details', icon: 'visibility' },
+      { id: 'details', label: this.language.translate('staff.actionDetails'), icon: 'visibility' },
       this.staffMember.isActive
-        ? { id: 'status:deactivate', label: 'Deactivate', icon: 'person_off' }
-        : { id: 'status:activate', label: 'Activate', icon: 'person_add' },
+        ? {
+            id: 'status:deactivate',
+            label: this.language.translate('staff.deactivate'),
+            icon: 'person_off',
+          }
+        : {
+            id: 'status:activate',
+            label: this.language.translate('staff.activate'),
+            icon: 'person_add',
+          },
       // { id: 'edit', label: 'Edit', icon: 'edit' },
     ];
   }

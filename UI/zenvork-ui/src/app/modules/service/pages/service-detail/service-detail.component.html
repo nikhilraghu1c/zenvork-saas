@@ -1,14 +1,17 @@
 <section class="service-detail-page" aria-labelledby="service-title">
-  <nav class="breadcrumb" aria-label="Breadcrumb">
-    <a routerLink="/app/services">Services</a><span aria-hidden="true">/</span
-    ><span aria-current="page">Service details</span>
+  <nav class="breadcrumb" [attr.aria-label]="'service.breadcrumb' | translate">
+    <a routerLink="/app/services">{{ 'service.title' | translate }}</a
+    ><span aria-hidden="true">/</span
+    ><span aria-current="page">{{ 'service.details' | translate }}</span>
   </nav>
   @if (loading) {
-    <p class="page-state">Loading service…</p>
+    <p class="page-state">{{ 'service.loadingOne' | translate }}</p>
   } @else if (errorMessage) {
     <div class="page-state is-error">
       <p>{{ errorMessage }}</p>
-      <app-button variant="secondary" routerLink="/app/services">Back to services</app-button>
+      <app-button variant="secondary" routerLink="/app/services">{{
+        'service.back' | translate
+      }}</app-button>
     </div>
   } @else if (service) {
     <header class="service-detail-page__header">
@@ -18,55 +21,55 @@
         <p>{{ description() }}</p>
         <div class="tags">
           <span [class.is-active]="service.isActive">{{
-            service.isActive ? 'Active' : 'Inactive'
+            (service.isActive ? 'service.active' : 'service.inactive') | translate
           }}</span>
           <span>{{ price() }}</span>
-          <span>{{ service.durationMinutes }} min</span>
+          <span>{{ service.durationMinutes }} {{ 'service.minuteShort' | translate }}</span>
           @if (service.requiresPersonResource) {
-            <span>Person required</span>
+            <span>{{ 'service.personRequired' | translate }}</span>
           }
         </div>
       </div>
       @if (isOwner) {
         <div class="actions">
           <app-button variant="secondary" [loading]="updating" (clicked)="toggle()">{{
-            service.isActive ? 'Deactivate' : 'Activate'
+            (service.isActive ? 'service.deactivate' : 'service.activate') | translate
           }}</app-button>
-          <app-button (clicked)="edit()">Edit service</app-button>
+          <app-button (clicked)="edit()">{{ 'service.edit' | translate }}</app-button>
         </div>
       }
     </header>
-    <div class="stats" aria-label="Service summary">
+    <div class="stats" [attr.aria-label]="'service.details' | translate">
       <div>
-        <p>Used this month</p>
-        <strong>0</strong><span>bookings</span>
+        <p>{{ 'service.usedThisMonth' | translate }}</p>
+        <strong>0</strong><span>{{ 'service.bookings' | translate }}</span>
       </div>
       <div>
-        <p>Revenue this month</p>
-        <strong>₹0</strong><span>from this service</span>
+        <p>{{ 'service.revenueThisMonth' | translate }}</p>
+        <strong>₹0</strong><span>{{ 'service.fromThisService' | translate }}</span>
       </div>
       <div>
-        <p>Average duration</p>
+        <p>{{ 'service.averageDuration' | translate }}</p>
         <strong>{{ service.durationMinutes }}</strong
-        ><span>minutes</span>
+        ><span>{{ 'service.minutes' | translate }}</span>
       </div>
       <div>
-        <p>Added</p>
+        <p>{{ 'service.added' | translate }}</p>
         <strong>{{ service.createdAt | businessDate: 'monthDay' }}</strong
         ><span>{{ service.createdAt | businessDate: 'year' }}</span>
       </div>
     </div>
     <section class="content-section">
-      <p class="section-label">Description</p>
+      <p class="section-label">{{ 'service.descriptionLabel' | translate }}</p>
       <div class="description-card">{{ description() }}</div>
     </section>
     <section class="content-section">
       <div class="section-heading">
         <div>
-          <p class="section-label">Recent bookings</p>
-          <h2>Bookings using this service</h2>
+          <p class="section-label">{{ 'service.recentBookings' | translate }}</p>
+          <h2>{{ 'service.bookingsUsing' | translate }}</h2>
         </div>
-        <a routerLink="/app/booking">View all</a>
+        <a routerLink="/app/booking">{{ 'service.viewAll' | translate }}</a>
       </div>
       <div class="recent-bookings">
         @for (booking of recentBookings; track booking.client) {
@@ -84,10 +87,12 @@
     @if (isOwner) {
       <section class="danger-zone">
         <div>
-          <h2>Delete service</h2>
-          <p>Services with booking history are kept for accurate records. Deactivate it instead.</p>
+          <h2>{{ 'service.deleteTitle' | translate }}</h2>
+          <p>{{ 'service.deleteDescription' | translate }}</p>
         </div>
-        <app-button variant="secondary" [disabled]="true">Delete service</app-button>
+        <app-button variant="secondary" [disabled]="true">{{
+          'service.delete' | translate
+        }}</app-button>
       </section>
     }
   }

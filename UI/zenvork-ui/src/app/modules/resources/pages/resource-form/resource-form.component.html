@@ -1,58 +1,64 @@
 <section class="resource-form-page" aria-labelledby="resource-form-title">
   <header class="resource-form-page__header">
-    <p class="eyebrow">Business Resources</p>
-    <h1 id="resource-form-title">Add Resource</h1>
-    <p>Create a bookable resource and optionally link it to an existing login account.</p>
+    <p class="eyebrow">{{ 'resources.eyebrow' | translate }}</p>
+    <h1 id="resource-form-title">{{ 'resources.addTitle' | translate }}</h1>
+    <p>{{ 'resources.formDescription' | translate }}</p>
   </header>
   @if (optionsLoading) {
-    <p role="status">Loading resource options…</p>
+    <p role="status">{{ 'resources.loadingOptions' | translate }}</p>
   } @else if (optionsError) {
     <p class="server-error" role="alert">{{ optionsError }}</p>
-    <app-button (clicked)="loadOptions()">Retry</app-button>
+    <app-button (clicked)="loadOptions()">{{ 'resources.retry' | translate }}</app-button>
   } @else if (!types.length) {
     <p role="status">
-      No active resource types are configured for your business. Contact your administrator.
+      {{ 'resources.noTypes' | translate }}
     </p>
-    <app-button variant="secondary" (clicked)="cancel()">Back to Resources</app-button>
+    <app-button variant="secondary" (clicked)="cancel()">{{
+      'resources.back' | translate
+    }}</app-button>
   } @else {
     <form class="resource-form" [formGroup]="resourceForm" (ngSubmit)="submit()" novalidate>
       <app-input
         formControlName="name"
-        label="Resource Name"
+        [label]="'resources.name' | translate"
         labelPlacement="outside"
-        placeholder="Enter resource name"
+        [placeholder]="'resources.namePlaceholder' | translate"
         [required]="true"
         [errorMessage]="nameError()"
       />
       <app-select
         formControlName="resourceType"
-        label="Resource Type"
+        [label]="'resources.resourceType' | translate"
         labelPlacement="outside"
-        placeholder="Choose a resource type"
+        [placeholder]="'resources.chooseType' | translate"
         [options]="typeOptions"
         [required]="true"
         [errorMessage]="
           resourceForm.controls.resourceType.touched &&
           resourceForm.controls.resourceType.hasError('required')
-            ? 'Choose a resource type.'
+            ? ('resources.chooseTypeError' | translate)
             : ''
         "
       />
       @if (isPersonResource) {
         <app-select
           formControlName="linkedUserId"
-          label="Linked Login Account"
+          [label]="'resources.linkedAccount' | translate"
           labelPlacement="outside"
           [options]="accountOptions"
-          hint="Optional. A resource does not need a login account."
+          [hint]="'resources.optionalAccount' | translate"
         />
       }
       @if (serverError) {
         <p class="server-error" role="alert">{{ serverError }}</p>
       }
       <div class="resource-form__actions">
-        <app-button variant="secondary" [disabled]="loading" (clicked)="cancel()">Cancel</app-button
-        ><app-button type="submit" [loading]="loading">Create Resource</app-button>
+        <app-button variant="secondary" [disabled]="loading" (clicked)="cancel()">{{
+          'resources.cancel' | translate
+        }}</app-button
+        ><app-button type="submit" [loading]="loading">{{
+          'resources.create' | translate
+        }}</app-button>
       </div>
     </form>
   }

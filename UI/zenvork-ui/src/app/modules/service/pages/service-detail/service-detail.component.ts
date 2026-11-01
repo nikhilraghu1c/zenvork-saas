@@ -7,10 +7,12 @@ import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { BusinessDatePipe } from '../../../../core/pipes/business-date.pipe';
 import { AuthService } from '../../../auth/services/auth.service';
 import { ServiceRecord, ServiceService } from '../../services/service.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 
 @Component({
   selector: 'app-service-detail',
-  imports: [BusinessDatePipe, RouterLink, MatIconModule, AppButtonComponent],
+  imports: [BusinessDatePipe, RouterLink, MatIconModule, AppButtonComponent, TranslatePipe],
   templateUrl: './service-detail.component.html',
   styleUrl: './service-detail.component.scss',
 })
@@ -19,6 +21,7 @@ export class ServiceDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly language = inject(LanguageService);
   protected readonly isOwner = inject(AuthService).getCurrentUser()?.role === 'OWNER';
   protected service: ServiceRecord | null = null;
   protected loading = true;
@@ -35,7 +38,9 @@ export class ServiceDetailComponent implements OnInit {
   }
   protected loadService(): void {
     const id = this.route.snapshot.paramMap.get('id');
-    if (!id) return;
+    if (!id) {
+      return;
+    }
     this.loading = true;
     this.serviceApi
       .getService(id)
@@ -45,11 +50,15 @@ export class ServiceDetailComponent implements OnInit {
       )
       .subscribe({
         next: ({ service }) => (this.service = service),
-        error: (error) => (this.errorMessage = error.error?.message ?? 'Unable to load service.'),
+        error: (error) =>
+          (this.errorMessage =
+            error.error?.message ?? this.language.translate('service.loadFailed')),
       });
   }
   protected toggle(): void {
-    if (!this.service || this.updating) return;
+    if (!this.service || this.updating) {
+      return;
+    }
     this.updating = true;
     this.serviceApi
       .updateService(this.service._id, { isActive: !this.service.isActive })
@@ -59,7 +68,9 @@ export class ServiceDetailComponent implements OnInit {
       )
       .subscribe({
         next: ({ service }) => (this.service = service),
-        error: (error) => (this.errorMessage = error.error?.message ?? 'Unable to update service.'),
+        error: (error) =>
+          (this.errorMessage =
+            error.error?.message ?? this.language.translate('service.updateFailed')),
       });
   }
   protected price(): string {
@@ -72,9 +83,11 @@ export class ServiceDetailComponent implements OnInit {
       : '';
   }
   protected description(): string {
-    return this.service?.description || 'No description added for this service.';
+    return this.service?.description || this.language.translate('service.noDescriptionDetail');
   }
   protected edit(): void {
-    if (this.service) void this.router.navigate(['/app/services', this.service._id, 'edit']);
+    if (this.service) {
+      void this.router.navigate(['/app/services', this.service._id, 'edit']);
+    }
   }
 }

@@ -1,27 +1,32 @@
 <section class="resource-list-page" aria-labelledby="resources-title">
   <header class="resource-list-page__header">
     <div>
-      <p class="eyebrow">Business Resources</p>
-      <h1 id="resources-title">Resources</h1>
-      <p class="resource-description">Everything available to assign to bookings, grouped by type.</p>
+      <p class="eyebrow">{{ 'resources.eyebrow' | translate }}</p>
+      <h1 id="resources-title">{{ 'resources.title' | translate }}</h1>
+      <p class="resource-description">{{ 'resources.description' | translate }}</p>
     </div>
     @if (isOwner) {
       <app-button routerLink="/app/resources/new">
-        <span class="add-button-content"><mat-icon>add</mat-icon><span>Add resource</span></span>
+        <span class="add-button-content"
+          ><mat-icon>add</mat-icon><span>{{ 'resources.add' | translate }}</span></span
+        >
       </app-button>
     }
   </header>
 
-  <div class="resource-list-page__filters" aria-label="Resource filters">
+  <div class="resource-list-page__filters" [attr.aria-label]="'resources.title' | translate">
     <app-input
       [formControl]="searchControl"
-      label="Search resources"
+      [label]="'resources.searchLabel' | translate"
       labelPlacement="floating"
       subscriptSizing="dynamic"
       prefixIcon="search"
-      placeholder="Search resources..."
+      [placeholder]="'resources.searchPlaceholder' | translate"
     />
-    <div class="filter-group filter-group--types" aria-label="Filter by resource type">
+    <div
+      class="filter-group filter-group--types"
+      [attr.aria-label]="'resources.filterType' | translate"
+    >
       @for (type of typeFilters; track type.code) {
         <button
           class="filter-chip"
@@ -35,7 +40,7 @@
       }
     </div>
     <span class="filter-divider" aria-hidden="true"></span>
-    <div class="filter-group" aria-label="Filter by status">
+    <div class="filter-group" [attr.aria-label]="'resources.filterStatus' | translate">
       @for (status of ['ACTIVE', 'INACTIVE', 'ALL']; track status) {
         <button
           class="filter-chip"
@@ -44,7 +49,14 @@
           [attr.aria-pressed]="selectedStatus === status"
           (click)="selectStatus($any(status))"
         >
-          {{ status === 'ACTIVE' ? 'Active' : status === 'INACTIVE' ? 'Inactive' : 'All' }}
+          {{
+            (status === 'ACTIVE'
+              ? 'resources.active'
+              : status === 'INACTIVE'
+                ? 'resources.inactive'
+                : 'resources.all'
+            ) | translate
+          }}
         </button>
       }
     </div>
@@ -55,27 +67,33 @@
   }
 
   @if (loading) {
-    <p class="page-state" role="status">Loading resources…</p>
+    <p class="page-state" role="status">{{ 'resources.loading' | translate }}</p>
   } @else if (errorMessage) {
     <p class="page-state is-error" role="alert">{{ errorMessage }}</p>
   } @else if (!resources.length) {
     <div class="empty-state">
       <mat-icon aria-hidden="true">category</mat-icon>
-      <h2>No resources yet</h2>
-      <p>Add the people, rooms, chairs, or equipment your business needs for bookings.</p>
+      <h2>{{ 'resources.emptyTitle' | translate }}</h2>
+      <p>{{ 'resources.emptyDescription' | translate }}</p>
       @if (isOwner) {
-        <app-button routerLink="/app/resources/new">Add resource</app-button>
+        <app-button routerLink="/app/resources/new">{{ 'resources.add' | translate }}</app-button>
       }
     </div>
   } @else if (!resourceGroups.length) {
-    <p class="page-state" role="status">No resources match these filters.</p>
+    <p class="page-state" role="status">{{ 'resources.noMatches' | translate }}</p>
   } @else {
     <div class="resource-groups">
       @for (group of resourceGroups; track group.code) {
         <section class="resource-group" [attr.aria-labelledby]="'resource-type-' + group.code">
           <header class="resource-group__header">
             <h2 [id]="'resource-type-' + group.code">{{ group.name }}</h2>
-            <span class="resource-group__count">{{ group.resources.length }} resource{{ group.resources.length === 1 ? '' : 's' }}</span>
+            <span class="resource-group__count"
+              >{{ group.resources.length }}
+              {{
+                (group.resources.length === 1 ? 'resources.countOne' : 'resources.count')
+                  | translate
+              }}</span
+            >
           </header>
           <div class="resource-group__rows">
             @for (resource of group.resources; track resource._id) {
@@ -94,21 +112,26 @@
                   </span>
                   <span class="resource-row__type">{{ resourceTypeName(resource) }}</span>
                   @if (!isOwner) {
-                    <mat-icon class="resource-row__arrow" aria-hidden="true">chevron_right</mat-icon>
+                    <mat-icon class="resource-row__arrow" aria-hidden="true"
+                      >chevron_right</mat-icon
+                    >
                   }
                 </a>
                 <span class="resource-row__status" [class.is-active]="resource.isActive">
-                  <span aria-hidden="true">●</span> {{ resource.isActive ? 'Active' : 'Inactive' }}
+                  <span aria-hidden="true">●</span>
+                  {{ (resource.isActive ? 'resources.active' : 'resources.inactive') | translate }}
                 </span>
                 @if (isOwner) {
                   <button
                     class="resource-row__toggle"
                     type="button"
                     [class.is-active]="resource.isActive"
-                    [attr.aria-label]="resource.isActive ? 'Deactivate ' + resource.name : 'Activate ' + resource.name"
+                    [attr.aria-label]="resourceStatusActionLabel(resource)"
                     [disabled]="updatingResourceId !== null"
                     (click)="toggleResourceStatus(resource)"
-                  ><span></span></button>
+                  >
+                    <span></span>
+                  </button>
                 }
               </article>
             }

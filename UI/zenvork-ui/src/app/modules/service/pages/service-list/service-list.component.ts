@@ -7,13 +7,22 @@ import { finalize } from 'rxjs';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppInputComponent } from '../../../../shared/input/input.component';
 import { AuthService } from '../../../auth/services/auth.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 import { ServiceRecord, ServiceService } from '../../services/service.service';
 
 type StatusFilter = 'all' | 'active' | 'inactive';
 
 @Component({
   selector: 'app-service-list',
-  imports: [ReactiveFormsModule, RouterLink, MatIconModule, AppButtonComponent, AppInputComponent],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    MatIconModule,
+    AppButtonComponent,
+    AppInputComponent,
+    TranslatePipe,
+  ],
   templateUrl: './service-list.component.html',
   styleUrl: './service-list.component.scss',
 })
@@ -21,6 +30,7 @@ export class ServiceListComponent implements OnInit {
   private readonly service = inject(ServiceService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
+  private readonly language = inject(LanguageService);
   protected readonly isOwner = inject(AuthService).getCurrentUser()?.role === 'OWNER';
   protected readonly searchControl = new FormControl('', { nonNullable: true });
   protected services: ServiceRecord[] = [];
@@ -50,7 +60,9 @@ export class ServiceListComponent implements OnInit {
           this.services = services;
           this.filter();
         },
-        error: (error) => (this.errorMessage = error.error?.message ?? 'Unable to load services.'),
+        error: (error) =>
+          (this.errorMessage =
+            error.error?.message ?? this.language.translate('service.loadFailed')),
       });
   }
   protected setStatusFilter(filter: StatusFilter): void {
@@ -58,7 +70,9 @@ export class ServiceListComponent implements OnInit {
     this.filter();
   }
   protected toggleService(service: ServiceRecord): void {
-    if (!this.isOwner || this.updatingId) return;
+    if (!this.isOwner || this.updatingId) {
+      return;
+    }
     this.updatingId = service._id;
     this.service
       .updateService(service._id, { isActive: !service.isActive })
@@ -72,11 +86,25 @@ export class ServiceListComponent implements OnInit {
           this.filter();
         },
         error: (error) =>
-          (this.errorMessage = error.error?.message ?? 'Unable to update service status.'),
+          (this.errorMessage =
+            error.error?.message ?? this.language.translate('service.updateFailed')),
       });
   }
   protected editService(service: ServiceRecord): void {
     void this.router.navigate(['/app/services', service._id, 'edit']);
+  }
+
+  /** Builds an accessible lifecycle action label without translating tenant-entered service names. */
+  protected serviceStatusActionLabel(service: ServiceRecord): string {
+    const action = this.language.translate(
+      service.isActive ? 'service.deactivate' : 'service.activate',
+    );
+    return `${action} ${service.name}`;
+  }
+
+  /** Builds an accessible edit action label without translating the service name. */
+  protected serviceEditActionLabel(service: ServiceRecord): string {
+    return `${this.language.translate('service.edit')} ${service.name}`;
   }
   protected price(service: ServiceRecord): string {
     return new Intl.NumberFormat('en-IN', {

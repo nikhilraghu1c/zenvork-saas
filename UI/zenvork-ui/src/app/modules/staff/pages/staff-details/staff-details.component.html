@@ -1,12 +1,12 @@
-<section class="staff-details-page" aria-label="Staff account details">
-  <nav class="breadcrumb" aria-label="Breadcrumb">
-    <a routerLink="/app/staff">Staff</a>
+<section class="staff-details-page" [attr.aria-label]="'staff.details' | translate">
+  <nav class="breadcrumb" [attr.aria-label]="'staff.breadcrumb' | translate">
+    <a routerLink="/app/staff">{{ 'staff.title' | translate }}</a>
     <span aria-hidden="true">/</span>
-    <span aria-current="page">Account details</span>
+    <span aria-current="page">{{ 'staff.details' | translate }}</span>
   </nav>
 
   @if (loading) {
-    <p class="page-state" role="status">Loading staff details…</p>
+    <p class="page-state" role="status">{{ 'staff.loadingDetails' | translate }}</p>
   } @else if (staffMember) {
     <header class="profile-header">
       <span class="avatar" aria-hidden="true">{{ staffMember.name | initials }}</span>
@@ -14,21 +14,24 @@
         <h1>{{ staffMember.name }}</h1>
         <p class="profile-mobile">{{ staffMember.mobile }}</p>
         <div class="profile-tags">
-          <span class="role-tag">Staff</span>
+          <span class="role-tag">{{ 'staff.role' | translate }}</span>
           <span class="status-tag" [class.is-inactive]="!staffMember.isActive">
-            <span aria-hidden="true">●</span> {{ staffMember.isActive ? 'Active' : 'Inactive' }}
+            <span aria-hidden="true">●</span>
+            {{ (staffMember.isActive ? 'staff.active' : 'staff.inactive') | translate }}
           </span>
         </div>
       </div>
       <div class="profile-actions">
-        <app-button variant="secondary" [disabled]="true">Reset password</app-button>
+        <app-button variant="secondary" [disabled]="true">{{
+          'staff.resetPassword' | translate
+        }}</app-button>
         <app-button
           variant="secondary"
           [loading]="updatingStatus"
           [disabled]="updatingStatus"
           (clicked)="toggleStaffStatus()"
         >
-          {{ staffMember.isActive ? 'Deactivate' : 'Activate' }}
+          {{ (staffMember.isActive ? 'staff.deactivate' : 'staff.activate') | translate }}
         </app-button>
         <!-- <app-button>Edit account</app-button> -->
       </div>
@@ -40,70 +43,86 @@
 
     <div class="details-grid">
       <section class="detail-section" aria-labelledby="account-title">
-        <h2 id="account-title">Account details</h2>
+        <h2 id="account-title">{{ 'staff.details' | translate }}</h2>
         <dl class="card info-grid">
           <div>
-            <dt>Email address</dt>
-            <dd>{{ staffMember.email || 'Not provided' }}</dd>
+            <dt>{{ 'staff.emailAddress' | translate }}</dt>
+            <dd>{{ staffMember.email || ('staff.notProvided' | translate) }}</dd>
           </div>
           <div>
-            <dt>Mobile number</dt>
+            <dt>{{ 'staff.mobileNumber' | translate }}</dt>
             <dd>{{ staffMember.mobile }}</dd>
           </div>
           <div>
-            <dt>Role</dt>
-            <dd>Staff</dd>
+            <dt>{{ 'staff.role' | translate }}</dt>
+            <dd>{{ 'staff.role' | translate }}</dd>
           </div>
           <div>
-            <dt>Joined</dt>
+            <dt>{{ 'staff.joined' | translate }}</dt>
             <dd>{{ staffMember.createdAt | businessDate }}</dd>
           </div>
           <div>
-            <dt>Last login</dt>
-            <dd class="unavailable">Not available yet</dd>
+            <dt>{{ 'staff.lastLogin' | translate }}</dt>
+            <dd class="unavailable">{{ 'staff.notAvailable' | translate }}</dd>
           </div>
           <div>
-            <dt>Linked resource</dt>
-            <dd class="unavailable">Not available yet</dd>
+            <dt>{{ 'staff.linkedResource' | translate }}</dt>
+            <dd class="unavailable">{{ 'staff.notAvailable' | translate }}</dd>
           </div>
         </dl>
       </section>
 
       <section class="detail-section" aria-labelledby="permissions-title">
         <div class="section-heading">
-          <h2 id="permissions-title">Permissions</h2>
+          <h2 id="permissions-title">{{ 'staff.permissions' | translate }}</h2>
           @if (!editingPermissions) {
             <app-button
               class="permissions-edit-action"
               variant="text"
               icon="edit"
               [iconOnly]="true"
-              ariaLabel="Edit permissions"
+              [ariaLabel]="'staff.editPermissions' | translate"
               (click)="startPermissionEdit()"
             />
           }
         </div>
         @if (editingPermissions) {
-          <form class="card permissions-editor" [formGroup]="permissionsForm" (ngSubmit)="savePermissions()">
+          <form
+            class="card permissions-editor"
+            [formGroup]="permissionsForm"
+            (ngSubmit)="savePermissions()"
+          >
             <app-select
               formControlName="bookingAccessScope"
-              label="Booking Access"
+              [label]="'staff.bookingAccess' | translate"
               labelPlacement="outside"
               [options]="bookingAccessOptions"
-              hint="Choose what bookings this staff member can manage."
+              [hint]="'staff.bookingAccessHint' | translate"
             />
-            <app-checkbox formControlName="canSendReminders" label="Can access and send appointment reminders" />
+            <app-checkbox
+              formControlName="canSendReminders"
+              [label]="'staff.reminderPermission' | translate"
+            />
 
             @if (permissionsErrorMessage) {
               <p class="permissions-error" role="alert">{{ permissionsErrorMessage }}</p>
             }
 
             <div class="permissions-editor__actions">
-              <app-button type="button" variant="secondary" [disabled]="updatingPermissions" (clicked)="cancelPermissionEdit()">
-                Cancel
+              <app-button
+                type="button"
+                variant="secondary"
+                [disabled]="updatingPermissions"
+                (clicked)="cancelPermissionEdit()"
+              >
+                {{ 'staff.cancel' | translate }}
               </app-button>
-              <app-button type="submit" [loading]="updatingPermissions" [disabled]="updatingPermissions">
-                Save permissions
+              <app-button
+                type="submit"
+                [loading]="updatingPermissions"
+                [disabled]="updatingPermissions"
+              >
+                {{ 'staff.savePermissions' | translate }}
               </app-button>
             </div>
           </form>
@@ -125,20 +144,24 @@
     </div>
 
     <section class="detail-section" aria-labelledby="danger-title">
-      <h2 id="danger-title">Danger zone</h2>
+      <h2 id="danger-title">{{ 'staff.dangerZone' | translate }}</h2>
       <div class="card danger-card">
         <div>
-          <h3>Remove staff account</h3>
-          <p>Account removal is not available yet.</p>
+          <h3>{{ 'staff.removeTitle' | translate }}</h3>
+          <p>{{ 'staff.removeDescription' | translate }}</p>
         </div>
-        <app-button variant="secondary" [disabled]="true">Remove</app-button>
+        <app-button variant="secondary" [disabled]="true">{{
+          'staff.remove' | translate
+        }}</app-button>
       </div>
     </section>
   } @else {
     <div class="page-state is-error" role="alert">
       <mat-icon aria-hidden="true">person_off</mat-icon>
       <p>{{ errorMessage }}</p>
-      <app-button variant="tertiary" (clicked)="returnToList()">Back To Staff</app-button>
+      <app-button variant="tertiary" (clicked)="returnToList()">{{
+        'staff.back' | translate
+      }}</app-button>
     </div>
   }
 </section>

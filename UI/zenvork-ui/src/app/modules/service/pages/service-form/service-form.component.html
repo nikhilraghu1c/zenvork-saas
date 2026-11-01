@@ -1,24 +1,24 @@
 <section class="service-form-page" aria-labelledby="service-form-title">
   <header>
-    <p class="eyebrow">Service catalogue</p>
-    <h1 id="service-form-title">{{ editing ? 'Edit service' : 'Add a service' }}</h1>
+    <p class="eyebrow">{{ 'service.catalogue' | translate }}</p>
+    <h1 id="service-form-title">
+      {{ (editing ? 'service.editTitle' : 'service.addTitle') | translate }}
+    </h1>
     <p>
       {{
-        editing
-          ? 'Update the default price and duration for future bookings.'
-          : 'It will be available to assign to new bookings right away.'
+        editing ? ('service.editDescription' | translate) : ('service.addDescription' | translate)
       }}
     </p>
   </header>
   @if (loading) {
-    <p class="page-state">Loading service…</p>
+    <p class="page-state">{{ 'service.loadingOne' | translate }}</p>
   } @else {
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
       <app-input
         formControlName="name"
-        label="Service name"
+        [label]="'service.name' | translate"
         labelPlacement="outside"
-        placeholder="e.g. Service name"
+        [placeholder]="'service.namePlaceholder' | translate"
         [required]="true"
         [errorMessage]="fieldError('name')"
       />
@@ -26,7 +26,7 @@
         <app-input
           formControlName="price"
           type="number"
-          label="Default price"
+          [label]="'service.price' | translate"
           labelPlacement="outside"
           placeholder="500"
           prefix="₹ "
@@ -35,7 +35,7 @@
         /><app-input
           formControlName="duration"
           type="number"
-          label="Duration"
+          [label]="'service.duration' | translate"
           labelPlacement="outside"
           placeholder="45"
           suffix=" min"
@@ -44,36 +44,41 @@
         />
       </div>
       <div class="description-field">
-        <label for="service-description">Description <span>(optional)</span></label>
+        <label for="service-description"
+          >{{ 'service.descriptionOptional' | translate }}
+          <span>{{ 'service.optional' | translate }}</span></label
+        >
         <textarea
           id="service-description"
           formControlName="description"
           rows="3"
           maxlength="500"
-          placeholder="Anything staff should know about this service"
+          [placeholder]="'service.descriptionPlaceholder' | translate"
         ></textarea>
-        <p>Shown on the service page. Maximum 500 characters.</p>
+        <p>{{ 'service.descriptionHint' | translate }}</p>
       </div>
       <section class="service-settings" aria-labelledby="service-settings-title">
-        <p id="service-settings-title">Service settings</p>
+        <p id="service-settings-title">{{ 'service.settings' | translate }}</p>
         <app-toggle
           formControlName="isActive"
-          label="Active"
-          hint="Inactive services cannot be assigned to new bookings."
+          [label]="'service.active' | translate"
+          [hint]="'service.activeHint' | translate"
         />
         <app-toggle
           formControlName="requiresPersonResource"
-          label="Person required"
-          hint="Assign a team member or professional before this service can be checked in or completed."
+          [label]="'service.personRequired' | translate"
+          [hint]="'service.personHint' | translate"
         />
       </section>
       @if (errorMessage) {
         <p class="error" role="alert">{{ errorMessage }}</p>
       }
       <div class="actions">
-        <app-button variant="secondary" [disabled]="saving" (clicked)="cancel()">Cancel</app-button
+        <app-button variant="secondary" [disabled]="saving" (clicked)="cancel()">{{
+          'service.cancel' | translate
+        }}</app-button
         ><app-button type="submit" [loading]="saving">{{
-          editing ? 'Save changes' : 'Add service'
+          (editing ? 'service.save' : 'service.add') | translate
         }}</app-button>
       </div>
     </form>

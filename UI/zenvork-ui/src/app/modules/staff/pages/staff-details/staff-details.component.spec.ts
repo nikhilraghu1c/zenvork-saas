@@ -3,6 +3,8 @@ import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { StaffService } from '../../services/staff.service';
 import { StaffDetailsComponent } from './staff-details.component';
+import { provideFeatureTranslations } from '../../../../core/i18n/provide-feature-translations';
+import { staffTranslations } from '../../i18n/staff.translations';
 
 describe('StaffDetailsComponent', () => {
   let component: StaffDetailsComponent;
@@ -12,6 +14,7 @@ describe('StaffDetailsComponent', () => {
     await TestBed.configureTestingModule({
       imports: [StaffDetailsComponent],
       providers: [
+        provideFeatureTranslations(staffTranslations),
         provideRouter([]),
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'staff-id' } } } },
         { provide: StaffService, useValue: { getStaff: () => of({ users: [] }) } },

@@ -1,82 +1,83 @@
 <section class="service-list-page" aria-labelledby="services-title">
   <header class="service-list-page__header">
     <div>
-      <p class="eyebrow">Service catalogue</p>
+      <p class="eyebrow">{{ 'service.catalogue' | translate }}</p>
       <div class="title-row">
-        <h1 id="services-title">Services</h1>
-        <span>{{ services.length }} services</span>
+        <h1 id="services-title">{{ 'service.title' | translate }}</h1>
+        <span>{{ services.length }} {{ 'service.count' | translate }}</span>
       </div>
-      <p>Manage what you offer and what each one costs.</p>
+      <p>{{ 'service.description' | translate }}</p>
     </div>
   </header>
   <div class="service-list-page__filters">
     <app-input
       [formControl]="searchControl"
-      label="Search services"
+      [label]="'service.searchLabel' | translate"
       labelPlacement="floating"
       subscriptSizing="dynamic"
       prefixIcon="search"
-      placeholder="Search services…"
+      [placeholder]="'service.searchPlaceholder' | translate"
     />
-    <div class="filter-chips" aria-label="Filter services by status">
+    <div class="filter-chips" [attr.aria-label]="'service.filterStatus' | translate">
       <button
         type="button"
         [class.is-selected]="statusFilter === 'all'"
         (click)="setStatusFilter('all')"
       >
-        All</button
+        {{ 'service.all' | translate }}</button
       ><button
         type="button"
         [class.is-selected]="statusFilter === 'active'"
         (click)="setStatusFilter('active')"
       >
-        Active</button
+        {{ 'service.active' | translate }}</button
       ><button
         type="button"
         [class.is-selected]="statusFilter === 'inactive'"
         (click)="setStatusFilter('inactive')"
       >
-        Inactive
+        {{ 'service.inactive' | translate }}
       </button>
     </div>
     @if (isOwner) {
       <app-button class="add-service-button" routerLink="/app/services/new">
-        <span><mat-icon aria-hidden="true">add</mat-icon>Add service</span>
+        <span><mat-icon aria-hidden="true">add</mat-icon>{{ 'service.add' | translate }}</span>
       </app-button>
     }
   </div>
   @if (loading) {
-    <p class="page-state" role="status">Loading services…</p>
+    <p class="page-state" role="status">{{ 'service.loading' | translate }}</p>
   } @else if (errorMessage) {
     <div class="page-state is-error" role="alert">
       <p>{{ errorMessage }}</p>
-      <app-button variant="secondary" (clicked)="loadServices()">Retry</app-button>
+      <app-button variant="secondary" (clicked)="loadServices()">{{
+        'service.retry' | translate
+      }}</app-button>
     </div>
   } @else if (!services.length) {
     <div class="empty-state">
       <mat-icon>miscellaneous_services</mat-icon>
-      <h2>No services yet</h2>
-      <p>Create services to make them available for bookings.</p>
+      <h2>{{ 'service.emptyTitle' | translate }}</h2>
+      <p>{{ 'service.emptyDescription' | translate }}</p>
       @if (isOwner) {
-        <app-button routerLink="/app/services/new">Add service</app-button>
+        <app-button routerLink="/app/services/new">{{ 'service.add' | translate }}</app-button>
       }
     </div>
   } @else if (!filteredServices.length) {
-    <p class="page-state" role="status">No services match this filter.</p>
+    <p class="page-state" role="status">{{ 'service.noMatches' | translate }}</p>
   } @else {
     <div class="service-cards">
       @for (service of filteredServices; track service._id) {
-        <article
-          class="service-card"
-          [class.is-inactive]="!service.isActive"
-        >
+        <article class="service-card" [class.is-inactive]="!service.isActive">
           <a class="service-card__details" [routerLink]="['/app/services', service._id]">
             <span class="service-card__icon"><mat-icon>miscellaneous_services</mat-icon></span>
             <div class="service-card__main">
               <h2>{{ service.name }}</h2>
-              <p>{{ service.description || 'No description added' }}</p>
+              <p>{{ service.description || ('service.noDescription' | translate) }}</p>
             </div>
-            <span class="service-card__duration">{{ service.durationMinutes }} min</span>
+            <span class="service-card__duration"
+              >{{ service.durationMinutes }} {{ 'service.minuteShort' | translate }}</span
+            >
             <strong class="service-card__price">{{ price(service) }}</strong>
             @if (!isOwner) {
               <mat-icon class="service-card__arrow">chevron_right</mat-icon>
@@ -86,9 +87,7 @@
             <button
               class="service-card__toggle"
               type="button"
-              [attr.aria-label]="
-                service.isActive ? 'Deactivate ' + service.name : 'Activate ' + service.name
-              "
+              [attr.aria-label]="serviceStatusActionLabel(service)"
               [disabled]="updatingId === service._id"
               [class.is-active]="service.isActive"
               (click)="toggleService(service)"
@@ -97,7 +96,7 @@
             ><button
               class="service-card__edit"
               type="button"
-              [attr.aria-label]="'Edit ' + service.name"
+              [attr.aria-label]="serviceEditActionLabel(service)"
               (click)="editService(service)"
             >
               <mat-icon>edit</mat-icon>

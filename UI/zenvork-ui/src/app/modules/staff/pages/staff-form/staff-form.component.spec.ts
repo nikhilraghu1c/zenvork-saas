@@ -2,6 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { StaffFormComponent } from './staff-form.component';
+import { provideFeatureTranslations } from '../../../../core/i18n/provide-feature-translations';
+import { staffTranslations } from '../../i18n/staff.translations';
 
 describe('StaffFormComponent', () => {
   let component: StaffFormComponent;
@@ -10,7 +12,7 @@ describe('StaffFormComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [StaffFormComponent],
-      providers: [provideHttpClient(), provideRouter([])],
+      providers: [provideFeatureTranslations(staffTranslations), provideHttpClient(), provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(StaffFormComponent);

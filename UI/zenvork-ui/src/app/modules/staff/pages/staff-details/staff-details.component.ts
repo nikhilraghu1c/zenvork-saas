@@ -10,6 +10,8 @@ import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/s
 import { AppToggleComponent } from '../../../../shared/toggle/toggle.component';
 import { BusinessDatePipe } from '../../../../core/pipes/business-date.pipe';
 import { BookingAccessScope, StaffService, StaffUser } from '../../services/staff.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 
 @Component({
   selector: 'app-staff-details',
@@ -23,6 +25,7 @@ import { BookingAccessScope, StaffService, StaffUser } from '../../services/staf
     AppSelectComponent,
     AppToggleComponent,
     RouterLink,
+    TranslatePipe,
   ],
   templateUrl: './staff-details.component.html',
   styleUrl: './staff-details.component.scss',
@@ -36,19 +39,21 @@ export class StaffDetailsComponent implements OnInit {
   protected editingPermissions = false;
   protected updatingPermissions = false;
   protected permissionsErrorMessage = '';
-  protected readonly bookingAccessOptions: AppSelectOption[] = [
-    { value: 'NONE', label: 'No booking access' },
-    { value: 'OWN_AND_UNASSIGNED', label: 'Own and unassigned bookings' },
-    { value: 'ALL', label: 'All bookings' },
-  ];
+  protected readonly bookingAccessOptions: AppSelectOption[];
   protected readonly permissionsForm;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly staffService: StaffService,
+    private readonly language: LanguageService,
     formBuilder: FormBuilder,
   ) {
+    this.bookingAccessOptions = [
+      { value: 'NONE', label: this.language.translate('staff.noBookingAccess') },
+      { value: 'OWN_AND_UNASSIGNED', label: this.language.translate('staff.ownBookings') },
+      { value: 'ALL', label: this.language.translate('staff.allBookings') },
+    ];
     this.permissionsForm = formBuilder.nonNullable.group({
       bookingAccessScope: ['NONE' as BookingAccessScope],
       canSendReminders: [false],
@@ -59,7 +64,7 @@ export class StaffDetailsComponent implements OnInit {
   ngOnInit(): void {
     const staffId = this.route.snapshot.paramMap.get('id');
     if (!staffId) {
-      this.errorMessage = 'Staff member not found.';
+      this.errorMessage = this.language.translate('staff.notFound');
       this.loading = false;
       return;
     }
@@ -67,11 +72,13 @@ export class StaffDetailsComponent implements OnInit {
     this.staffService.getStaff().subscribe({
       next: ({ users }) => {
         this.staffMember = users.find((user) => user._id === staffId) ?? null;
-        if (!this.staffMember) this.errorMessage = 'Staff member not found.';
+        if (!this.staffMember) {
+          this.errorMessage = this.language.translate('staff.notFound');
+        }
         this.loading = false;
       },
       error: (error: HttpErrorResponse) => {
-        this.errorMessage = error.error?.message ?? 'Unable to load staff details.';
+        this.errorMessage = error.error?.message ?? this.language.translate('staff.loadFailed');
         this.loading = false;
       },
     });
@@ -84,25 +91,32 @@ export class StaffDetailsComponent implements OnInit {
 
   /** Toggles sign-in access without changing the staff member's existing history. */
   protected toggleStaffStatus(): void {
-    if (!this.staffMember || this.updatingStatus) return;
+    if (!this.staffMember || this.updatingStatus) {
+      return;
+    }
 
     this.actionErrorMessage = '';
     this.updatingStatus = true;
-    this.staffService.updateStaffStatus(this.staffMember._id, !this.staffMember.isActive).subscribe({
-      next: ({ user }) => {
-        this.staffMember = user;
-        this.updatingStatus = false;
-      },
-      error: (error: HttpErrorResponse) => {
-        this.actionErrorMessage = error.error?.message ?? 'Unable to update staff status.';
-        this.updatingStatus = false;
-      },
-    });
+    this.staffService
+      .updateStaffStatus(this.staffMember._id, !this.staffMember.isActive)
+      .subscribe({
+        next: ({ user }) => {
+          this.staffMember = user;
+          this.updatingStatus = false;
+        },
+        error: (error: HttpErrorResponse) => {
+          this.actionErrorMessage =
+            error.error?.message ?? this.language.translate('staff.updateStatusFailed');
+          this.updatingStatus = false;
+        },
+      });
   }
 
   /** Pre-fills the owner-only editor with the selected staff member's current permissions. */
   protected startPermissionEdit(): void {
-    if (!this.staffMember) return;
+    if (!this.staffMember) {
+      return;
+    }
     this.permissionsErrorMessage = '';
     this.permissionsForm.setValue({
       bookingAccessScope: this.staffMember.bookingAccessScope,
@@ -113,14 +127,18 @@ export class StaffDetailsComponent implements OnInit {
 
   /** Closes the inline editor without persisting permission changes. */
   protected cancelPermissionEdit(): void {
-    if (this.updatingPermissions) return;
+    if (this.updatingPermissions) {
+      return;
+    }
     this.permissionsErrorMessage = '';
     this.editingPermissions = false;
   }
 
   /** Persists only the operational permissions allowed by the generic staff update API. */
   protected savePermissions(): void {
-    if (!this.staffMember || this.updatingPermissions) return;
+    if (!this.staffMember || this.updatingPermissions) {
+      return;
+    }
 
     this.permissionsErrorMessage = '';
     this.updatingPermissions = true;
@@ -132,7 +150,8 @@ export class StaffDetailsComponent implements OnInit {
         this.updatingPermissions = false;
       },
       error: (error: HttpErrorResponse) => {
-        this.permissionsErrorMessage = error.error?.message ?? 'Unable to update staff permissions.';
+        this.permissionsErrorMessage =
+          error.error?.message ?? this.language.translate('staff.updatePermissionsFailed');
         this.updatingPermissions = false;
       },
     });
@@ -141,21 +160,21 @@ export class StaffDetailsComponent implements OnInit {
   /** Shows only the permissions that owners can currently configure for staff. */
   protected permissionsFor(staffMember: StaffUser) {
     const bookingLabels = {
-      NONE: 'No booking changes allowed',
-      OWN_AND_UNASSIGNED: 'Own and unassigned bookings',
-      ALL: 'All tenant bookings',
+      NONE: this.language.translate('staff.noChanges'),
+      OWN_AND_UNASSIGNED: this.language.translate('staff.ownBookings'),
+      ALL: this.language.translate('staff.allTenantBookings'),
     } as const;
     return [
       {
-        name: 'Booking access',
+        name: this.language.translate('staff.permissionBooking'),
         description: bookingLabels[staffMember.bookingAccessScope],
         enabled: staffMember.bookingAccessScope !== 'NONE',
       },
       {
-        name: 'Reminder access',
+        name: this.language.translate('staff.permissionReminder'),
         description: staffMember.canSendReminders
-          ? 'Can open the reminder workspace and send or skip reminders'
-          : 'Cannot access the reminder workspace',
+          ? this.language.translate('staff.reminderAllowed')
+          : this.language.translate('staff.reminderDenied'),
         enabled: staffMember.canSendReminders,
       },
     ];

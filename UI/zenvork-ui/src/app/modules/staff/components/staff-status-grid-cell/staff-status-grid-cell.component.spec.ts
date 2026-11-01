@@ -1,12 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { StaffStatusGridCellComponent } from './staff-status-grid-cell.component';
+import { provideFeatureTranslations } from '../../../../core/i18n/provide-feature-translations';
+import { staffTranslations } from '../../i18n/staff.translations';
 
 describe('StaffStatusGridCellComponent', () => {
   let component: StaffStatusGridCellComponent;
   let fixture: ComponentFixture<StaffStatusGridCellComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [StaffStatusGridCellComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [StaffStatusGridCellComponent],
+      providers: [provideFeatureTranslations(staffTranslations)],
+    }).compileComponents();
     fixture = TestBed.createComponent(StaffStatusGridCellComponent);
     component = fixture.componentInstance;
   });

@@ -9,10 +9,20 @@ import { AppCheckboxComponent } from '../../../../shared/checkbox/checkbox.compo
 import { AppInputComponent } from '../../../../shared/input/input.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
 import { BookingAccessScope, CreateStaffRequest, StaffService } from '../../services/staff.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 
 @Component({
   selector: 'app-staff-form',
-  imports: [ReactiveFormsModule, MatIconModule, AppButtonComponent, AppCheckboxComponent, AppInputComponent, AppSelectComponent],
+  imports: [
+    ReactiveFormsModule,
+    MatIconModule,
+    AppButtonComponent,
+    AppCheckboxComponent,
+    AppInputComponent,
+    AppSelectComponent,
+    TranslatePipe,
+  ],
   templateUrl: './staff-form.component.html',
   styleUrl: './staff-form.component.scss',
 })
@@ -22,17 +32,19 @@ export class StaffFormComponent {
   protected submitted = false;
   protected loading = false;
   protected serverError = '';
-  protected readonly bookingAccessOptions: AppSelectOption[] = [
-    { value: 'NONE', label: 'No booking access' },
-    { value: 'OWN_AND_UNASSIGNED', label: 'Own and unassigned bookings' },
-    { value: 'ALL', label: 'All bookings' },
-  ];
+  protected readonly bookingAccessOptions: AppSelectOption[];
 
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly staffService: StaffService,
     private readonly router: Router,
+    private readonly language: LanguageService,
   ) {
+    this.bookingAccessOptions = [
+      { value: 'NONE', label: this.language.translate('staff.noBookingAccess') },
+      { value: 'OWN_AND_UNASSIGNED', label: this.language.translate('staff.ownBookings') },
+      { value: 'ALL', label: this.language.translate('staff.allBookings') },
+    ];
     this.staffForm = this.formBuilder.nonNullable.group({
       name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
       email: ['', [Validators.email, Validators.maxLength(100)]],
@@ -67,7 +79,7 @@ export class StaffFormComponent {
       .subscribe({
         next: () => this.router.navigateByUrl('/app/staff'),
         error: (error: HttpErrorResponse) => {
-          this.serverError = error.error?.message ?? 'Unable to create staff account.';
+          this.serverError = error.error?.message ?? this.language.translate('staff.createFailed');
         },
       });
   }
@@ -80,15 +92,27 @@ export class StaffFormComponent {
   /** Returns the appropriate validation feedback for a form field. */
   protected fieldError(field: 'name' | 'email' | 'mobile' | 'password'): string {
     const control = this.staffForm.controls[field];
-    if (!control.errors || !(this.submitted || control.touched)) return '';
-
-    if (control.hasError('required')) return 'This field is required.';
-    if (control.hasError('email')) return 'Enter a valid email address.';
-    if (control.hasError('pattern')) return 'Enter a valid 10-digit mobile number.';
-    if (control.hasError('minlength')) {
-      return `Use at least ${control.errors['minlength'].requiredLength as number} characters.`;
+    if (!control.errors || !(this.submitted || control.touched)) {
+      return '';
     }
-    if (control.hasError('maxlength')) return 'This value is too long.';
-    return 'Enter a valid value.';
+
+    if (control.hasError('required')) {
+      return this.language.translate('staff.fieldRequired');
+    }
+    if (control.hasError('email')) {
+      return this.language.translate('staff.invalidEmail');
+    }
+    if (control.hasError('pattern')) {
+      return this.language.translate('staff.invalidMobile');
+    }
+    if (control.hasError('minlength')) {
+      return this.language
+        .translate('staff.minCharacters')
+        .replace('{count}', String(control.errors['minlength'].requiredLength as number));
+    }
+    if (control.hasError('maxlength')) {
+      return this.language.translate('staff.valueTooLong');
+    }
+    return this.language.translate('staff.validValue');
   }
 }

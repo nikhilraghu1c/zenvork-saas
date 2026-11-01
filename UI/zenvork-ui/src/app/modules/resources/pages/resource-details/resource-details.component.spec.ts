@@ -4,12 +4,15 @@ import { of } from 'rxjs';
 import { ResourceDetailsComponent } from './resource-details.component';
 import { ResourceService } from '../../services/resource.service';
 import { AuthService } from '../../../auth/services/auth.service';
+import { provideFeatureTranslations } from '../../../../core/i18n/provide-feature-translations';
+import { resourcesTranslations } from '../../i18n/resources.translations';
 
 describe('ResourceDetailsComponent', () => {
   it('handles unavailable data without inventing records or options', async () => {
     await TestBed.configureTestingModule({
       imports: [ResourceDetailsComponent],
       providers: [
+        provideFeatureTranslations(resourcesTranslations),
         provideRouter([]),
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'missing' } } } },
         {

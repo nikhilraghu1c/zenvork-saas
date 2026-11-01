@@ -3,6 +3,8 @@ import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { StaffService } from '../../services/staff.service';
 import { StaffListComponent } from './staff-list.component';
+import { provideFeatureTranslations } from '../../../../core/i18n/provide-feature-translations';
+import { staffTranslations } from '../../i18n/staff.translations';
 
 describe('StaffListComponent', () => {
   let component: StaffListComponent;
@@ -12,6 +14,7 @@ describe('StaffListComponent', () => {
     await TestBed.configureTestingModule({
       imports: [StaffListComponent],
       providers: [
+        provideFeatureTranslations(staffTranslations),
         provideRouter([]),
         { provide: StaffService, useValue: { getStaff: () => of({ users: [] }) } },
       ],

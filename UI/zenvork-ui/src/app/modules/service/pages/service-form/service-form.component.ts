@@ -7,10 +7,18 @@ import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppInputComponent } from '../../../../shared/input/input.component';
 import { AppToggleComponent } from '../../../../shared/toggle/toggle.component';
 import { ServiceService } from '../../services/service.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 
 @Component({
   selector: 'app-service-form',
-  imports: [ReactiveFormsModule, AppButtonComponent, AppInputComponent, AppToggleComponent],
+  imports: [
+    ReactiveFormsModule,
+    AppButtonComponent,
+    AppInputComponent,
+    AppToggleComponent,
+    TranslatePipe,
+  ],
   templateUrl: './service-form.component.html',
   styleUrl: './service-form.component.scss',
 })
@@ -19,6 +27,7 @@ export class ServiceFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly language = inject(LanguageService);
   protected readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
     price: ['', [Validators.required, Validators.min(0)]],
@@ -41,12 +50,16 @@ export class ServiceFormComponent implements OnInit {
     if (this.serviceId) this.loadService();
   }
   protected submit(): void {
-    if (this.saving) return;
+    if (this.saving) {
+      return;
+    }
     this.submitted = true;
     this.priceFormatError = '';
     this.form.controls.name.setValue(this.form.controls.name.value.trim());
     this.form.markAllAsTouched();
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      return;
+    }
     const value = this.form.getRawValue();
     const payload = {
       name: value.name,
@@ -57,7 +70,7 @@ export class ServiceFormComponent implements OnInit {
       isActive: value.isActive,
     };
     if (!Number.isSafeInteger(payload.pricePaise)) {
-      this.priceFormatError = 'Price is too large';
+      this.priceFormatError = this.language.translate('service.priceLarge');
       return;
     }
     this.saving = true;
@@ -72,7 +85,9 @@ export class ServiceFormComponent implements OnInit {
       )
       .subscribe({
         next: () => void this.router.navigateByUrl('/app/services'),
-        error: (error) => (this.errorMessage = error.error?.message ?? 'Unable to save service.'),
+        error: (error) =>
+          (this.errorMessage =
+            error.error?.message ?? this.language.translate('service.saveFailed')),
       });
   }
   protected cancel(): void {
@@ -80,12 +95,30 @@ export class ServiceFormComponent implements OnInit {
   }
   protected fieldError(field: 'name' | 'price' | 'duration'): string {
     const control = this.form.controls[field];
-    if (field === 'price' && this.priceFormatError) return this.priceFormatError;
-    if (!control.invalid || (!control.touched && !this.submitted)) return '';
-    if (control.hasError('required')) return `${field === 'name' ? 'Service name' : field === 'price' ? 'Price' : 'Duration'} is required`;
-    if (control.hasError('min')) return field === 'price' ? 'Price cannot be negative' : 'Duration must be at least 1 minute';
-    if (control.hasError('max')) return field === 'name' ? 'Service name cannot exceed 100 characters' : 'Duration cannot exceed 1440 minutes';
-    return 'Enter a valid value';
+    if (field === 'price' && this.priceFormatError) {
+      return this.priceFormatError;
+    }
+    if (!control.invalid || (!control.touched && !this.submitted)) {
+      return '';
+    }
+    if (control.hasError('required')) {
+      return this.language.translate(
+        field === 'name'
+          ? 'service.nameRequired'
+          : field === 'price'
+            ? 'service.priceRequired'
+            : 'service.durationRequired',
+      );
+    }
+    if (control.hasError('min')) {
+      return this.language.translate(
+        field === 'price' ? 'service.priceNegative' : 'service.durationMinimum',
+      );
+    }
+    if (control.hasError('max')) {
+      return this.language.translate(field === 'name' ? 'service.nameMax' : 'service.durationMax');
+    }
+    return this.language.translate('service.validValue');
   }
   private loadService(): void {
     this.loading = true;
@@ -105,7 +138,9 @@ export class ServiceFormComponent implements OnInit {
             requiresPersonResource: service.requiresPersonResource,
             isActive: service.isActive,
           }),
-        error: (error) => (this.errorMessage = error.error?.message ?? 'Unable to load service.'),
+        error: (error) =>
+          (this.errorMessage =
+            error.error?.message ?? this.language.translate('service.loadFailed')),
       });
   }
 }

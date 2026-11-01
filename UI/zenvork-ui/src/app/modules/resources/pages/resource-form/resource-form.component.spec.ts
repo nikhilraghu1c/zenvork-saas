@@ -5,12 +5,15 @@ import { ResourceFormComponent } from './resource-form.component';
 import { ResourceService } from '../../services/resource.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { StaffService } from '../../../staff/services/staff.service';
+import { provideFeatureTranslations } from '../../../../core/i18n/provide-feature-translations';
+import { resourcesTranslations } from '../../i18n/resources.translations';
 
 describe('ResourceFormComponent', () => {
   it('handles unavailable data without inventing records or options', async () => {
     await TestBed.configureTestingModule({
       imports: [ResourceFormComponent],
       providers: [
+        provideFeatureTranslations(resourcesTranslations),
         provideRouter([]),
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'missing' } } } },
         {
