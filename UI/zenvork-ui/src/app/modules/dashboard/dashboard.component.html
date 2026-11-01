@@ -196,7 +196,7 @@
                 <span class="rank">{{ index + 1 }}</span>
                 <div>
                   <strong>{{ staffMember.name }}</strong
-                  ><small>{{ staffMember.resourceType }}</small>
+                  ><small>{{ staffMember.resourceTypeName || staffMember.resourceType }}</small>
                 </div>
                 <b
                   >{{ staffMember.bookingsCount }} booking{{

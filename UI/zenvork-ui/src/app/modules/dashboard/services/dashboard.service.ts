@@ -15,6 +15,7 @@ export interface DashboardTopStaffMember {
   resourceId: string;
   name: string;
   resourceType: string;
+  resourceTypeName?: string;
   bookingsCount: number;
 }
 

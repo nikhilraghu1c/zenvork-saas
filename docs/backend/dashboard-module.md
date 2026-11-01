@@ -131,6 +131,9 @@ grouping:
 ```
 
 This is a two-step filter because a booking can reserve both a person and a non-person resource.
+The Resource document stores the stable type code (for example `STYLIST`), so the controller also
+maps that code through the tenant business type configuration before returning the user-facing
+`resourceTypeName` (for example `Stylist`).
 
 ## Different metrics use meaningful dates
 

@@ -51,6 +51,7 @@ range used for comparison.
         "resourceId": "65f123456789012345678902",
         "name": "Rahul",
         "resourceType": "STYLIST",
+        "resourceTypeName": "Stylist",
         "bookingsCount": 6
       }
     ]
@@ -69,7 +70,8 @@ enabled resources whose configured business type marks them as people; it is not
 within the selected `period`. Each line's revenue is snapshot price multiplied by its quantity (legacy
 bookings without quantity count as one); manual extra charges are not attributed to a service.
 `topStaff` contains at most three enabled person resources by completed-booking count in the selected
-period. Rooms, chairs, and other non-person resource types are excluded.
+period. Rooms, chairs, and other non-person resource types are excluded. `resourceType` remains the
+stable configured code, while `resourceTypeName` is the user-facing configured name for display.
 
 `bookingHealth` counts the current state with its relevant lifecycle date: pending records by
 `createdAt`, scheduled records by planned start, checked-in records by actual start, completed records

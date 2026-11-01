@@ -58,14 +58,22 @@ const getTopServicesByRevenue = (req, from, to) =>
   ]);
 
 // Ranks only configured person resources, preventing rooms or equipment from appearing as top staff.
-const getTopStaffByCompletedBookings = async (req, from, to, personTypes) => {
+const getTopStaffByCompletedBookings = async (
+  req,
+  from,
+  to,
+  personTypes,
+  resourceTypeNames,
+) => {
   // Resolve eligible staff first so high-volume chairs or rooms cannot displace them from the top three.
   const staffResources = await Resource.find(
     tenantFilter(req, { isActive: true, resourceType: { $in: personTypes } }),
   )
     .select("name resourceType")
     .lean();
-  if (staffResources.length === 0) return [];
+  if (staffResources.length === 0) {
+    return [];
+  }
   const staffIds = staffResources.map((resource) => resource._id);
   const totals = await Booking.aggregate([
     {
@@ -95,6 +103,8 @@ const getTopStaffByCompletedBookings = async (req, from, to, personTypes) => {
             resourceId: resource._id,
             name: resource.name,
             resourceType: resource.resourceType,
+            resourceTypeName:
+              resourceTypeNames.get(resource.resourceType) ?? resource.resourceType,
             bookingsCount: total.bookingsCount,
           }
         : null;
@@ -173,9 +183,13 @@ const getDashboardSummary = async (req, res) => {
     const businessType = await BusinessType.findById(business.businessTypeId)
       .select("resourceTypes")
       .lean();
-    const personTypes = (businessType?.resourceTypes ?? [])
+    const personResourceTypes = (businessType?.resourceTypes ?? [])
       .filter((type) => type.isPerson && type.isActive)
-      .map((type) => type.code);
+    const personTypes = personResourceTypes.map((type) => type.code);
+    // Resource documents store stable type codes; dashboard responses expose their configured display names.
+    const resourceTypeNames = new Map(
+      personResourceTypes.map((type) => [type.code, type.name]),
+    );
 
     // Independent count and aggregation queries run together because none needs another's result.
     const [
@@ -214,7 +228,7 @@ const getDashboardSummary = async (req, res) => {
         },
       ]),
       getTopServicesByRevenue(req, from, to),
-      getTopStaffByCompletedBookings(req, from, to, personTypes),
+      getTopStaffByCompletedBookings(req, from, to, personTypes, resourceTypeNames),
       getBookingHealth(req, from, to),
     ]);
     const paidTotal =
