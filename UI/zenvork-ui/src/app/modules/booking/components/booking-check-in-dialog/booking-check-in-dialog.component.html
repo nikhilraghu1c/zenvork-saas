@@ -3,14 +3,17 @@
   <section class="check-in-dialog__panel">
     <header>
       <div>
-        <p>Start service</p>
-        <h2 id="check-in-title">Check in {{ booking.client?.name ?? 'client' }}</h2>
-        <span>Choose the people and other resources needed for this service.</span>
+        <p>{{ 'booking.startService' | translate }}</p>
+        <h2 id="check-in-title">
+          {{ 'booking.checkIn' | translate }}
+          {{ booking.client?.name ?? ('booking.client' | translate) }}
+        </h2>
+        <span>{{ 'booking.resources' | translate }}</span>
       </div>
       <app-button
         variant="text"
         [iconOnly]="true"
-        ariaLabel="Close check-in"
+        [ariaLabel]="'booking.closeCheckIn' | translate"
         [disabled]="submitting"
         (clicked)="close()"
       >
@@ -19,17 +22,21 @@
     </header>
 
     @if (loading) {
-      <p class="state" role="status">Loading resources…</p>
+      <p class="state" role="status">{{ 'booking.loadingResources' | translate }}</p>
     } @else if (errorMessage && !resources.length) {
       <p class="state is-error" role="alert">{{ errorMessage }}</p>
     } @else {
-      <div class="resource-fields" aria-label="Resources for this service">
+      <div class="resource-fields" [attr.aria-label]="'booking.resourcesForService' | translate">
         @if (requiresPersonResource()) {
           <div class="person-requirement" [class.is-satisfied]="hasSelectedPersonResource()">
             <mat-icon aria-hidden="true">person</mat-icon>
             <p>
-              <strong>{{ hasSelectedPersonResource() ? 'Team member or professional assigned' : 'Assign a team member or professional' }}</strong>
-              <span>This service cannot be checked in without one.</span>
+              <strong>{{
+                hasSelectedPersonResource()
+                  ? 'Team member or professional assigned'
+                  : 'Assign a team member or professional'
+              }}</strong>
+              <span>{{ 'booking.personRequiredAtCheckIn' | translate }}</span>
             </p>
           </div>
         }
@@ -42,7 +49,7 @@
             [options]="resourceOptions(type)"
           />
         } @empty {
-          <p class="state">No active resources are available. Add a resource before checking in.</p>
+          <p class="state">{{ 'booking.noResources' | translate }}</p>
         }
       </div>
       @if (errorMessage) {
@@ -51,9 +58,15 @@
     }
 
     <footer>
-      <app-button variant="tertiary" [disabled]="submitting" (clicked)="close()">Cancel</app-button>
-      <app-button [loading]="submitting" [disabled]="loading || selectedResourceIds().length === 0" (clicked)="confirm()">
-        Check in
+      <app-button variant="tertiary" [disabled]="submitting" (clicked)="close()">{{
+        'booking.cancel' | translate
+      }}</app-button>
+      <app-button
+        [loading]="submitting"
+        [disabled]="loading || selectedResourceIds().length === 0"
+        (clicked)="confirm()"
+      >
+        {{ 'booking.checkIn' | translate }}
       </app-button>
     </footer>
   </section>

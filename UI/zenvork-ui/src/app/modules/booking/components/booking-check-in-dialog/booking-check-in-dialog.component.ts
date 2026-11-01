@@ -11,10 +11,18 @@ import {
   ResourceTypeOption,
 } from '../../../resources/services/resource.service';
 import { BookingRecord, BookingService } from '../../services/booking.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 
 @Component({
   selector: 'app-booking-check-in-dialog',
-  imports: [ReactiveFormsModule, MatIconModule, AppButtonComponent, AppSelectComponent],
+  imports: [
+    ReactiveFormsModule,
+    MatIconModule,
+    AppButtonComponent,
+    AppSelectComponent,
+    TranslatePipe,
+  ],
   templateUrl: './booking-check-in-dialog.component.html',
   styleUrl: './booking-check-in-dialog.component.scss',
 })
@@ -22,6 +30,7 @@ export class BookingCheckInDialogComponent implements OnInit {
   private readonly bookingService = inject(BookingService);
   private readonly resourceService = inject(ResourceService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly language = inject(LanguageService);
 
   @Input({ required: true }) booking!: BookingRecord;
   @Output() closed = new EventEmitter<void>();
@@ -49,15 +58,15 @@ export class BookingCheckInDialogComponent implements OnInit {
           );
           if (!this.resourceTypes.length) {
             // Keep the selector usable for legacy tenants whose type configuration is incomplete.
-            this.resourceTypes = [...new Set(this.resources.map((resource) => resource.resourceType))].map(
-              (code) => ({
-                code,
-                name: code,
-                isPerson: this.resources.some(
-                  (resource) => resource.resourceType === code && resource.isPerson,
-                ),
-              }),
-            );
+            this.resourceTypes = [
+              ...new Set(this.resources.map((resource) => resource.resourceType)),
+            ].map((code) => ({
+              code,
+              name: code,
+              isPerson: this.resources.some(
+                (resource) => resource.resourceType === code && resource.isPerson,
+              ),
+            }));
           }
           const activeIds = new Set(this.resources.map((resource) => resource._id));
           const existingResources = this.booking.resources
@@ -65,7 +74,8 @@ export class BookingCheckInDialogComponent implements OnInit {
             .map((resource) => resource._id);
           this.resourceTypes.forEach((type) => {
             const existingResourceId = this.resources.find(
-              (resource) => resource.resourceType === type.code && existingResources.includes(resource._id),
+              (resource) =>
+                resource.resourceType === type.code && existingResources.includes(resource._id),
             )?._id;
             this.resourceSelections[type.code] = new FormControl(existingResourceId ?? '', {
               nonNullable: true,
@@ -74,7 +84,8 @@ export class BookingCheckInDialogComponent implements OnInit {
           this.loading = false;
         },
         error: (error) => {
-          this.errorMessage = error.error?.message ?? 'Unable to load resources.';
+          this.errorMessage =
+            error.error?.message ?? this.language.translate('booking.loadResourcesFailed');
           this.loading = false;
         },
       });
@@ -83,7 +94,7 @@ export class BookingCheckInDialogComponent implements OnInit {
   /** Provides a dedicated, type-filtered dropdown instead of mixing all business resources together. */
   protected resourceOptions(type: ResourceTypeOption): AppSelectOption[] {
     return [
-      { value: '', label: `No ${type.name.toLowerCase()} assigned` },
+      { value: '', label: this.language.translate('booking.noResourceAssigned') },
       ...this.resources
         .filter((resource) => resource.resourceType === type.code)
         .map((resource) => ({ value: resource._id, label: resource.name })),
@@ -113,19 +124,26 @@ export class BookingCheckInDialogComponent implements OnInit {
   }
 
   protected resourceLabel(type: ResourceTypeOption): string {
-    return this.requiresPersonResource() && type.isPerson ? `${type.name} (required)` : type.name;
+    if (this.requiresPersonResource() && type.isPerson) {
+      return `${type.name} (${this.language.translate('booking.required')})`;
+    }
+    return type.name;
   }
 
   /** Keeps the dialog mounted while its one atomic check-in request is in flight. */
   protected close(): void {
-    if (!this.submitting) this.closed.emit();
+    if (!this.submitting) {
+      this.closed.emit();
+    }
   }
 
   protected confirm(): void {
     const resourceIds = this.selectedResourceIds();
-    if (this.submitting || resourceIds.length === 0) return;
+    if (this.submitting || resourceIds.length === 0) {
+      return;
+    }
     if (this.requiresPersonResource() && !this.hasSelectedPersonResource()) {
-      this.errorMessage = 'Select a team member or professional before checking in.';
+      this.errorMessage = this.language.translate('booking.selectPerson');
       return;
     }
 
@@ -143,7 +161,8 @@ export class BookingCheckInDialogComponent implements OnInit {
           this.checkedIn.emit(booking);
         },
         error: (error) => {
-          this.errorMessage = error.error?.message ?? 'Unable to check in this booking.';
+          this.errorMessage =
+            error.error?.message ?? this.language.translate('booking.checkInFailed');
           this.submitting = false;
         },
       });

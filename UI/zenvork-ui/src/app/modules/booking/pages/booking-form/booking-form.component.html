@@ -1,16 +1,19 @@
-<section class="booking-form-page" aria-label="New booking">
-  <nav class="breadcrumb" aria-label="Breadcrumb">
-    <a routerLink="/app/booking">Bookings</a><span aria-hidden="true">/</span
-    ><span aria-current="page">New booking</span>
+<section class="booking-form-page" [attr.aria-label]="'booking.new' | translate">
+  <nav class="breadcrumb" [attr.aria-label]="'booking.back' | translate">
+    <a routerLink="/app/booking">{{ 'booking.title' | translate }}</a
+    ><span aria-hidden="true">/</span
+    ><span aria-current="page">{{ 'booking.new' | translate }}</span>
   </nav>
   <header class="page-header">
-    <p class="eyebrow">Booking workspace</p>
-    <h1>New booking</h1>
-    <p>Choose the client, services and schedule. Staff and other details can be added when needed.</p>
+    <p class="eyebrow">{{ 'booking.workspace' | translate }}</p>
+    <h1>{{ 'booking.new' | translate }}</h1>
+    <p>
+      {{ 'booking.createDescription' | translate }}
+    </p>
   </header>
 
   @if (loading) {
-    <p class="page-state" role="status">Loading booking form…</p>
+    <p class="page-state" role="status">{{ 'booking.loadingForm' | translate }}</p>
   } @else if (errorMessage && !clients.length && !resourceTypes.length) {
     <p class="page-state is-error" role="alert">{{ errorMessage }}</p>
   } @else {
@@ -18,7 +21,8 @@
       <div class="booking-form">
         <section class="form-section" aria-labelledby="client-title">
           <h2 id="client-title">
-            Client <span class="required-marker" aria-hidden="true">*</span>
+            {{ 'booking.client' | translate }}
+            <span class="required-marker" aria-hidden="true">*</span>
           </h2>
           <div class="card">
             @if (selectedClient) {
@@ -28,19 +32,21 @@
                   <strong>{{ selectedClient.name }}</strong
                   ><span>{{ selectedClient.mobile }}</span>
                 </div>
-                <button type="button" (click)="changeClient()">Change</button>
+                <button type="button" (click)="changeClient()">
+                  {{ 'booking.change' | translate }}
+                </button>
               </div>
             } @else {
               <app-input
                 [formControl]="clientSearchControl"
-                label="Find client"
+                [label]="'booking.findClient' | translate"
                 labelPlacement="outside"
                 subscriptSizing="dynamic"
                 prefixIcon="search"
-                placeholder="Search by name, mobile, or email"
+                [placeholder]="'booking.searchClientPlaceholder' | translate"
               />
               <p class="field-hint">
-                Select an existing client, or add them while creating this booking.
+                {{ 'booking.clientSelectionHint' | translate }}
               </p>
               <div class="client-results">
                 @for (client of matchingClients(); track client._id) {
@@ -53,7 +59,7 @@
                   </button>
                 }
                 <button type="button" class="add-client" (click)="addNewClient()">
-                  <mat-icon aria-hidden="true">add</mat-icon>Add new client
+                  <mat-icon aria-hidden="true">add</mat-icon>{{ 'booking.addClient' | translate }}
                 </button>
               </div>
             }
@@ -63,25 +69,25 @@
                 <div class="two-fields">
                   <app-input
                     [formControl]="newClientNameControl"
-                    label="Full name"
+                    [label]="'booking.fullName' | translate"
                     labelPlacement="outside"
                     subscriptSizing="dynamic"
-                    placeholder="Client name"
+                    [placeholder]="'booking.clientNamePlaceholder' | translate"
                     [required]="true"
                   /><app-input
                     [formControl]="newClientMobileControl"
                     type="tel"
-                    label="Mobile"
+                    [label]="'booking.mobile' | translate"
                     labelPlacement="outside"
                     subscriptSizing="dynamic"
-                    placeholder="10-digit mobile"
+                    [placeholder]="'booking.mobilePlaceholder' | translate"
                     [required]="true"
                   />
                 </div>
                 <app-input
                   [formControl]="newClientEmailControl"
                   type="email"
-                  label="Email"
+                  [label]="'booking.email' | translate"
                   labelPlacement="outside"
                   subscriptSizing="dynamic"
                   placeholder="client@example.com"
@@ -92,57 +98,63 @@
         </section>
 
         <section class="form-section" aria-labelledby="services-title">
-          <h2 id="services-title">Services</h2>
+          <h2 id="services-title">{{ 'booking.services' | translate }}</h2>
           <div class="card service-fields">
             <app-select
               [formControl]="serviceIdsControl"
-              label="Services"
+              [label]="'booking.services' | translate"
               labelPlacement="outside"
               subscriptSizing="dynamic"
               [multiple]="true"
               [options]="serviceOptionsForSelect()"
-              placeholder="Select services"
+              [placeholder]="'booking.selectServices' | translate"
             />
             @if (selectedServices().length) {
-              <div class="service-quantities" aria-label="Service quantities">
+              <div
+                class="service-quantities"
+                [attr.aria-label]="'booking.serviceQuantities' | translate"
+              >
                 @for (service of selectedServices(); track service._id) {
                   <div class="service-quantity-row">
                     <span
                       ><strong>{{ service.name }}</strong
-                      ><small>{{ formatAmount(service.pricePaise) }} each</small></span
+                      ><small
+                        >{{ formatAmount(service.pricePaise) }}
+                        {{ 'booking.each' | translate }}</small
+                      ></span
                     >
                     <app-quantity-stepper
                       [formControl]="serviceQuantityControl(service._id)"
-                      [ariaLabel]="'Quantity for ' + service.name"
+                      [ariaLabel]="('booking.quantityFor' | translate) + ' ' + service.name"
                     />
                   </div>
                 }
               </div>
             }
-            <p class="field-hint">You can also add or change services after check-in.</p>
+            <p class="field-hint">{{ 'booking.servicesAfterCheckIn' | translate }}</p>
           </div>
         </section>
 
         <section class="form-section" aria-labelledby="schedule-title">
-          <h2 id="schedule-title">Schedule</h2>
+          <h2 id="schedule-title">{{ 'booking.schedule' | translate }}</h2>
           <div class="card schedule-fields">
             <app-date-picker
               [formControl]="dateControl"
-              label="Start date"
+              [label]="'booking.startDate' | translate"
               labelPlacement="outside"
               subscriptSizing="dynamic"
               [min]="dateTime.businessDateInputValue()"
             />
             <app-time-picker
               [formControl]="startTimeControl"
-              label="Start time"
+              [label]="'booking.startTime' | translate"
               labelPlacement="outside"
               subscriptSizing="dynamic"
             />
             @if (multiDayControl.value) {
               <app-date-picker
                 [formControl]="endDateControl"
-                label="End date"
+                [label]="'booking.endDate' | translate"
                 labelPlacement="outside"
                 subscriptSizing="dynamic"
                 [min]="dateControl.value || dateTime.businessDateInputValue()"
@@ -150,19 +162,22 @@
             }
             <app-time-picker
               [formControl]="endTimeControl"
-              label="End time"
+              [label]="'booking.endTime' | translate"
               labelPlacement="outside"
               subscriptSizing="dynamic"
             />
-            <app-checkbox [formControl]="multiDayControl" label="Spans multiple days" />
+            <app-checkbox
+              [formControl]="multiDayControl"
+              [label]="'booking.spansMultipleDays' | translate"
+            />
           </div>
         </section>
 
         <section class="form-section" aria-labelledby="resources-title">
           <h2 id="resources-title">
-            Assign resources
+            {{ 'booking.assignResources' | translate }}
             @if (requiresPersonResource()) {
-              <span>Team member needed at check-in</span>
+              <span>{{ 'booking.teamMemberNeeded' | translate }}</span>
             }
           </h2>
           <div class="card resource-fields">
@@ -172,10 +187,10 @@
                 <p>
                   <strong>{{
                     hasSelectedPersonResource()
-                      ? 'Team member or professional assigned'
-                      : 'Assign a team member or professional'
+                      ? ('booking.personAssigned' | translate)
+                      : ('booking.assignPerson' | translate)
                   }}</strong>
-                  <span>This service cannot be checked in or completed without one.</span>
+                  <span>{{ 'booking.personRequiredDescription' | translate }}</span>
                 </p>
               </div>
             }
@@ -188,12 +203,12 @@
                 [options]="resourceOptions(type)"
               />
             } @empty {
-              <p class="field-hint">No resource types are configured for this business.</p>
+              <p class="field-hint">{{ 'booking.noResourceTypes' | translate }}</p>
             }
           </div>
         </section>
 
-        <section class="form-section" aria-label="Optional booking details">
+        <section class="form-section" [attr.aria-label]="'booking.optionalDetails' | translate">
           <div class="card">
             <div class="optional-details">
               <button
@@ -204,8 +219,8 @@
                 (click)="toggleOptionalDetails()"
               >
                 <span class="optional-details__heading">
-                  <span>Adjustments &amp; notes</span>
-                  <small>Discount, extra charge or special request</small>
+                  <span>{{ 'booking.adjustmentsNotes' | translate }}</span>
+                  <small>{{ 'booking.adjustmentsNotesHint' | translate }}</small>
                 </span>
                 <span class="optional-details__indicator" aria-hidden="true">
                   @if (showOptionalDetails) {
@@ -217,48 +232,48 @@
               </button>
               @if (showOptionalDetails) {
                 <div id="optional-booking-details" class="optional-details__content">
-                <div class="discount-fields">
-                  <app-select
-                    [formControl]="discountTypeControl"
-                    label="Discount"
-                    labelPlacement="outside"
-                    subscriptSizing="dynamic"
-                    [options]="discountOptions()"
-                  />
-                  @if (discountTypeControl.value !== 'none') {
-                    <app-input
-                      [formControl]="discountValueControl"
-                      type="number"
-                      [label]="
-                        discountTypeControl.value === 'amount'
-                          ? 'Discount amount'
-                          : 'Discount percentage'
-                      "
+                  <div class="discount-fields">
+                    <app-select
+                      [formControl]="discountTypeControl"
+                      [label]="'booking.discount' | translate"
                       labelPlacement="outside"
-                      [prefix]="discountTypeControl.value === 'amount' ? '₹ ' : ''"
-                      [suffix]="discountTypeControl.value === 'percentage' ? '%' : ''"
-                      [min]="0"
-                      [max]="discountTypeControl.value === 'percentage' ? 100 : undefined"
-                      placeholder="0"
                       subscriptSizing="dynamic"
+                      [options]="discountOptions()"
                     />
-                  }
-                </div>
-                <app-input
-                  [formControl]="extraAmountControl"
-                  type="number"
-                  label="Extra charge"
-                  labelPlacement="outside"
-                  prefix="₹ "
-                  placeholder="0"
-                />
-                <label class="native-field"
-                  ><span>Notes</span
-                  ><textarea
-                    [formControl]="notesControl"
-                    placeholder="Any special requests or details…"
-                  ></textarea>
-                </label>
+                    @if (discountTypeControl.value !== 'none') {
+                      <app-input
+                        [formControl]="discountValueControl"
+                        type="number"
+                        [label]="
+                          discountTypeControl.value === 'amount'
+                            ? ('booking.discountAmount' | translate)
+                            : ('booking.discountPercentage' | translate)
+                        "
+                        labelPlacement="outside"
+                        [prefix]="discountTypeControl.value === 'amount' ? '₹ ' : ''"
+                        [suffix]="discountTypeControl.value === 'percentage' ? '%' : ''"
+                        [min]="0"
+                        [max]="discountTypeControl.value === 'percentage' ? 100 : undefined"
+                        placeholder="0"
+                        subscriptSizing="dynamic"
+                      />
+                    }
+                  </div>
+                  <app-input
+                    [formControl]="extraAmountControl"
+                    type="number"
+                    [label]="'booking.extraCharge' | translate"
+                    labelPlacement="outside"
+                    prefix="₹ "
+                    placeholder="0"
+                  />
+                  <label class="native-field"
+                    ><span>{{ 'booking.notes' | translate }}</span
+                    ><textarea
+                      [formControl]="notesControl"
+                      [placeholder]="'booking.notesPlaceholder' | translate"
+                    ></textarea>
+                  </label>
                 </div>
               }
             </div>
@@ -266,52 +281,58 @@
         </section>
       </div>
 
-      <aside class="summary" aria-label="Booking summary">
-        <h2>Booking summary</h2>
+      <aside class="summary" [attr.aria-label]="'booking.summary' | translate">
+        <h2>{{ 'booking.summary' | translate }}</h2>
         <div class="summary-row">
-          <span>Client</span
-          ><strong [class.empty]="summaryClient() === 'Not selected'">{{ summaryClient() }}</strong>
+          <span>{{ 'booking.client' | translate }}</span
+          ><strong [class.empty]="summaryClient() === ('booking.notSelected' | translate)">{{
+            summaryClient()
+          }}</strong>
         </div>
         @for (type of resourceTypes; track type.code) {
           <div class="summary-row">
             <span>{{ type.name }}</span
-            ><strong [class.empty]="summaryResource(type) === 'Not assigned'">{{
-              summaryResource(type)
-            }}</strong>
+            ><strong
+              [class.empty]="summaryResource(type) === ('booking.notAssigned' | translate)"
+              >{{ summaryResource(type) }}</strong
+            >
           </div>
         }
         <div class="summary-row">
-          <span>Date</span
+          <span>{{ 'booking.date' | translate }}</span
           ><strong [class.empty]="!dateControl.value">{{
             dateControl.value
               ? dateControl.value + (multiDayControl.value ? ' – ' + endDateControl.value : '')
-              : 'Not set'
+              : ('booking.notSet' | translate)
           }}</strong>
         </div>
         <div class="summary-row">
-          <span>Time</span
+          <span>{{ 'booking.time' | translate }}</span
           ><strong [class.empty]="!startTimeControl.value">{{
             startTimeControl.value && endTimeControl.value
               ? startTimeControl.value + ' – ' + endTimeControl.value
-              : 'Not set'
+              : ('booking.notSet' | translate)
           }}</strong>
         </div>
         <div class="summary-row">
-          <span>Services</span
-          ><strong [class.empty]="summaryServices() === 'Not selected'">{{
+          <span>{{ 'booking.services' | translate }}</span
+          ><strong [class.empty]="summaryServices() === ('booking.notSelected' | translate)">{{
             summaryServices()
           }}</strong>
         </div>
         @if (requiresPersonResource()) {
           <div class="summary-row">
-            <span>Person</span
+            <span>{{ 'booking.person' | translate }}</span
             ><strong [class.empty]="!hasSelectedPersonResource()">{{
-              hasSelectedPersonResource() ? 'Assigned' : 'Required at check-in'
+              hasSelectedPersonResource()
+                ? ('booking.assigned' | translate)
+                : ('booking.requiredAtCheckIn' | translate)
             }}</strong>
           </div>
         }
         <div class="summary-row">
-          <span>Estimated bill</span><strong>{{ estimatedTotal() }}</strong>
+          <span>{{ 'booking.estimatedBill' | translate }}</span
+          ><strong>{{ estimatedTotal() }}</strong>
         </div>
         @if (errorMessage) {
           <p class="form-error" role="alert">{{ errorMessage }}</p>
@@ -324,7 +345,7 @@
           [disabled]="submitting || !canConfirmBooking()"
           [fullWidth]="true"
           (clicked)="submit()"
-          >Confirm booking</app-button
+          >{{ 'booking.confirm' | translate }}</app-button
         >
       </aside>
     </form>

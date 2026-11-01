@@ -12,6 +12,8 @@ import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppFullCalendarComponent } from '../../../../shared/full-calendar/full-calendar.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 import { ResourceService } from '../../../resources/services/resource.service';
 import {
   BookingCalendarDaySummary,
@@ -39,6 +41,7 @@ const FULL_CALENDAR_VIEW: Record<CalendarView, string> = {
     AppFullCalendarComponent,
     AppButtonComponent,
     AppSelectComponent,
+    TranslatePipe,
   ],
   templateUrl: './booking-calendar.component.html',
   styleUrl: './booking-calendar.component.scss',
@@ -50,6 +53,7 @@ export class BookingCalendarComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly dateTime = inject(BusinessDateTimeService);
   private readonly resourceService = inject(ResourceService);
+  private readonly language = inject(LanguageService);
 
   @ViewChild('calendar')
   private calendar?: AppFullCalendarComponent;
@@ -59,13 +63,15 @@ export class BookingCalendarComponent implements OnInit {
   protected readonly statusControl = new FormControl<BookingStatus[]>([], { nonNullable: true });
   protected readonly resourceControl = new FormControl('', { nonNullable: true });
   protected readonly statusOptions: AppSelectOption[] = [
-    { value: 'SCHEDULED', label: 'Scheduled' },
-    { value: 'CHECKED_IN', label: 'Checked in' },
-    { value: 'COMPLETED', label: 'Completed' },
-    { value: 'CANCELLED', label: 'Cancelled' },
-    { value: 'NO_SHOW', label: 'No-show' },
+    { value: 'SCHEDULED', label: this.language.translate('booking.scheduled') },
+    { value: 'CHECKED_IN', label: this.language.translate('booking.checkedIn') },
+    { value: 'COMPLETED', label: this.language.translate('booking.completed') },
+    { value: 'CANCELLED', label: this.language.translate('booking.cancelled') },
+    { value: 'NO_SHOW', label: this.language.translate('booking.noShow') },
   ];
-  protected resourceOptions: AppSelectOption[] = [{ value: '', label: 'All resources' }];
+  protected resourceOptions: AppSelectOption[] = [
+    { value: '', label: this.language.translate('booking.allResources') },
+  ];
   protected loading = true;
   protected errorMessage = '';
   protected calendarOptions: CalendarOptions = {
@@ -193,7 +199,8 @@ export class BookingCalendarComponent implements OnInit {
           this.loading = false;
         },
         error: (error) => {
-          this.errorMessage = error.error?.message ?? 'Unable to load calendar bookings.';
+          this.errorMessage =
+            error.error?.message ?? this.language.translate('booking.calendarLoadFailed');
           this.loading = false;
         },
       });
@@ -217,7 +224,8 @@ export class BookingCalendarComponent implements OnInit {
           this.loading = false;
         },
         error: (error) => {
-          this.errorMessage = error.error?.message ?? 'Unable to load calendar bookings.';
+          this.errorMessage =
+            error.error?.message ?? this.language.translate('booking.calendarLoadFailed');
           this.loading = false;
         },
       });
@@ -227,7 +235,7 @@ export class BookingCalendarComponent implements OnInit {
   private setCalendarEvents(bookings: BookingRecord[]): void {
     const events: EventInput[] = bookings.map((booking) => ({
       id: booking._id,
-      title: `${booking.client?.name ?? 'Client unavailable'} · ${this.resourceLabel(booking)}`,
+      title: `${booking.client?.name ?? this.language.translate('booking.clientUnavailable')} · ${this.resourceLabel(booking)}`,
       start: this.businessWallTime(booking.scheduledStartAt!),
       end: booking.scheduledEndAt ? this.businessWallTime(booking.scheduledEndAt) : undefined,
       classNames: [`booking-event--${booking.status.toLowerCase()}`],
@@ -241,7 +249,7 @@ export class BookingCalendarComponent implements OnInit {
   private setMonthSummaryEvents(days: BookingCalendarDaySummary[]): void {
     const events: EventInput[] = days.map((day) => ({
       id: `summary-${day.date}`,
-      title: `${day.total} ${day.total === 1 ? 'booking' : 'bookings'}`,
+      title: `${day.total} ${this.language.translate('booking.title')}`,
       start: day.date,
       allDay: true,
       classNames: ['booking-summary-event'],
@@ -303,7 +311,9 @@ export class BookingCalendarComponent implements OnInit {
       };
     }
     const selected = this.dateFromValue(this.selectedDate);
-    const start = this.dateValue(new Date(Date.UTC(selected.getUTCFullYear(), selected.getUTCMonth(), 1)));
+    const start = this.dateValue(
+      new Date(Date.UTC(selected.getUTCFullYear(), selected.getUTCMonth(), 1)),
+    );
     const end = this.dateValue(
       new Date(Date.UTC(selected.getUTCFullYear(), selected.getUTCMonth() + 1, 1)),
     );
@@ -345,7 +355,7 @@ export class BookingCalendarComponent implements OnInit {
       .subscribe({
         next: ({ resources }) => {
           this.resourceOptions = [
-            { value: '', label: 'All resources' },
+            { value: '', label: this.language.translate('booking.allResources') },
             ...resources
               .filter((resource) => resource.isActive)
               .map((resource) => ({ value: resource._id, label: resource.name })),
@@ -353,13 +363,17 @@ export class BookingCalendarComponent implements OnInit {
         },
         error: () => {
           // Calendar remains usable when the optional resource filter cannot load.
-          this.resourceOptions = [{ value: '', label: 'All resources' }];
+          this.resourceOptions = [
+            { value: '', label: this.language.translate('booking.allResources') },
+          ];
         },
       });
   }
 
   private resourceLabel(booking: BookingRecord): string {
-    return booking.resources.length ? booking.resources.map((resource) => resource.name).join(', ') : 'Unassigned';
+    return booking.resources.length
+      ? booking.resources.map((resource) => resource.name).join(', ')
+      : this.language.translate('booking.unassigned');
   }
 
   /** FullCalendar receives business-local wall times so browser timezones cannot shift appointments. */

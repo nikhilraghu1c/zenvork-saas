@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
 import { BookingRecord, BookingStatus } from '../../services/booking.service';
+import { LanguageService } from '../../../../core/services/language.service';
 
 @Component({
   selector: 'app-booking-status-grid-cell',
@@ -9,6 +10,7 @@ import { BookingRecord, BookingStatus } from '../../services/booking.service';
   styleUrl: './booking-status-grid-cell.component.scss',
 })
 export class BookingStatusGridCellComponent implements ICellRendererAngularComp {
+  private readonly language = inject(LanguageService);
   protected status: BookingStatus = 'PENDING';
 
   /** Receives the booking lifecycle status displayed in a booking grid row. */
@@ -24,6 +26,14 @@ export class BookingStatusGridCellComponent implements ICellRendererAngularComp 
 
   /** Maps stored status values to short staff-facing labels. */
   protected statusLabel(): string {
-    return this.status.replace('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
+    const statusKeys: Record<BookingStatus, string> = {
+      PENDING: 'booking.pending',
+      SCHEDULED: 'booking.scheduled',
+      CHECKED_IN: 'booking.checkedIn',
+      COMPLETED: 'booking.completed',
+      CANCELLED: 'booking.cancelled',
+      NO_SHOW: 'booking.noShow',
+    };
+    return this.language.translate(statusKeys[this.status]);
   }
 }

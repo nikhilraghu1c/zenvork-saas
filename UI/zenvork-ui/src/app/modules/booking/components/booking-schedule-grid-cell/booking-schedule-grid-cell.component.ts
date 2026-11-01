@@ -3,6 +3,7 @@ import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
 
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
+import { LanguageService } from '../../../../core/services/language.service';
 import { BookingRecord } from '../../services/booking.service';
 
 @Component({
@@ -13,8 +14,9 @@ import { BookingRecord } from '../../services/booking.service';
 })
 export class BookingScheduleGridCellComponent implements ICellRendererAngularComp {
   private readonly dateTime = inject(BusinessDateTimeService);
+  private readonly language = inject(LanguageService);
 
-  protected startLabel = 'Unscheduled';
+  protected startLabel = this.language.translate('booking.unscheduled');
   protected endLabel = '';
 
   /** Renders the stored planned interval; actual timestamps belong on the booking details page. */
@@ -32,7 +34,7 @@ export class BookingScheduleGridCellComponent implements ICellRendererAngularCom
     const startAt = booking?.scheduledStartAt;
     const endAt = booking?.scheduledEndAt;
     if (!startAt) {
-      this.startLabel = 'Awaiting schedule';
+      this.startLabel = this.language.translate('booking.awaitingSchedule');
       this.endLabel = '';
       return;
     }

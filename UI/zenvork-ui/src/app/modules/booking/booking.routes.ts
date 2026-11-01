@@ -1,6 +1,12 @@
 import { Routes } from '@angular/router';
+import { provideFeatureTranslations } from '../../core/i18n/provide-feature-translations';
+import { bookingTranslations } from './i18n/booking.translations';
 
 export const bookingRoutes: Routes = [
+  {
+    path: '',
+    providers: [provideFeatureTranslations(bookingTranslations)],
+    children: [
   {
     path: 'new',
     data: { title: 'New Booking' },
@@ -32,5 +38,7 @@ export const bookingRoutes: Routes = [
     data: { title: 'Booking' },
     loadComponent: () =>
       import('./pages/booking-list/booking-list.component').then((m) => m.BookingListComponent),
+  },
+    ],
   },
 ];

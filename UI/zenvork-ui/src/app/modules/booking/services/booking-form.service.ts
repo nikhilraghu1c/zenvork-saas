@@ -14,6 +14,7 @@ import {
 } from './booking.service';
 import { ServiceService } from '../../service/services/service.service';
 import { BusinessDateTimeService } from '../../../core/services/business-date-time.service';
+import { LanguageService } from '../../../core/services/language.service';
 
 export interface BookingFormData {
   clients: ClientRecord[];
@@ -50,6 +51,7 @@ export class BookingFormService {
   private readonly bookingService = inject(BookingService);
   private readonly serviceService = inject(ServiceService);
   private readonly dateTime = inject(BusinessDateTimeService);
+  private readonly language = inject(LanguageService);
 
   /** Loads all tenant-scoped records required by the booking form in parallel. */
   loadFormData() {
@@ -77,7 +79,7 @@ export class BookingFormService {
   /** Builds generic resource-type choices without embedding salon-specific assumptions. */
   resourceOptions(type: ResourceTypeOption, resources: ResourceRecord[]) {
     return [
-      { value: '', label: 'No assignment yet' },
+      { value: '', label: this.language.translate('booking.noAssignmentYet') },
       ...resources
         .filter((resource) => resource.resourceType === type.code && resource.isActive)
         .map((resource) => ({ value: resource._id, label: resource.name })),
@@ -86,7 +88,10 @@ export class BookingFormService {
 
   /** Returns a selected resource name for summary display. */
   selectedResourceName(resourceId: string | undefined, resources: ResourceRecord[]): string {
-    return resources.find((resource) => resource._id === resourceId)?.name ?? 'Not assigned';
+    return (
+      resources.find((resource) => resource._id === resourceId)?.name ??
+      this.language.translate('booking.notAssigned')
+    );
   }
 
   /** Validates and converts business-local form values into the backend booking contract. */

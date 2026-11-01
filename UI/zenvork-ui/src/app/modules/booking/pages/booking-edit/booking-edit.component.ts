@@ -5,6 +5,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
+import { LanguageService } from '../../../../core/services/language.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppCheckboxComponent } from '../../../../shared/checkbox/checkbox.component';
 import { AppDatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
@@ -20,6 +22,7 @@ import {
   BookingDiscountType,
   BookingService,
   BookingServiceItemRequest,
+  BookingStatus,
   UpdateBookingRequest,
 } from '../../services/booking.service';
 import { BookingFormService } from '../../services/booking-form.service';
@@ -37,6 +40,7 @@ import { BookingFormService } from '../../services/booking-form.service';
     AppDatePickerComponent,
     AppTimePickerComponent,
     QuantityStepperComponent,
+    TranslatePipe,
   ],
   templateUrl: './booking-edit.component.html',
   styleUrl: './booking-edit.component.scss',
@@ -48,6 +52,7 @@ export class BookingEditComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly language = inject(LanguageService);
 
   protected readonly dateControl = new FormControl('', { nonNullable: true });
   protected readonly endDateControl = new FormControl('', { nonNullable: true });
@@ -109,7 +114,7 @@ export class BookingEditComponent implements OnInit {
       });
     const bookingId = this.route.snapshot.paramMap.get('id');
     if (!bookingId) {
-      this.errorMessage = 'Booking not found.';
+      this.errorMessage = this.language.translate('booking.bookingNotFound');
       this.loading = false;
       return;
     }
@@ -134,7 +139,8 @@ export class BookingEditComponent implements OnInit {
           this.loading = false;
         },
         error: (error) => {
-          this.errorMessage = error.error?.message ?? 'Unable to load this booking for editing.';
+          this.errorMessage =
+            error.error?.message ?? this.language.translate('booking.loadEditFailed');
           this.loading = false;
         },
       });
@@ -216,9 +222,9 @@ export class BookingEditComponent implements OnInit {
 
   protected discountOptions(): AppSelectOption[] {
     return [
-      { value: 'none', label: 'No discount' },
-      { value: 'amount', label: 'Amount (₹)' },
-      { value: 'percentage', label: 'Percentage (%)' },
+      { value: 'none', label: this.language.translate('booking.noDiscount') },
+      { value: 'amount', label: this.language.translate('booking.amount') },
+      { value: 'percentage', label: this.language.translate('booking.percentage') },
     ];
   }
 
@@ -237,7 +243,20 @@ export class BookingEditComponent implements OnInit {
   }
 
   protected personRequirementText(): string {
-    return 'Assign a team member or professional';
+    return this.language.translate('booking.assignPerson');
+  }
+
+  /** Maps stored lifecycle values to the same translated labels used by the booking list. */
+  protected statusLabel(status: BookingStatus): string {
+    const labels: Record<BookingStatus, string> = {
+      PENDING: 'booking.pending',
+      SCHEDULED: 'booking.scheduled',
+      CHECKED_IN: 'booking.checkedIn',
+      COMPLETED: 'booking.completed',
+      CANCELLED: 'booking.cancelled',
+      NO_SHOW: 'booking.noShow',
+    };
+    return this.language.translate(labels[status]);
   }
 
   /** Reveals non-essential price adjustments and notes only when staff need them. */
@@ -273,10 +292,14 @@ export class BookingEditComponent implements OnInit {
 
   /** Saves only changed, backend-permitted fields so an old service snapshot is never rewritten accidentally. */
   protected save(): void {
-    if (!this.booking || this.saving || !this.canEdit) return;
+    if (!this.booking || this.saving || !this.canEdit) {
+      return;
+    }
 
     const payload = this.buildPayload();
-    if (!payload) return;
+    if (!payload) {
+      return;
+    }
     if (Object.keys(payload).length === 0) {
       void this.router.navigate(['/app/booking'], { queryParamsHandling: 'preserve' });
       return;
@@ -293,7 +316,7 @@ export class BookingEditComponent implements OnInit {
           void this.router.navigate(['/app/booking'], { queryParamsHandling: 'preserve' });
         },
         error: (error) => {
-          this.errorMessage = error.error?.message ?? 'Unable to save booking changes.';
+          this.errorMessage = error.error?.message ?? this.language.translate('booking.saveFailed');
           this.saving = false;
         },
       });

@@ -7,6 +7,8 @@ import {
   AppActionMenuItem,
 } from '../../../../shared/action-menu/action-menu.component';
 import { BookingRecord, BookingStatus } from '../../services/booking.service';
+import { LanguageService } from '../../../../core/services/language.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 
 type BookingStatusUpdateHandler = (bookingId: string, status: BookingStatus) => void;
 type OpenCheckInHandler = (booking: BookingRecord) => void;
@@ -14,12 +16,13 @@ type PaymentStatusUpdateHandler = (bookingId: string, paymentStatus: 'unpaid' | 
 
 @Component({
   selector: 'app-booking-grid-actions',
-  imports: [AppActionMenuComponent],
+  imports: [AppActionMenuComponent, TranslatePipe],
   templateUrl: './booking-grid-actions.component.html',
   styleUrl: './booking-grid-actions.component.scss',
 })
 export class BookingGridActionsComponent implements ICellRendererAngularComp {
   private readonly router = inject(Router);
+  private readonly language = inject(LanguageService);
   private params!: ICellRendererParams<BookingRecord>;
   protected booking!: BookingRecord;
   protected actions: AppActionMenuItem[] = [];
@@ -73,7 +76,7 @@ export class BookingGridActionsComponent implements ICellRendererAngularComp {
     this.params = params;
     this.booking = params.data!;
     this.actions = [
-      { id: 'details', label: 'Details', icon: 'visibility' },
+      { id: 'details', label: this.language.translate('booking.detailsAction'), icon: 'visibility' },
       ...(this.booking.capabilities?.canManage ? this.editActions(this.booking.status) : []),
       ...this.statusActions(this.booking),
       ...(this.booking.capabilities?.canManage ? this.paymentActions(this.booking) : []),
@@ -83,7 +86,7 @@ export class BookingGridActionsComponent implements ICellRendererAngularComp {
   /** Keeps the shared editor available only while the booking remains operationally editable. */
   private editActions(status: BookingStatus): AppActionMenuItem[] {
     return ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(status)
-      ? [{ id: 'edit', label: 'Edit booking', icon: 'edit' }]
+      ? [{ id: 'edit', label: this.language.translate('booking.edit'), icon: 'edit' }]
       : [];
   }
 
@@ -93,17 +96,17 @@ export class BookingGridActionsComponent implements ICellRendererAngularComp {
       if (!booking.capabilities?.canManage) return [];
       return [
         this.booking.hasServices
-          ? { id: 'status:COMPLETED', label: 'Mark completed', icon: 'task_alt' }
-          : { id: 'add-services', label: 'Add services', icon: 'add' },
+          ? { id: 'status:COMPLETED', label: this.language.translate('booking.markCompleted'), icon: 'task_alt' }
+          : { id: 'add-services', label: this.language.translate('booking.services'), icon: 'add' },
       ];
     }
     if (status === 'PENDING' || status === 'SCHEDULED') {
       return [
         ...(booking.capabilities?.canManage
           ? [
-              { id: 'status:CHECKED_IN', label: 'Check in', icon: 'login' },
-              { id: 'status:NO_SHOW', label: 'Mark no-show', icon: 'person_off' },
-              { id: 'status:CANCELLED', label: 'Cancel booking', icon: 'cancel' },
+              { id: 'status:CHECKED_IN', label: this.language.translate('booking.checkIn'), icon: 'login' },
+              { id: 'status:NO_SHOW', label: this.language.translate('booking.markNoShow'), icon: 'person_off' },
+              { id: 'status:CANCELLED', label: this.language.translate('booking.cancelBooking'), icon: 'cancel' },
             ]
           : []),
       ];
@@ -114,6 +117,10 @@ export class BookingGridActionsComponent implements ICellRendererAngularComp {
   private paymentActions(booking: BookingRecord): AppActionMenuItem[] {
     if (booking.status !== 'COMPLETED') return [];
     const nextStatus = booking.paymentStatus === 'paid' ? 'unpaid' : 'paid';
-    return [{ id: `payment:${nextStatus}`, label: `Mark as ${nextStatus}`, icon: 'payments' }];
+    return [{
+      id: `payment:${nextStatus}`,
+      label: `${this.language.translate('booking.payment')} ${this.language.translate(nextStatus === 'paid' ? 'booking.paid' : 'booking.unpaid')}`,
+      icon: 'payments',
+    }];
   }
 }

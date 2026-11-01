@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
@@ -6,6 +6,8 @@ import { AppCheckboxComponent } from '../../../../shared/checkbox/checkbox.compo
 import { AppDatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { AppSelectComponent, AppSelectOption } from '../../../../shared/select/select.component';
 import { BookingDateField, BookingStatus } from '../../services/booking.service';
+import { LanguageService } from '../../../../core/services/language.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 
 export interface BookingFilterSelection {
   statuses: BookingStatus[];
@@ -23,11 +25,13 @@ export interface BookingFilterSelection {
     AppCheckboxComponent,
     AppDatePickerComponent,
     AppSelectComponent,
+    TranslatePipe,
   ],
   templateUrl: './booking-filter-dialog.component.html',
   styleUrl: './booking-filter-dialog.component.scss',
 })
 export class BookingFilterDialogComponent implements OnInit {
+  private readonly language = inject(LanguageService);
   @Input({ required: true }) statuses: BookingStatus[] = [];
   @Input({ required: true }) resourceOptions: AppSelectOption[] = [];
   @Input({ required: true }) resourceId = '';
@@ -43,9 +47,9 @@ export class BookingFilterDialogComponent implements OnInit {
     nonNullable: true,
   });
   protected readonly dateFieldOptions: AppSelectOption[] = [
-    { value: 'modified', label: 'Modified on' },
-    { value: 'created', label: 'Created on' },
-    { value: 'scheduled', label: 'Scheduled on' },
+    { value: 'modified', label: this.language.translate('booking.modifiedOn') },
+    { value: 'created', label: this.language.translate('booking.createdOn') },
+    { value: 'scheduled', label: this.language.translate('booking.scheduledOn') },
   ];
   protected readonly statusOptions: BookingStatus[] = [
     'PENDING',
@@ -95,16 +99,21 @@ export class BookingFilterDialogComponent implements OnInit {
   }
 
   protected statusLabel(status: BookingStatus): string {
-    return status
-      .replace('_', ' ')
-      .toLowerCase()
-      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    const statusKeys: Record<BookingStatus, string> = {
+      PENDING: 'booking.pending',
+      SCHEDULED: 'booking.scheduled',
+      CHECKED_IN: 'booking.checkedIn',
+      COMPLETED: 'booking.completed',
+      CANCELLED: 'booking.cancelled',
+      NO_SHOW: 'booking.noShow',
+    };
+    return this.language.translate(statusKeys[status]);
   }
 
   protected get dateLabel(): string {
     return (
       this.dateFieldOptions.find((option) => option.value === this.dateFieldControl.value)?.label ??
-      'Modified on'
+      this.language.translate('booking.modifiedOn')
     );
   }
 }

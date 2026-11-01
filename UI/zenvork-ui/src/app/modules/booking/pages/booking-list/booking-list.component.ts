@@ -32,6 +32,8 @@ import { BookingGridActionsComponent } from '../../components/booking-grid-actio
 import { BookingScheduleGridCellComponent } from '../../components/booking-schedule-grid-cell/booking-schedule-grid-cell.component';
 import { BookingStatusGridCellComponent } from '../../components/booking-status-grid-cell/booking-status-grid-cell.component';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 import { ResourceRecord, ResourceService } from '../../../resources/services/resource.service';
 import {
   BookingListQuery,
@@ -56,6 +58,7 @@ type BookingListView = 'TODAY' | 'ALL';
     AppInputComponent,
     BookingCheckInDialogComponent,
     BookingFilterDialogComponent,
+    TranslatePipe,
   ],
   templateUrl: './booking-list.component.html',
   styleUrl: './booking-list.component.scss',
@@ -67,6 +70,7 @@ export class BookingListComponent implements OnInit, OnDestroy {
   private readonly resourceService = inject(ResourceService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly dateTime = inject(BusinessDateTimeService);
+  private readonly language = inject(LanguageService);
 
   /** Today's work is the default operational view; all bookings remains a full activity history. */
   protected readonly viewControl = new FormControl<BookingListView>('TODAY', {
@@ -91,7 +95,9 @@ export class BookingListComponent implements OnInit, OnDestroy {
     'NO_SHOW',
   ];
 
-  protected resourceOptions: AppSelectOption[] = [{ value: '', label: 'All resources' }];
+  protected resourceOptions: AppSelectOption[] = [
+    { value: '', label: this.language.translate('booking.allResources') },
+  ];
   protected readonly personResourceIds = new Set<string>();
   protected bookings: BookingRecord[] = [];
   protected totalBookings = 0;
@@ -123,31 +129,32 @@ export class BookingListComponent implements OnInit, OnDestroy {
     return [
       {
         field: 'status',
-        headerName: 'Status',
+        headerName: this.language.translate('booking.status'),
         minWidth: 112,
         maxWidth: 126,
         cellRenderer: BookingStatusGridCellComponent,
       },
       {
         field: 'client',
-        headerName: 'Client',
+        headerName: this.language.translate('booking.client'),
         minWidth: 180,
         flex: 1.1,
         cellRenderer: BookingClientGridCellComponent,
       },
       {
         field: 'scheduledStartAt',
-        headerName: 'Schedule',
+        headerName: this.language.translate('booking.schedule'),
         minWidth: 224,
         flex: 1.25,
         cellRenderer: BookingScheduleGridCellComponent,
       },
       {
         field: 'resources',
-        headerName: 'Assigned resources',
+        headerName: this.language.translate('booking.resources'),
         minWidth: 190,
         flex: 1.15,
-        valueFormatter: ({ data }) => (data ? this.resourceLabel(data) : 'Unassigned'),
+        valueFormatter: ({ data }) =>
+          data ? this.resourceLabel(data) : this.language.translate('booking.unassigned'),
         cellStyle: ({ data }) => ({
           color: data?.resources.length ? 'var(--text-dim)' : 'var(--text-mute)',
           fontStyle: data?.resources.length ? 'normal' : 'italic',
@@ -155,18 +162,22 @@ export class BookingListComponent implements OnInit, OnDestroy {
       },
       {
         field: 'totalAmountPaise',
-        headerName: 'Bill',
+        headerName: this.language.translate('booking.bill'),
         minWidth: 104,
         maxWidth: 120,
         valueFormatter: ({ value }) => this.formatAmount(Number(value ?? 0)),
       },
       {
         field: 'paymentStatus',
-        headerName: 'Payment',
+        headerName: this.language.translate('booking.payment'),
         minWidth: 96,
         maxWidth: 108,
         valueFormatter: ({ data }) =>
-          data?.status === 'COMPLETED' ? (data.paymentStatus === 'paid' ? 'Paid' : 'Unpaid') : '—',
+          data?.status === 'COMPLETED'
+            ? data.paymentStatus === 'paid'
+              ? this.language.translate('booking.paid')
+              : this.language.translate('booking.unpaid')
+            : '—',
         cellStyle: ({ data }) => ({
           color:
             data?.status === 'COMPLETED'
@@ -179,13 +190,13 @@ export class BookingListComponent implements OnInit, OnDestroy {
       },
       {
         field: 'updatedAt',
-        headerName: 'Modified',
+        headerName: this.language.translate('booking.modified'),
         minWidth: 138,
         flex: 0.85,
         valueFormatter: ({ data }) => this.formatDate(this.activityAt(data)),
       },
       {
-        headerName: 'Actions',
+        headerName: this.language.translate('booking.actions'),
         cellRenderer: BookingGridActionsComponent,
         sortable: false,
         resizable: false,
@@ -225,7 +236,9 @@ export class BookingListComponent implements OnInit, OnDestroy {
         next: ({ resources }) => this.setResourceOptions(resources),
         error: () => {
           // Booking data remains available even if the optional resource filter cannot load.
-          this.resourceOptions = [{ value: '', label: 'All resources' }];
+          this.resourceOptions = [
+            { value: '', label: this.language.translate('booking.allResources') },
+          ];
         },
       });
 
@@ -310,7 +323,9 @@ export class BookingListComponent implements OnInit, OnDestroy {
 
   /** Formats lifecycle dates in the business timezone so staff see the business calendar day. */
   protected formatDate(value: string | null): string {
-    return value ? this.dateTime.format(value, 'date') : 'Unscheduled';
+    return value
+      ? this.dateTime.format(value, 'date')
+      : this.language.translate('booking.unassigned');
   }
 
   /** Both list views are ordered by the latest meaningful booking update. */
@@ -322,7 +337,7 @@ export class BookingListComponent implements OnInit, OnDestroy {
   protected mobileScheduleLabel(booking: BookingRecord): string {
     const { startAt, endAt } = this.bookingTimeRange(booking);
     if (!startAt) {
-      return 'Awaiting schedule';
+      return this.language.translate('booking.awaitingSchedule');
     }
 
     const startDate = this.dateTime.format(startAt, 'compactDate');
@@ -339,7 +354,10 @@ export class BookingListComponent implements OnInit, OnDestroy {
   }
 
   /** Uses scheduled values consistently; actual timestamps are available from booking details. */
-  private bookingTimeRange(booking: BookingRecord): { startAt: string | null; endAt: string | null } {
+  private bookingTimeRange(booking: BookingRecord): {
+    startAt: string | null;
+    endAt: string | null;
+  } {
     return { startAt: booking.scheduledStartAt, endAt: booking.scheduledEndAt };
   }
 
@@ -361,7 +379,7 @@ export class BookingListComponent implements OnInit, OnDestroy {
   protected resourceLabel(booking: BookingRecord): string {
     return booking.resources.length
       ? booking.resources.map((resource) => resource.name).join(', ')
-      : 'Unassigned';
+      : this.language.translate('booking.unassigned');
   }
 
   protected formatAmount(amountPaise: number): string {
@@ -384,10 +402,15 @@ export class BookingListComponent implements OnInit, OnDestroy {
 
   /** Maps stored lifecycle values to concise staff-facing labels. */
   protected statusLabel(status: BookingStatus): string {
-    return status
-      .replace('_', ' ')
-      .toLowerCase()
-      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    const statusKeys: Record<BookingStatus, string> = {
+      PENDING: 'booking.pending',
+      SCHEDULED: 'booking.scheduled',
+      CHECKED_IN: 'booking.checkedIn',
+      COMPLETED: 'booking.completed',
+      CANCELLED: 'booking.cancelled',
+      NO_SHOW: 'booking.noShow',
+    };
+    return this.language.translate(statusKeys[status]);
   }
 
   /** Mirrors desktop lifecycle options in the mobile card menu. */
@@ -395,22 +418,26 @@ export class BookingListComponent implements OnInit, OnDestroy {
     const canManage = booking.capabilities?.canManage === true;
     const editAction =
       ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status) && canManage
-        ? [{ id: 'edit', label: 'Edit booking', icon: 'edit' }]
+        ? [{ id: 'edit', label: this.language.translate('booking.edit'), icon: 'edit' }]
         : [];
     if (booking.status === 'CHECKED_IN') {
       if (!canManage) return [];
       return [
         ...editAction,
         booking.hasServices
-          ? { id: 'COMPLETED', label: 'Mark completed', icon: 'task_alt' }
-          : { id: 'add-services', label: 'Add services', icon: 'add' },
+          ? {
+              id: 'COMPLETED',
+              label: this.language.translate('booking.markCompleted'),
+              icon: 'task_alt',
+            }
+          : { id: 'add-services', label: this.language.translate('booking.services'), icon: 'add' },
       ];
     }
     if (booking.status === 'COMPLETED') {
       return [
         {
           id: `payment:${booking.paymentStatus === 'paid' ? 'unpaid' : 'paid'}`,
-          label: `Mark as ${booking.paymentStatus === 'paid' ? 'unpaid' : 'paid'}`,
+          label: `${this.language.translate('booking.payment')} ${booking.paymentStatus === 'paid' ? this.language.translate('booking.unpaid') : this.language.translate('booking.paid')}`,
           icon: 'payments',
         },
       ];
@@ -420,9 +447,21 @@ export class BookingListComponent implements OnInit, OnDestroy {
         ...editAction,
         ...(canManage
           ? [
-              { id: 'CHECKED_IN', label: 'Check in', icon: 'login' },
-              { id: 'NO_SHOW', label: 'Mark no-show', icon: 'person_off' },
-              { id: 'CANCELLED', label: 'Cancel booking', icon: 'cancel' },
+              {
+                id: 'CHECKED_IN',
+                label: this.language.translate('booking.checkIn'),
+                icon: 'login',
+              },
+              {
+                id: 'NO_SHOW',
+                label: this.language.translate('booking.markNoShow'),
+                icon: 'person_off',
+              },
+              {
+                id: 'CANCELLED',
+                label: this.language.translate('booking.cancelBooking'),
+                icon: 'cancel',
+              },
             ]
           : []),
       ];
@@ -471,7 +510,8 @@ export class BookingListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => this.resetAndLoadBookings(),
         error: (error) => {
-          this.errorMessage = error.error?.message ?? 'Unable to update booking status.';
+          this.errorMessage =
+            error.error?.message ?? this.language.translate('booking.updateStatusFailed');
         },
       });
   }
@@ -484,7 +524,8 @@ export class BookingListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => this.resetAndLoadBookings(),
         error: (error) => {
-          this.errorMessage = error.error?.message ?? 'Unable to update payment status.';
+          this.errorMessage =
+            error.error?.message ?? this.language.translate('booking.updatePaymentFailed');
         },
       });
   }
@@ -540,7 +581,7 @@ export class BookingListComponent implements OnInit, OnDestroy {
           this.loadingMore = false;
         },
         error: (error) => {
-          this.errorMessage = error.error?.message ?? 'Unable to load bookings.';
+          this.errorMessage = error.error?.message ?? this.language.translate('booking.loadFailed');
           this.loading = false;
           this.loadingMore = false;
           if (append) this.currentPage -= 1;
@@ -634,7 +675,7 @@ export class BookingListComponent implements OnInit, OnDestroy {
       .filter((resource) => resource.isPerson)
       .forEach((resource) => this.personResourceIds.add(resource._id));
     this.resourceOptions = [
-      { value: '', label: 'All resources' },
+      { value: '', label: this.language.translate('booking.allResources') },
       ...resources
         .filter((resource) => resource.isActive)
         .map((resource) => ({

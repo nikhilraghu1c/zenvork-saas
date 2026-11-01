@@ -1,50 +1,51 @@
 <section class="booking-list-page" aria-labelledby="bookings-title">
   <header class="booking-list-page__header">
     <div>
-      <p class="eyebrow">Booking workspace</p>
+      <p class="eyebrow">{{ 'booking.workspace' | translate }}</p>
       <div class="booking-title-row">
-        <h1 id="bookings-title">Bookings</h1>
+        <h1 id="bookings-title">{{ 'booking.title' | translate }}</h1>
         @if (!loading && !errorMessage) {
-          <span class="booking-count"
-            >{{ totalBookings }} {{ totalBookings === 1 ? 'booking' : 'bookings' }}</span
-          >
+          <span class="booking-count">{{ totalBookings }} {{ 'booking.title' | translate }}</span>
         }
       </div>
       <p class="booking-description">
-        Track today’s activity or browse the complete booking history.
+        {{ 'booking.description' | translate }}
       </p>
     </div>
     <div class="booking-list-page__header-actions">
       <app-button class="new-booking-button" routerLink="/app/booking/new">
-        <span><mat-icon aria-hidden="true">add</mat-icon>New booking</span>
+        <span><mat-icon aria-hidden="true">add</mat-icon>{{ 'booking.new' | translate }}</span>
       </app-button>
     </div>
   </header>
 
   <div class="booking-list-page__view-bar">
-    <nav class="booking-list-page__views" aria-label="Booking list scope">
+    <nav class="booking-list-page__views" [attr.aria-label]="'booking.listScope' | translate">
       <button type="button" [class.is-selected]="isTodayView" (click)="setView('TODAY')">
-        Today’s work
+        {{ 'booking.todayWork' | translate }}
       </button>
       <button type="button" [class.is-selected]="!isTodayView" (click)="setView('ALL')">
-        All bookings
+        {{ 'booking.all' | translate }}
       </button>
     </nav>
-    <nav class="booking-list-page__mode-switch" aria-label="Booking display mode">
+    <nav
+      class="booking-list-page__mode-switch"
+      [attr.aria-label]="'booking.displayMode' | translate"
+    >
       <a
         routerLink="/app/booking"
         queryParamsHandling="preserve"
         class="is-selected"
         aria-current="page"
-        aria-label="List view"
-        matTooltip="List view"
+        [attr.aria-label]="'booking.list' | translate"
+        [matTooltip]="'booking.list' | translate"
         ><mat-icon aria-hidden="true">format_list_bulleted</mat-icon></a
       >
       <a
         routerLink="/app/booking/calendar"
         queryParamsHandling="preserve"
-        aria-label="Calendar view"
-        matTooltip="Calendar view"
+        [attr.aria-label]="'booking.calendar' | translate"
+        [matTooltip]="'booking.calendar' | translate"
         ><mat-icon aria-hidden="true">calendar_month</mat-icon></a
       >
     </nav>
@@ -52,9 +53,10 @@
 
   <p class="activity-description">
     @if (isTodayView) {
-      Today · {{ todayLabel() }} · newest activity first
+      {{ 'booking.today' | translate }} · {{ todayLabel() }} ·
+      {{ 'booking.todayActivityNewest' | translate }}
     } @else {
-      All booking activity · newest first
+      {{ 'booking.allActivityNewest' | translate }}
     }
   </p>
 
@@ -62,8 +64,8 @@
     <app-input
       class="search-filter"
       [formControl]="searchControl"
-      label="Search bookings"
-      placeholder="Search client or mobile"
+      [label]="'booking.search' | translate"
+      [placeholder]="'booking.searchPlaceholder' | translate"
       prefixIcon="search"
       subscriptSizing="dynamic"
     />
@@ -71,7 +73,7 @@
       class="filter-trigger"
       variant="secondary"
       icon="tune"
-      label="Filters"
+      [label]="'booking.filters' | translate"
       [hideLabelOnMobile]="true"
       [badge]="activeFilterCount || null"
       [ariaLabel]="
@@ -83,7 +85,10 @@
     />
   </div>
 
-  <div class="booking-list-page__quick-filters" aria-label="Quick booking status filters">
+  <div
+    class="booking-list-page__quick-filters"
+    [attr.aria-label]="'booking.quickStatusFilters' | translate"
+  >
     @for (status of quickStatusFilters; track status) {
       <button
         type="button"
@@ -110,14 +115,14 @@
   }
 
   @if (loading) {
-    <p class="page-state" role="status">Loading bookings…</p>
+    <p class="page-state" role="status">{{ 'booking.loading' | translate }}</p>
   } @else if (errorMessage) {
     <p class="page-state is-error" role="alert">{{ errorMessage }}</p>
   } @else if (!bookings.length) {
     <div class="empty-state">
       <mat-icon aria-hidden="true">event_busy</mat-icon>
-      <h2>No bookings found</h2>
-      <p>Try another day or adjust the booking filters.</p>
+      <h2>{{ 'booking.none' | translate }}</h2>
+      <p>{{ 'booking.noneDescription' | translate }}</p>
     </div>
   } @else {
     <app-data-grid
@@ -126,21 +131,24 @@
       [columnDefs]="columnDefs"
       [context]="gridContext"
     />
-    <nav class="desktop-pagination" aria-label="Booking pages">
+    <nav class="desktop-pagination" [attr.aria-label]="'booking.bookingPages' | translate">
       <app-button
         variant="secondary"
         [disabled]="!hasPreviousPage"
         (clicked)="goToPage(currentPage - 1)"
       >
-        Previous
+        {{ 'booking.previous' | translate }}
       </app-button>
-      <span>Page {{ currentPage }} of {{ totalPages }}</span>
+      <span
+        >{{ 'booking.page' | translate }} {{ currentPage }} {{ 'booking.of' | translate }}
+        {{ totalPages }}</span
+      >
       <app-button
         variant="secondary"
         [disabled]="!hasNextPage"
         (clicked)="goToPage(currentPage + 1)"
       >
-        Next
+        {{ 'booking.next' | translate }}
       </app-button>
     </nav>
     <div class="mobile-bookings">
@@ -156,15 +164,19 @@
                 clientInitial(booking)
               }}</span>
               <div class="booking-card__identity">
-                <h2>{{ booking.client?.name ?? 'Client unavailable' }}</h2>
-                <p>{{ booking.client?.mobile ?? 'No mobile number' }}</p>
+                <h2>{{ booking.client?.name ?? ('booking.clientUnavailable' | translate) }}</h2>
+                <p>{{ booking.client?.mobile ?? ('booking.noMobile' | translate) }}</p>
               </div>
             </a>
             <span [class]="'status-pill is-' + booking.status.toLowerCase()">
               <span aria-hidden="true">●</span>{{ statusLabel(booking.status) }}
               @if (booking.status === 'COMPLETED') {
                 <small [class.is-unpaid]="booking.paymentStatus === 'unpaid'"
-                  >· {{ booking.paymentStatus === 'paid' ? 'Paid' : 'Unpaid' }}</small
+                  >·
+                  {{
+                    (booking.paymentStatus === 'paid' ? 'booking.paid' : 'booking.unpaid')
+                      | translate
+                  }}</small
                 >
               }
             </span>
@@ -203,7 +215,10 @@
                     }
                   </span>
                 } @else {
-                  <span><mat-icon aria-hidden="true">person_search</mat-icon>Unassigned</span>
+                  <span
+                    ><mat-icon aria-hidden="true">person_search</mat-icon
+                    >{{ 'booking.unassigned' | translate }}</span
+                  >
                 }
               </div>
             </div>

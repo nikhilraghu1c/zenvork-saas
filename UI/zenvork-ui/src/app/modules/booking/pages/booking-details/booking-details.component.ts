@@ -21,6 +21,8 @@ import {
 } from '../../services/booking.service';
 import { ServiceOption, ServiceService } from '../../../service/services/service.service';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
+import { LanguageService } from '../../../../core/services/language.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 
 interface TimelineStep {
   label: string;
@@ -41,6 +43,7 @@ interface TimelineStep {
     AppSelectComponent,
     QuantityStepperComponent,
     BookingCheckInDialogComponent,
+    TranslatePipe,
   ],
   templateUrl: './booking-details.component.html',
   styleUrl: './booking-details.component.scss',
@@ -52,6 +55,7 @@ export class BookingDetailsComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly dateTime = inject(BusinessDateTimeService);
+  private readonly language = inject(LanguageService);
 
   protected booking: BookingRecord | null = null;
   protected loading = true;
@@ -80,7 +84,7 @@ export class BookingDetailsComponent implements OnInit {
       });
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
-      this.errorMessage = 'Booking not found.';
+      this.errorMessage = this.language.translate('booking.bookingNotFound');
       this.loading = false;
       return;
     }
@@ -94,7 +98,8 @@ export class BookingDetailsComponent implements OnInit {
           this.loading = false;
         },
         error: (error) => {
-          this.errorMessage = error.error?.message ?? 'Unable to load booking details.';
+          this.errorMessage =
+            error.error?.message ?? this.language.translate('booking.loadDetailsFailed');
           this.loading = false;
         },
       });
@@ -102,13 +107,16 @@ export class BookingDetailsComponent implements OnInit {
 
   /** Formats stored UTC timestamps for the shared business display timezone. */
   protected formatDateTime(value: string | null): string {
-    return value ? this.dateTime.format(value, 'dateTime') : 'Not recorded';
+    return value
+      ? this.dateTime.format(value, 'dateTime')
+      : this.language.translate('booking.notRecorded');
   }
-
 
   /** Builds a compact planned slot without showing an artificial end time for pending work. */
   protected scheduleLabel(booking: BookingRecord): string {
-    if (!booking.scheduledStartAt) return 'Awaiting schedule';
+    if (!booking.scheduledStartAt) {
+      return this.language.translate('booking.awaitingSchedule');
+    }
     const start = this.formatDateTime(booking.scheduledStartAt);
     if (!booking.scheduledEndAt) return start;
     const startDate = this.dateTime.format(booking.scheduledStartAt, 'date');
@@ -126,16 +134,21 @@ export class BookingDetailsComponent implements OnInit {
 
   protected personRequirementLabel(booking: BookingRecord): string {
     return ['CHECKED_IN', 'COMPLETED'].includes(booking.status)
-      ? 'Team member or professional assigned'
-      : 'Team member or professional needed at check-in';
+      ? this.language.translate('booking.personAssigned')
+      : this.language.translate('booking.personNeeded');
   }
 
   /** Maps stored lifecycle values to concise staff-facing labels. */
   protected statusLabel(status: BookingStatus): string {
-    return status
-      .replace('_', ' ')
-      .toLowerCase()
-      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    const labels: Record<BookingStatus, string> = {
+      PENDING: 'booking.pending',
+      SCHEDULED: 'booking.scheduled',
+      CHECKED_IN: 'booking.checkedIn',
+      COMPLETED: 'booking.completed',
+      CANCELLED: 'booking.cancelled',
+      NO_SHOW: 'booking.noShow',
+    };
+    return this.language.translate(labels[status]);
   }
 
   /** Lists only valid lifecycle actions for the booking's current state. */
@@ -143,16 +156,36 @@ export class BookingDetailsComponent implements OnInit {
     const canManage = booking.capabilities?.canManage === true;
     const { status } = booking;
     if (status === 'CHECKED_IN') {
-      if (!canManage) return [];
-      return [{ id: 'COMPLETED', label: 'Mark completed', icon: 'task_alt' }];
+      if (!canManage) {
+        return [];
+      }
+      return [
+        {
+          id: 'COMPLETED',
+          label: this.language.translate('booking.markCompleted'),
+          icon: 'task_alt',
+        },
+      ];
     }
     if (status === 'PENDING' || status === 'SCHEDULED') {
       return [
         ...(canManage
           ? [
-              { id: 'CHECKED_IN', label: 'Check in', icon: 'login' },
-              { id: 'NO_SHOW', label: 'Mark no-show', icon: 'person_off' },
-              { id: 'CANCELLED', label: 'Cancel booking', icon: 'cancel' },
+              {
+                id: 'CHECKED_IN',
+                label: this.language.translate('booking.checkIn'),
+                icon: 'login',
+              },
+              {
+                id: 'NO_SHOW',
+                label: this.language.translate('booking.markNoShow'),
+                icon: 'person_off',
+              },
+              {
+                id: 'CANCELLED',
+                label: this.language.translate('booking.cancelBooking'),
+                icon: 'cancel',
+              },
             ]
           : []),
       ];
@@ -167,7 +200,7 @@ export class BookingDetailsComponent implements OnInit {
       return;
     }
     if (status === 'COMPLETED' && !this.booking?.services?.length) {
-      this.statusError = 'Add at least one service before completing this booking.';
+      this.statusError = this.language.translate('booking.completeNeedsService');
       this.openBillEditor();
       return;
     }
@@ -175,16 +208,24 @@ export class BookingDetailsComponent implements OnInit {
   }
 
   protected canEditBill(booking: BookingRecord): boolean {
-    return booking.capabilities?.canManage === true && ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status);
+    return (
+      booking.capabilities?.canManage === true &&
+      ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status)
+    );
   }
 
   /** Opens the full editor only while the booking has fields the backend permits staff to change. */
   protected openBookingEditor(booking: BookingRecord): void {
-    void this.router.navigate(['/app/booking', booking._id, 'edit'], { queryParamsHandling: 'preserve' });
+    void this.router.navigate(['/app/booking', booking._id, 'edit'], {
+      queryParamsHandling: 'preserve',
+    });
   }
 
   protected canEditBooking(booking: BookingRecord): boolean {
-    return booking.capabilities?.canManage === true && ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status);
+    return (
+      booking.capabilities?.canManage === true &&
+      ['PENDING', 'SCHEDULED', 'CHECKED_IN'].includes(booking.status)
+    );
   }
 
   protected serviceOptionsForSelect(): AppSelectOption[] {
@@ -253,7 +294,9 @@ export class BookingDetailsComponent implements OnInit {
     (this.booking.services ?? []).forEach((service) => {
       this.serviceQuantityControl(service.serviceId).setValue(String(service.quantity ?? 1));
     });
-    this.serviceIdsControl.setValue((this.booking.services ?? []).map((service) => service.serviceId));
+    this.serviceIdsControl.setValue(
+      (this.booking.services ?? []).map((service) => service.serviceId),
+    );
     this.extraAmountControl.setValue(this.formatMoneyInput(this.booking.extraAmountPaise));
     this.loadingServices = true;
     this.serviceApi
@@ -265,7 +308,8 @@ export class BookingDetailsComponent implements OnInit {
           this.loadingServices = false;
         },
         error: (error) => {
-          this.billError = error.error?.message ?? 'Unable to load available services.';
+          this.billError =
+            error.error?.message ?? this.language.translate('booking.loadServicesFailed');
           this.loadingServices = false;
         },
       });
@@ -279,7 +323,7 @@ export class BookingDetailsComponent implements OnInit {
     if (!this.booking || this.savingBill) return;
     const extraAmountPaise = this.extraAmountPaise();
     if (extraAmountPaise < 0 || !Number.isSafeInteger(extraAmountPaise)) {
-      this.billError = 'Enter a valid non-negative extra charge.';
+      this.billError = this.language.translate('booking.extraChargeInvalid');
       return;
     }
     if (
@@ -287,7 +331,7 @@ export class BookingDetailsComponent implements OnInit {
         (item) => !Number.isSafeInteger(item.quantity) || item.quantity < 1,
       )
     ) {
-      this.billError = 'Each selected service needs a quantity of at least one.';
+      this.billError = this.language.translate('booking.serviceQuantityInvalid');
       return;
     }
     this.savingBill = true;
@@ -305,7 +349,8 @@ export class BookingDetailsComponent implements OnInit {
           this.savingBill = false;
         },
         error: (error) => {
-          this.billError = error.error?.message ?? 'Unable to update services.';
+          this.billError =
+            error.error?.message ?? this.language.translate('booking.updateServicesFailed');
           this.savingBill = false;
         },
       });
@@ -380,9 +425,9 @@ export class BookingDetailsComponent implements OnInit {
   protected timeline(booking: BookingRecord): TimelineStep[] {
     const terminal = booking.status === 'CANCELLED' || booking.status === 'NO_SHOW';
     return [
-      { label: 'Created', timestamp: booking.createdAt, state: 'done' },
+      { label: this.language.translate('booking.created'), timestamp: booking.createdAt, state: 'done' },
       {
-        label: 'Scheduled',
+        label: this.language.translate('booking.scheduled'),
         timestamp: booking.scheduledStartAt,
         state: booking.scheduledStartAt
           ? 'done'
@@ -391,7 +436,7 @@ export class BookingDetailsComponent implements OnInit {
             : 'upcoming',
       },
       {
-        label: 'Checked in',
+        label: this.language.translate('booking.checkedIn'),
         timestamp: booking.actualStartAt,
         state: booking.actualStartAt
           ? 'done'
@@ -400,7 +445,7 @@ export class BookingDetailsComponent implements OnInit {
             : 'upcoming',
       },
       {
-        label: terminal ? this.statusLabel(booking.status) : 'Completed',
+        label: terminal ? this.statusLabel(booking.status) : this.language.translate('booking.completed'),
         timestamp: terminal ? booking.updatedAt : booking.actualEndAt,
         state: terminal || booking.actualEndAt ? 'current' : 'upcoming',
       },

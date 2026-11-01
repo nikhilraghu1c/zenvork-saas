@@ -88,7 +88,7 @@ shell because navigation, theme, and logout labels are needed before any feature
 owns an `i18n/<feature>.translations.ts` catalogue and registers it through
 `provideFeatureTranslations(...)` in its route injector. This means, for example, Client translations
 download only after `/app/clients` loads. Settings, Client, Dashboard, Analytics, Reminders, AI
-Assistant, Resources, Services, and Staff use this pattern; remaining features should follow it rather
+Assistant, Resources, Services, Staff, and Booking use this pattern; remaining features should follow it rather
 than growing a global dictionary.
 
 Never translate tenant-entered data such as client names, service names, notes, or business names.

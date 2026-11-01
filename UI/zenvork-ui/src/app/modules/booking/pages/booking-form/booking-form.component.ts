@@ -4,6 +4,8 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
+import { LanguageService } from '../../../../core/services/language.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppCheckboxComponent } from '../../../../shared/checkbox/checkbox.component';
 import { AppDatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
@@ -29,6 +31,7 @@ import { BookingFormService } from '../../services/booking-form.service';
     AppDatePickerComponent,
     AppTimePickerComponent,
     QuantityStepperComponent,
+    TranslatePipe,
   ],
   templateUrl: './booking-form.component.html',
   styleUrl: './booking-form.component.scss',
@@ -37,6 +40,7 @@ export class BookingFormComponent implements OnInit {
   private readonly formService = inject(BookingFormService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly language = inject(LanguageService);
   protected readonly dateTime = inject(BusinessDateTimeService);
 
   protected readonly clientSearchControl = new FormControl('', { nonNullable: true });
@@ -109,7 +113,8 @@ export class BookingFormComponent implements OnInit {
           this.loading = false;
         },
         error: (error) => {
-          this.errorMessage = error.error?.message ?? 'Unable to load booking form data.';
+          this.errorMessage =
+            error.error?.message ?? this.language.translate('booking.loadFormFailed');
           this.loading = false;
         },
       });
@@ -176,7 +181,9 @@ export class BookingFormComponent implements OnInit {
       extraAmount: this.extraAmountControl.value,
     });
     this.errorMessage = errorMessage;
-    if (!payload) return;
+    if (!payload) {
+      return;
+    }
 
     this.submitting = true;
     this.formService
@@ -186,19 +193,20 @@ export class BookingFormComponent implements OnInit {
         next: ({ bookingId }) => {
           this.submitting = false;
           if (!bookingId) {
-            this.errorMessage =
-              'Booking was created, but its ID was not returned. Refresh the booking list.';
+            this.errorMessage = this.language.translate('booking.createdMissingId');
             return;
           }
 
           // Return staff to the operational feed so they can continue managing bookings.
           void this.router.navigate(['/app/booking']).then((navigated) => {
-            if (!navigated)
-              this.errorMessage = 'Booking was created, but the booking list could not open.';
+            if (!navigated) {
+              this.errorMessage = this.language.translate('booking.createdNavigationFailed');
+            }
           });
         },
         error: (error) => {
-          this.errorMessage = error.error?.message ?? 'Unable to create booking.';
+          this.errorMessage =
+            error.error?.message ?? this.language.translate('booking.createFailed');
           this.submitting = false;
         },
       });
@@ -206,10 +214,12 @@ export class BookingFormComponent implements OnInit {
 
   /** Provides a concise name for the sticky summary without exposing form internals to the template. */
   protected summaryClient(): string {
-    if (this.selectedClient) return this.selectedClient.name;
+    if (this.selectedClient) {
+      return this.selectedClient.name;
+    }
     return this.showNewClientForm
-      ? this.newClientNameControl.value.trim() || 'New client'
-      : 'Not selected';
+      ? this.newClientNameControl.value.trim() || this.language.translate('booking.newClient')
+      : this.language.translate('booking.notSelected');
   }
 
   /** Keeps the primary action unavailable until the form has the only required booking identity. */
@@ -229,9 +239,9 @@ export class BookingFormComponent implements OnInit {
   /** Explains the disabled confirmation action without making optional schedule fields look required. */
   protected confirmationHint(): string {
     if (this.showNewClientForm) {
-      return 'Enter the new client’s name and 10-digit mobile number to continue.';
+      return this.language.translate('booking.newClientRequirement');
     }
-    return 'Select or add a client to continue.';
+    return this.language.translate('booking.selectClientRequirement');
   }
 
   /** Reveals non-essential price adjustments and notes only when staff need them. */
@@ -256,7 +266,13 @@ export class BookingFormComponent implements OnInit {
 
   protected summaryServices(): string {
     const quantity = this.selectedServiceItems().reduce((total, item) => total + item.quantity, 0);
-    return quantity ? `${quantity} service${quantity === 1 ? '' : 's'} selected` : 'Not selected';
+    if (!quantity) {
+      return this.language.translate('booking.notSelected');
+    }
+    const label = this.language.translate(
+      quantity === 1 ? 'booking.serviceSelected' : 'booking.servicesSelected',
+    );
+    return `${quantity} ${label}`;
   }
 
   protected selectedServices(): ServiceOption[] {
@@ -274,9 +290,9 @@ export class BookingFormComponent implements OnInit {
 
   protected discountOptions(): AppSelectOption[] {
     return [
-      { value: 'none', label: 'No discount' },
-      { value: 'amount', label: 'Amount (₹)' },
-      { value: 'percentage', label: 'Percentage (%)' },
+      { value: 'none', label: this.language.translate('booking.noDiscount') },
+      { value: 'amount', label: this.language.translate('booking.amount') },
+      { value: 'percentage', label: this.language.translate('booking.percentage') },
     ];
   }
 

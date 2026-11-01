@@ -1,29 +1,29 @@
 <section class="booking-calendar-page" aria-labelledby="booking-calendar-title">
   <header class="booking-calendar-page__header">
     <div>
-      <p class="eyebrow">Booking workspace</p>
-      <h1 id="booking-calendar-title">Bookings</h1>
-      <p>Plan and review scheduled appointments.</p>
+      <p class="eyebrow">{{ 'booking.workspace' | translate }}</p>
+      <h1 id="booking-calendar-title">{{ 'booking.title' | translate }}</h1>
+      <p>{{ 'booking.calendarDescription' | translate }}</p>
     </div>
     <app-button class="new-booking-button" routerLink="/app/booking/new">
-      <span><mat-icon aria-hidden="true">add</mat-icon>New booking</span>
+      <span><mat-icon aria-hidden="true">add</mat-icon>{{ 'booking.new' | translate }}</span>
     </app-button>
   </header>
 
   <div class="booking-calendar-page__view-bar">
-    <nav class="mode-switch" aria-label="Booking display mode">
+    <nav class="mode-switch" [attr.aria-label]="'booking.displayMode' | translate">
       <a
         routerLink="/app/booking"
         queryParamsHandling="preserve"
-        aria-label="List view"
-        matTooltip="List view"
+        [attr.aria-label]="'booking.list' | translate"
+        [matTooltip]="'booking.list' | translate"
         ><mat-icon aria-hidden="true">format_list_bulleted</mat-icon></a
       >
       <span
         class="is-selected"
         aria-current="page"
-        aria-label="Calendar view"
-        matTooltip="Calendar view"
+        [attr.aria-label]="'booking.calendar' | translate"
+        [matTooltip]="'booking.calendar' | translate"
         ><mat-icon aria-hidden="true">calendar_month</mat-icon></span
       >
     </nav>
@@ -31,29 +31,29 @@
 
   <div class="calendar-shell">
     <div class="calendar-toolbar">
-      <div class="calendar-filters" aria-label="Calendar filters">
+      <div class="calendar-filters" [attr.aria-label]="'booking.calendarFilters' | translate">
         <app-select
           [formControl]="resourceControl"
-          label="Resource"
+          [label]="'booking.resource' | translate"
           subscriptSizing="dynamic"
           [options]="resourceOptions"
         />
         <app-select
           [formControl]="statusControl"
-          label="Status"
+          [label]="'booking.status' | translate"
           subscriptSizing="dynamic"
           [options]="statusOptions"
           [multiple]="true"
         />
       </div>
-      <nav class="calendar-views" aria-label="Calendar range">
+      <nav class="calendar-views" [attr.aria-label]="'booking.calendarRange' | translate">
         <button
           type="button"
           [class.is-selected]="calendarView === 'day'"
           [attr.aria-pressed]="calendarView === 'day'"
           (click)="setCalendarView('day')"
         >
-          Day
+          {{ 'booking.day' | translate }}
         </button>
         <button
           type="button"
@@ -61,7 +61,7 @@
           [attr.aria-pressed]="calendarView === 'week'"
           (click)="setCalendarView('week')"
         >
-          Week
+          {{ 'booking.week' | translate }}
         </button>
         <button
           type="button"
@@ -69,40 +69,57 @@
           [attr.aria-pressed]="calendarView === 'month'"
           (click)="setCalendarView('month')"
         >
-          Month
+          {{ 'booking.month' | translate }}
         </button>
       </nav>
       <div class="calendar-navigation">
         <button
           type="button"
-          aria-label="Previous period"
-          matTooltip="Previous"
+          [attr.aria-label]="'booking.previousPeriod' | translate"
+          [matTooltip]="'booking.previous' | translate"
           (click)="movePeriod(-1)"
         >
           <mat-icon aria-hidden="true">chevron_left</mat-icon>
         </button>
         <strong>{{ title }}</strong>
-        <button type="button" aria-label="Next period" matTooltip="Next" (click)="movePeriod(1)">
+        <button
+          type="button"
+          [attr.aria-label]="'booking.nextPeriod' | translate"
+          [matTooltip]="'booking.next' | translate"
+          (click)="movePeriod(1)"
+        >
           <mat-icon aria-hidden="true">chevron_right</mat-icon>
         </button>
-        <button type="button" class="today-button" (click)="goToToday()">Today</button>
+        <button type="button" class="today-button" (click)="goToToday()">
+          {{ 'booking.today' | translate }}
+        </button>
       </div>
     </div>
 
-    <div class="calendar-legend" aria-label="Booking status colours">
+    <div class="calendar-legend" [attr.aria-label]="'booking.statusColours' | translate">
       @if (calendarView === 'month') {
-        <span class="is-summary"><i aria-hidden="true"></i>Booking count</span>
-        <span>Tap a date to view its bookings</span>
+        <span class="is-summary"
+          ><i aria-hidden="true"></i>{{ 'booking.bookingCount' | translate }}</span
+        >
+        <span>{{ 'booking.tapDate' | translate }}</span>
       } @else {
-        <span class="is-scheduled"><i aria-hidden="true"></i>Scheduled</span>
-        <span class="is-checked-in"><i aria-hidden="true"></i>Checked in</span>
-        <span class="is-completed"><i aria-hidden="true"></i>Completed</span>
-        <span class="is-cancelled"><i aria-hidden="true"></i>Cancelled / no-show</span>
+        <span class="is-scheduled"
+          ><i aria-hidden="true"></i>{{ 'booking.scheduled' | translate }}</span
+        >
+        <span class="is-checked-in"
+          ><i aria-hidden="true"></i>{{ 'booking.checkedIn' | translate }}</span
+        >
+        <span class="is-completed"
+          ><i aria-hidden="true"></i>{{ 'booking.completed' | translate }}</span
+        >
+        <span class="is-cancelled"
+          ><i aria-hidden="true"></i>{{ 'booking.cancelledNoShow' | translate }}</span
+        >
       }
     </div>
 
     @if (loading) {
-      <p class="page-state" role="status">Loading calendar…</p>
+      <p class="page-state" role="status">{{ 'booking.loadingCalendar' | translate }}</p>
     } @else if (errorMessage) {
       <p class="page-state is-error" role="alert">{{ errorMessage }}</p>
     } @else {
