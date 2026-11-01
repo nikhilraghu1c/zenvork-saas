@@ -1,15 +1,15 @@
 <section class="assistant-workspace" aria-labelledby="assistant-title">
   <div class="assistant-shell">
-    <aside class="conversation-panel" aria-label="Conversation history">
+    <aside class="conversation-panel" [attr.aria-label]="'assistant.history' | translate">
       <header class="conversation-panel-header">
-        <h2>Conversations</h2>
+        <h2>{{ 'assistant.conversations' | translate }}</h2>
         <app-button class="add-button" [disabled]="sending" (clicked)="startConversation()">
-          <span class="add-button-content"><mat-icon>add</mat-icon><span>Add</span></span>
+          <span class="add-button-content"><mat-icon>add</mat-icon><span>{{ 'assistant.add' | translate }}</span></span>
         </app-button>
       </header>
 
       @if (loadingConversations) {
-        <p class="history-status">Loading conversations…</p>
+        <p class="history-status">{{ 'assistant.loadingConversations' | translate }}</p>
       } @else if (conversations.length) {
         <div class="conversation-list" role="list">
           @for (conversation of conversations; track conversation._id) {
@@ -18,12 +18,12 @@
                 <mat-icon aria-hidden="true">chat_bubble_outline</mat-icon>
                 <span><strong>{{ conversation.title }}</strong></span>
               </button>
-              <app-action-menu ariaLabel="Conversation actions" [items]="conversationActions" [disabled]="sending" (actionSelected)="requestConversationAction(conversation, $event)" />
+              <app-action-menu [ariaLabel]="'assistant.history' | translate" [items]="conversationActions" [disabled]="sending" (actionSelected)="requestConversationAction(conversation, $event)" />
             </div>
           }
         </div>
       } @else {
-        <p class="history-status">Start a conversation to see it here.</p>
+        <p class="history-status">{{ 'assistant.startConversation' | translate }}</p>
       }
     </aside>
 
@@ -31,15 +31,15 @@
       <div class="assistant-top">
         <header class="assistant-header">
           <div>
-            <p class="eyebrow">YOUR BUSINESS COPILOT</p>
+            <p class="eyebrow">{{ 'assistant.copilot' | translate }}</p>
             <h1 id="assistant-title">
-              <mat-icon aria-hidden="true">auto_awesome</mat-icon> AI Assistant
+              <mat-icon aria-hidden="true">auto_awesome</mat-icon> {{ 'assistant.title' | translate }}
             </h1>
-            <p><mat-icon aria-hidden="true">lock</mat-icon> Private to you</p>
+            <p><mat-icon aria-hidden="true">lock</mat-icon> {{ 'assistant.private' | translate }}</p>
           </div>
           <app-button
             icon="history"
-            ariaLabel="Open conversation history"
+            [ariaLabel]="'assistant.openHistory' | translate"
             [iconOnly]="true"
             variant="secondary"
             [disabled]="sending"
@@ -54,15 +54,12 @@
 
       <div #chatScroll class="chat-scroll" [attr.aria-busy]="loadingConversation || sending">
         @if (loadingConversation) {
-          <p class="chat-status">Loading conversation…</p>
+          <p class="chat-status">{{ 'assistant.loadingConversation' | translate }}</p>
         } @else if (!activeConversation?.messages?.length && !sending) {
           <div class="welcome-state">
             <span class="assistant-mark"><mat-icon aria-hidden="true">auto_awesome</mat-icon></span>
-            <h2>Ask anything about running your business</h2>
-            <p>
-              Start with a prompt below. Business data stays protected while richer answers arrive
-              in the next phase.
-            </p>
+            <h2>{{ 'assistant.welcome' | translate }}</h2>
+            <p>{{ 'assistant.welcomeDescription' | translate }}</p>
           </div>
         } @else {
           <div class="message-thread">
@@ -91,11 +88,11 @@
               </article>
             }
             @if (sending) {
-              <article class="message thinking" aria-label="Assistant is thinking">
+              <article class="message thinking" [attr.aria-label]="'assistant.thinking' | translate">
                 <span class="message-avatar" aria-hidden="true"
                   ><mat-icon>auto_awesome</mat-icon></span
                 >
-                <div><span></span><span></span><span></span><b>Thinking…</b></div>
+                <div><span></span><span></span><span></span><b>{{ 'assistant.thinking' | translate }}</b></div>
               </article>
             }
           </div>
@@ -103,7 +100,7 @@
       </div>
 
       @if (!loadingConversation && !sending && !activeConversation?.messages?.length) {
-        <section class="suggestion-section" aria-label="Suggested prompts">
+        <section class="suggestion-section" [attr.aria-label]="'assistant.welcome' | translate">
           <div class="suggestions">
             @for (suggestion of suggestions; track suggestion.label) {
               <button type="button" (click)="useSuggestion(suggestion)">
@@ -120,15 +117,15 @@
         <mat-icon aria-hidden="true">edit</mat-icon>
         <textarea
           [formControl]="promptControl"
-          aria-label="Ask the AI Assistant"
-          placeholder="Ask anything about your business…"
+          [attr.aria-label]="'assistant.askAria' | translate"
+          [placeholder]="'assistant.askPlaceholder' | translate"
           rows="1"
           (keydown.enter)="handleComposerKeydown($event)"
         ></textarea>
         <button
           type="submit"
           [disabled]="sending || !promptControl.value.trim()"
-          aria-label="Send message"
+          [attr.aria-label]="'assistant.send' | translate"
         >
           <mat-icon aria-hidden="true">send</mat-icon>
         </button>

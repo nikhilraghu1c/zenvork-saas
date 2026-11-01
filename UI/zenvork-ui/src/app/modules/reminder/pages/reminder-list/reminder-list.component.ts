@@ -7,6 +7,8 @@ import {
 } from '../../../../shared/action-menu/action-menu.component';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { BusinessDateTimeService } from '../../../../core/services/business-date-time.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 import { ReminderSendConfirmationDialogComponent } from '../../components/reminder-send-confirmation-dialog/reminder-send-confirmation-dialog.component';
 import {
   ReminderAction,
@@ -28,6 +30,7 @@ interface ReminderTabOption {
     AppButtonComponent,
     MatIconModule,
     ReminderSendConfirmationDialogComponent,
+    TranslatePipe,
   ],
   templateUrl: './reminder-list.component.html',
   styleUrl: './reminder-list.component.scss',
@@ -36,11 +39,12 @@ export class ReminderListComponent implements OnInit {
   private readonly reminderService = inject(ReminderService);
   private readonly router = inject(Router);
   private readonly dateTime = inject(BusinessDateTimeService);
+  private readonly language = inject(LanguageService);
 
   protected readonly tabs: ReminderTabOption[] = [
-    { value: 'to-send', label: 'To send', countLabel: 'To send' },
-    { value: 'upcoming', label: 'Upcoming', countLabel: 'Upcoming' },
-    { value: 'sent-today', label: 'Sent today', countLabel: 'Sent today' },
+    { value: 'to-send', label: this.language.translate('reminder.toSend'), countLabel: this.language.translate('reminder.toSend') },
+    { value: 'upcoming', label: this.language.translate('reminder.upcoming'), countLabel: this.language.translate('reminder.upcoming') },
+    { value: 'sent-today', label: this.language.translate('reminder.sentToday'), countLabel: this.language.translate('reminder.sentToday') },
   ];
   protected selectedTab: ReminderTab = 'to-send';
   protected reminders: ReminderRecord[] = [];
@@ -74,10 +78,10 @@ export class ReminderListComponent implements OnInit {
 
   protected actionMenuItems(reminder: ReminderRecord): AppActionMenuItem[] {
     const items: AppActionMenuItem[] = [
-      { id: 'details', label: 'View booking', icon: 'open_in_new' },
+      { id: 'details', label: this.language.translate('reminder.viewBooking'), icon: 'open_in_new' },
     ];
     if (this.canAction(reminder))
-      items.push({ id: 'skip', label: 'Skip reminder', icon: 'skip_next' });
+      items.push({ id: 'skip', label: this.language.translate('reminder.skip'), icon: 'skip_next' });
     return items;
   }
 
@@ -120,9 +124,9 @@ export class ReminderListComponent implements OnInit {
     if (!this.canAction(reminder)) return;
     try {
       await navigator.clipboard.writeText(this.messageFor(reminder));
-      this.successMessage = 'Reminder message copied.';
+      this.successMessage = this.language.translate('reminder.copied');
     } catch {
-      this.errorMessage = 'Unable to copy the reminder message.';
+      this.errorMessage = this.language.translate('reminder.copyFailed');
     }
   }
 
@@ -144,7 +148,7 @@ export class ReminderListComponent implements OnInit {
       },
       error: (error: { error?: { message?: string } }) => {
         this.actionReminderId = '';
-        this.errorMessage = error.error?.message ?? 'Unable to update the reminder.';
+        this.errorMessage = error.error?.message ?? this.language.translate('reminder.updateFailed');
       },
     });
   }
@@ -152,43 +156,43 @@ export class ReminderListComponent implements OnInit {
   protected appointmentLabel(reminder: ReminderRecord): string {
     return reminder.booking?.scheduledStartAt
       ? this.dateTime.format(reminder.booking.scheduledStartAt, 'dateTime')
-      : 'Appointment time unavailable';
+      : this.language.translate('reminder.timeUnavailable');
   }
 
   protected dueLabel(reminder: ReminderRecord): string {
     if (reminder.status === 'SENT') return this.sentLabel(reminder);
-    return `Ready since ${this.dateTime.format(reminder.dueAt, 'dateTime')}`;
+    return `${this.language.translate('reminder.readySince')} ${this.dateTime.format(reminder.dueAt, 'dateTime')}`;
   }
 
   protected sentLabel(reminder: ReminderRecord): string {
     return reminder.resolvedAt
-      ? `Sent ${this.dateTime.format(reminder.resolvedAt, 'time')}`
-      : 'Sent today';
+      ? `${this.language.translate('reminder.sent')} ${this.dateTime.format(reminder.resolvedAt, 'time')}`
+      : this.language.translate('reminder.sentToday');
   }
 
   protected sectionEyebrow(): string {
-    if (this.selectedTab === 'to-send') return 'READY TO SEND';
-    if (this.selectedTab === 'upcoming') return 'FUTURE REMINDERS';
-    return "TODAY'S ACTIVITY";
+    if (this.selectedTab === 'to-send') return this.language.translate('reminder.readyToSend');
+    if (this.selectedTab === 'upcoming') return this.language.translate('reminder.futureReminders');
+    return this.language.translate('reminder.todayActivity');
   }
 
   protected sectionTitle(): string {
-    if (this.selectedTab === 'to-send') return 'Reminders to send';
-    if (this.selectedTab === 'upcoming') return 'Scheduled reminders';
-    return 'Reminders sent today';
+    if (this.selectedTab === 'to-send') return this.language.translate('reminder.remindersToSend');
+    if (this.selectedTab === 'upcoming') return this.language.translate('reminder.scheduledReminders');
+    return this.language.translate('reminder.remindersSentToday');
   }
 
   protected emptyTitle(): string {
-    if (this.selectedTab === 'to-send') return 'Nothing to send';
-    if (this.selectedTab === 'upcoming') return 'Nothing upcoming';
-    return 'No reminders sent today';
+    if (this.selectedTab === 'to-send') return this.language.translate('reminder.nothingToSend');
+    if (this.selectedTab === 'upcoming') return this.language.translate('reminder.nothingUpcoming');
+    return this.language.translate('reminder.noneSentToday');
   }
 
   protected emptyDescription(): string {
-    if (this.selectedTab === 'to-send') return 'No appointment reminders are ready to send.';
+    if (this.selectedTab === 'to-send') return this.language.translate('reminder.noneReady');
     if (this.selectedTab === 'upcoming')
-      return 'New scheduled appointments will appear here before they are due.';
-    return 'Confirmed WhatsApp reminders will appear here today.';
+      return this.language.translate('reminder.noneUpcoming');
+    return this.language.translate('reminder.noneSent');
   }
 
   private loadReminders(): void {
@@ -203,7 +207,7 @@ export class ReminderListComponent implements OnInit {
       error: (error: { error?: { message?: string } }) => {
         this.reminders = [];
         this.loading = false;
-        this.errorMessage = error.error?.message ?? 'Unable to load reminders.';
+        this.errorMessage = error.error?.message ?? this.language.translate('reminder.loadFailed');
       },
     });
   }

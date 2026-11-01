@@ -5,6 +5,8 @@ import { MatIconModule } from "@angular/material/icon";
 
 import { BusinessDatePipe } from "../../../../core/pipes/business-date.pipe";
 import { BusinessDateTimeService } from "../../../../core/services/business-date-time.service";
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 import { AppButtonComponent } from "../../../../shared/button/button.component";
 import { AppDatePickerComponent } from "../../../../shared/date-picker/date-picker.component";
 import {
@@ -33,6 +35,7 @@ const MONTH_PICKER_DATE_FORMATS = {
     BusinessDatePipe,
     FormsModule,
     MatIconModule,
+    TranslatePipe,
   ],
   providers: [{ provide: MAT_DATE_FORMATS, useValue: MONTH_PICKER_DATE_FORMATS }],
   templateUrl: "./revenue-analytics.component.html",
@@ -41,10 +44,11 @@ const MONTH_PICKER_DATE_FORMATS = {
 export class RevenueAnalyticsComponent implements OnInit {
   private readonly analyticsService = inject(AnalyticsService);
   private readonly dateTime = inject(BusinessDateTimeService);
+  private readonly language = inject(LanguageService);
 
   readonly periods: { value: AnalyticsPeriod; label: string }[] = [
-    { value: "today", label: "Today" },
-    { value: "week", label: "This week" },
+    { value: "today", label: this.language.translate('analytics.today') },
+    { value: "week", label: this.language.translate('analytics.thisWeek') },
   ];
 
   selectedPeriod: AnalyticsPeriod = "today";
@@ -99,12 +103,12 @@ export class RevenueAnalyticsComponent implements OnInit {
   }
 
   comparison(current: number, previous: number): string {
-    if (!previous) return current ? "No previous-period comparison" : "No activity in this period";
+    if (!previous) return current ? this.language.translate('analytics.noPreviousComparison') : this.language.translate('analytics.noActivityComparison');
 
     const percentage = Math.round(((current - previous) / previous) * 100);
-    if (percentage === 0) return "Same as previous period";
+    if (percentage === 0) return this.language.translate('analytics.sameAsPrevious');
 
-    return `${Math.abs(percentage)}% ${percentage > 0 ? "higher" : "lower"} than previous period`;
+    return `${Math.abs(percentage)}% ${percentage > 0 ? this.language.translate('analytics.higher') : this.language.translate('analytics.lower')} ${this.language.translate('analytics.thanPrevious')}`;
   }
 
   private loadRevenue(): void {
@@ -120,7 +124,7 @@ export class RevenueAnalyticsComponent implements OnInit {
         },
         error: (error: { error?: { message?: string } }) => {
           this.analytics = null;
-          this.errorMessage = error.error?.message ?? "Unable to load revenue analytics.";
+          this.errorMessage = error.error?.message ?? this.language.translate('analytics.loadFailed');
           this.isLoading = false;
         },
       });

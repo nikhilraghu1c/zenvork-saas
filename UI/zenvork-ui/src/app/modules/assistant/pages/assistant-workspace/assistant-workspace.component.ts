@@ -4,6 +4,8 @@ import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-s
 import { MatIconModule } from '@angular/material/icon';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MarkdownComponent } from 'ngx-markdown';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageService } from '../../../../core/services/language.service';
 import { AppButtonComponent } from '../../../../shared/button/button.component';
 import { AppActionMenuComponent, AppActionMenuItem } from '../../../../shared/action-menu/action-menu.component';
 import { AssistantConversationDialogComponent, AssistantConversationDialogMode } from '../../components/assistant-conversation-dialog/assistant-conversation-dialog.component';
@@ -20,14 +22,9 @@ interface PromptSuggestion {
   label: string;
 }
 
-const CONVERSATION_ACTIONS: AppActionMenuItem[] = [
-  { id: 'rename', label: 'Rename', icon: 'edit' },
-  { id: 'delete', label: 'Delete', icon: 'delete' },
-];
-
 @Component({
   selector: 'app-assistant-workspace',
-  imports: [AppActionMenuComponent, AppButtonComponent, AssistantConversationDialogComponent, MarkdownComponent, MatBottomSheetModule, MatIconModule, ReactiveFormsModule],
+  imports: [AppActionMenuComponent, AppButtonComponent, AssistantConversationDialogComponent, MarkdownComponent, MatBottomSheetModule, MatIconModule, ReactiveFormsModule, TranslatePipe],
   templateUrl: './assistant-workspace.component.html',
   styleUrl: './assistant-workspace.component.scss',
 })
@@ -37,12 +34,13 @@ export class AssistantWorkspaceComponent implements OnInit {
   private readonly assistant = inject(AssistantService);
   private readonly bottomSheet = inject(MatBottomSheet);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly language = inject(LanguageService);
 
   protected readonly promptControl = new FormControl('', { nonNullable: true });
   protected readonly suggestions: PromptSuggestion[] = [
-    { icon: 'help_outline', label: 'What can I ask?' },
-    { icon: 'payments', label: 'How much revenue did I get yesterday?' },
-    { icon: 'edit_note', label: 'Draft a reminder message' },
+    { icon: 'help_outline', label: this.language.translate('assistant.suggestionOne') },
+    { icon: 'payments', label: this.language.translate('assistant.suggestionTwo') },
+    { icon: 'edit_note', label: this.language.translate('assistant.suggestionThree') },
   ];
 
   protected conversations: AssistantConversationSummary[] = [];
@@ -56,7 +54,10 @@ export class AssistantWorkspaceComponent implements OnInit {
   protected actionMode: AssistantConversationDialogMode | null = null;
   protected actionSubmitting = false;
   protected actionError = '';
-  protected readonly conversationActions = CONVERSATION_ACTIONS;
+  protected readonly conversationActions: AppActionMenuItem[] = [
+    { id: 'rename', label: this.language.translate('assistant.rename'), icon: 'edit' },
+    { id: 'delete', label: this.language.translate('assistant.delete'), icon: 'delete' },
+  ];
   ngOnInit(): void {
     this.loadConversations();
   }
@@ -91,7 +92,7 @@ export class AssistantWorkspaceComponent implements OnInit {
         this.promptControl.setValue('');
       },
       error: (error: { error?: { message?: string } }) => {
-        this.errorMessage = error.error?.message ?? 'Unable to start a conversation.';
+        this.errorMessage = error.error?.message ?? this.language.translate('assistant.startFailed');
       },
     });
   }
@@ -109,7 +110,7 @@ export class AssistantWorkspaceComponent implements OnInit {
       },
       error: (error: { error?: { message?: string } }) => {
         this.loadingConversation = false;
-        this.errorMessage = error.error?.message ?? 'Unable to load the conversation.';
+        this.errorMessage = error.error?.message ?? this.language.translate('assistant.loadFailed');
       },
     });
   }
@@ -141,7 +142,7 @@ export class AssistantWorkspaceComponent implements OnInit {
       error: (error: { error?: { message?: string } }) => {
         this.restoreFailedPrompt();
         this.setSending(false);
-        this.errorMessage = error.error?.message ?? 'Unable to start a conversation.';
+        this.errorMessage = error.error?.message ?? this.language.translate('assistant.startFailed');
       },
     });
   }
@@ -170,7 +171,7 @@ export class AssistantWorkspaceComponent implements OnInit {
       error: (error: { error?: { message?: string } }) => {
         this.restoreFailedPrompt();
         this.setSending(false);
-        this.errorMessage = error.error?.message ?? 'Unable to send the message.';
+        this.errorMessage = error.error?.message ?? this.language.translate('assistant.sendFailed');
       },
     });
   }
@@ -183,7 +184,7 @@ export class AssistantWorkspaceComponent implements OnInit {
       },
       error: (error: { error?: { message?: string } }) => {
         this.loadingConversations = false;
-        this.errorMessage = error.error?.message ?? 'Unable to load conversations.';
+        this.errorMessage = error.error?.message ?? this.language.translate('assistant.loadFailed');
       },
     });
   }
@@ -221,7 +222,7 @@ export class AssistantWorkspaceComponent implements OnInit {
         },
         error: (error: { error?: { message?: string } }) => {
           this.actionSubmitting = false;
-          this.actionError = error.error?.message ?? 'Unable to rename the conversation.';
+          this.actionError = error.error?.message ?? this.language.translate('assistant.actionFailed');
         },
       });
       return;
@@ -236,7 +237,7 @@ export class AssistantWorkspaceComponent implements OnInit {
       },
       error: (error: { error?: { message?: string } }) => {
         this.actionSubmitting = false;
-        this.actionError = error.error?.message ?? 'Unable to delete the conversation.';
+        this.actionError = error.error?.message ?? this.language.translate('assistant.actionFailed');
       },
     });
   }

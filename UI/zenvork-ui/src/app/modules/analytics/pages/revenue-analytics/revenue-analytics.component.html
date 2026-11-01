@@ -1,14 +1,14 @@
 <main class="revenue-analytics-page">
   <header class="revenue-analytics-page__hero">
-    <p class="revenue-analytics-page__eyebrow">BUSINESS INSIGHTS</p>
-    <h1>Revenue analytics</h1>
-    <p>See billed work, money collected, and the services driving your business.</p>
+    <p class="revenue-analytics-page__eyebrow">{{ 'analytics.insights' | translate }}</p>
+    <h1>{{ 'analytics.title' | translate }}</h1>
+    <p>{{ 'analytics.description' | translate }}</p>
 
-    <div class="revenue-analytics-page__periods" aria-label="Reporting period">
+    <div class="revenue-analytics-page__periods" [attr.aria-label]="'analytics.reportingPeriod' | translate">
       <app-date-picker
         class="month-picker"
         mode="month"
-        label="Month"
+        [label]="'analytics.month' | translate"
         subscriptSizing="dynamic"
         [ngModel]="selectedMonth"
         [min]="minimumMonth"
@@ -33,65 +33,65 @@
   @if (isLoading) {
     <section class="revenue-analytics-page__loading" aria-live="polite">
       <mat-icon>insights</mat-icon>
-      Loading revenue analytics…
+      {{ 'analytics.loading' | translate }}
     </section>
   } @else if (errorMessage) {
     <section class="revenue-analytics-page__error" role="alert">
       {{ errorMessage }}
     </section>
   } @else if (analytics; as report) {
-    <section class="revenue-analytics-page__metrics" aria-label="Revenue summary">
+    <section class="revenue-analytics-page__metrics" [attr.aria-label]="'analytics.summary' | translate">
       <article class="metric-card metric-card--billed">
         <div class="metric-card__heading">
           <span class="metric-card__icon" aria-hidden="true"><mat-icon>receipt_long</mat-icon></span>
-          <p class="metric-card__label">Billed</p>
+          <p class="metric-card__label">{{ 'analytics.billed' | translate }}</p>
         </div>
         <strong>{{ formatMoney(report.revenue.billedPaise) }}</strong>
-        <span>{{ report.revenue.billedBookingsCount }} completed booking{{ report.revenue.billedBookingsCount === 1 ? '' : 's' }}</span>
+        <span>{{ report.revenue.billedBookingsCount }} {{ report.revenue.billedBookingsCount === 1 ? ('analytics.completedBooking' | translate) : ('analytics.completedBookings' | translate) }}</span>
         <small>{{ comparison(report.revenue.billedPaise, report.revenue.previousBilledPaise) }}</small>
       </article>
 
       <article class="metric-card metric-card--collected">
         <div class="metric-card__heading">
           <span class="metric-card__icon" aria-hidden="true"><mat-icon>payments</mat-icon></span>
-          <p class="metric-card__label">Collected</p>
+          <p class="metric-card__label">{{ 'analytics.collected' | translate }}</p>
         </div>
         <strong>{{ formatMoney(report.revenue.collectedPaise) }}</strong>
-        <span>{{ report.revenue.collectedBookingsCount }} payment{{ report.revenue.collectedBookingsCount === 1 ? '' : 's' }} recorded</span>
+        <span>{{ report.revenue.collectedBookingsCount }} {{ report.revenue.collectedBookingsCount === 1 ? ('analytics.paymentRecorded' | translate) : ('analytics.paymentsRecorded' | translate) }}</span>
         <small>{{ comparison(report.revenue.collectedPaise, report.revenue.previousCollectedPaise) }}</small>
       </article>
 
       <article class="metric-card metric-card--outstanding">
         <div class="metric-card__heading">
           <span class="metric-card__icon" aria-hidden="true"><mat-icon>account_balance_wallet</mat-icon></span>
-          <p class="metric-card__label">Pending payment</p>
+          <p class="metric-card__label">{{ 'analytics.pendingPayment' | translate }}</p>
         </div>
         <strong>{{ formatMoney(report.revenue.outstandingPaise) }}</strong>
-        <span>{{ report.revenue.outstandingBookingsCount }} completed booking{{ report.revenue.outstandingBookingsCount === 1 ? '' : 's' }} pending payment</span>
-        <small>Completed in this period and not yet paid</small>
+        <span>{{ report.revenue.outstandingBookingsCount }} {{ report.revenue.outstandingBookingsCount === 1 ? ('analytics.completedBooking' | translate) : ('analytics.completedBookings' | translate) }} {{ 'analytics.pendingPaymentDetail' | translate }}</span>
+        <small>{{ 'analytics.completedThisPeriod' | translate }}</small>
       </article>
 
       <article class="metric-card metric-card--discounts">
         <div class="metric-card__heading">
           <span class="metric-card__icon" aria-hidden="true"><mat-icon>sell</mat-icon></span>
-          <p class="metric-card__label">Discounts given</p>
+          <p class="metric-card__label">{{ 'analytics.discounts' | translate }}</p>
         </div>
         <strong>{{ formatMoney(report.revenue.discountsPaise) }}</strong>
-        <span>{{ report.revenue.discountedBookingsCount }} completed booking{{ report.revenue.discountedBookingsCount === 1 ? '' : 's' }} discounted</span>
-        <small>Applied to completed bookings in this period</small>
+        <span>{{ report.revenue.discountedBookingsCount }} {{ report.revenue.discountedBookingsCount === 1 ? ('analytics.completedBooking' | translate) : ('analytics.completedBookings' | translate) }} {{ 'analytics.discounted' | translate }}</span>
+        <small>{{ 'analytics.appliedThisPeriod' | translate }}</small>
       </article>
     </section>
 
     <p class="revenue-analytics-page__definition">
-      Billed uses when a booking was completed. Collected uses when its payment was marked paid.
+      {{ 'analytics.definition' | translate }}
     </p>
 
     <section class="revenue-analytics-page__details">
       <article class="analytics-panel">
         <div class="analytics-panel__header">
           <div>
-            <p class="analytics-panel__eyebrow">COMPLETED WORK</p>
-            <h2>Gross service revenue</h2>
+            <p class="analytics-panel__eyebrow">{{ 'analytics.completedWork' | translate }}</p>
+            <h2>{{ 'analytics.grossServiceRevenue' | translate }}</h2>
           </div>
           <strong>{{ formatMoney(totalServiceRevenuePaise) }}</strong>
         </div>
@@ -102,31 +102,31 @@
               <div class="service-list__row">
                 <div>
                   <strong>{{ service.name }}</strong>
-                  <span>{{ service.bookingsCount }} completed booking{{ service.bookingsCount === 1 ? '' : 's' }}</span>
+                  <span>{{ service.bookingsCount }} {{ service.bookingsCount === 1 ? ('analytics.completedBooking' | translate) : ('analytics.completedBookings' | translate) }}</span>
                 </div>
                 <strong>{{ formatMoney(service.revenuePaise) }}</strong>
               </div>
             }
           </div>
         } @else {
-          <p class="analytics-panel__empty">No completed services in this period.</p>
+          <p class="analytics-panel__empty">{{ 'analytics.noCompletedServices' | translate }}</p>
         }
 
         @if (report.revenue.extraChargesPaise) {
           <p class="analytics-panel__footnote">
-            Extra charges: {{ formatMoney(report.revenue.extraChargesPaise) }}
+            {{ 'analytics.extraCharges' | translate }}: {{ formatMoney(report.revenue.extraChargesPaise) }}
           </p>
         }
         <p class="analytics-panel__footnote">
-          Service revenue is before booking-level discounts. Discounts are shown above because they are not assigned to one service.
+          {{ 'analytics.serviceRevenueNote' | translate }}
         </p>
       </article>
 
       <article class="analytics-panel">
         <div class="analytics-panel__header">
           <div>
-            <p class="analytics-panel__eyebrow">DAILY VIEW</p>
-            <h2>Revenue activity</h2>
+            <p class="analytics-panel__eyebrow">{{ 'analytics.dailyView' | translate }}</p>
+            <h2>{{ 'analytics.revenueActivity' | translate }}</h2>
           </div>
         </div>
 
@@ -135,13 +135,13 @@
             @for (day of report.daily; track day.date) {
               <div class="daily-list__row">
                 <time>{{ day.date + 'T00:00:00.000Z' | businessDate }}</time>
-                <span><strong>{{ formatMoney(day.billedPaise) }}</strong> billed</span>
-                <span><strong>{{ formatMoney(day.collectedPaise) }}</strong> collected</span>
+                <span><strong>{{ formatMoney(day.billedPaise) }}</strong> {{ 'analytics.billed' | translate }}</span>
+                <span><strong>{{ formatMoney(day.collectedPaise) }}</strong> {{ 'analytics.collected' | translate }}</span>
               </div>
             }
           </div>
         } @else {
-          <p class="analytics-panel__empty">No revenue activity in this period.</p>
+          <p class="analytics-panel__empty">{{ 'analytics.noActivity' | translate }}</p>
         }
       </article>
     </section>

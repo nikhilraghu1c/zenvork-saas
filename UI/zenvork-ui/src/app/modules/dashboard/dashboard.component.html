@@ -1,16 +1,16 @@
 <section class="dashboard-page" aria-labelledby="dashboard-title">
   <header class="dashboard-header">
-    <p class="eyebrow">Workspace Overview</p>
-    <h1 id="dashboard-title">Welcome Back, {{ firstName }}</h1>
-    <p>Keep an eye on appointments, earned revenue, and your team's workload.</p>
-    <div class="period-picker" aria-label="Dashboard period">
+    <p class="eyebrow">{{ 'dashboard.workspaceOverview' | translate }}</p>
+    <h1 id="dashboard-title">{{ 'dashboard.welcomeBack' | translate }}, {{ firstName }}</h1>
+    <p>{{ 'dashboard.description' | translate }}</p>
+    <div class="period-picker" [attr.aria-label]="'dashboard.workspaceOverview' | translate">
       @for (period of periods; track period) {
         <app-button
           variant="text"
           [class.is-selected]="selectedPeriod === period"
           (clicked)="selectPeriod(period)"
         >
-          {{ period === 'today' ? 'Today' : period === 'week' ? 'This week' : 'This month' }}
+          {{ period === 'today' ? ('dashboard.today' | translate) : period === 'week' ? ('dashboard.thisWeek' | translate) : ('dashboard.thisMonth' | translate) }}
         </app-button>
       }
     </div>
@@ -22,63 +22,60 @@
     <div class="summary-grid" [attr.aria-busy]="loading">
       <article class="summary-card">
         <span class="card-icon"><mat-icon>calendar_month</mat-icon></span>
-        <span class="card-label">Appointments</span>
+        <span class="card-label">{{ 'dashboard.appointments' | translate }}</span>
         <strong>{{ loading ? '…' : summary?.bookingsCount }}</strong>
-        <small>Scheduled {{ periodLabel.toLowerCase() }}</small>
+        <small>{{ 'dashboard.scheduled' | translate }} {{ periodLabel.toLowerCase() }}</small>
       </article>
 
       <article class="summary-card">
         <span class="card-icon"><mat-icon>payments</mat-icon></span>
-        <span class="card-label">Revenue earned</span>
+        <span class="card-label">{{ 'dashboard.revenueEarned' | translate }}</span>
         <strong>{{ loading ? '…' : formatMoney(summary?.revenue?.earnedPaise ?? 0) }}</strong>
         <small
           [class.positive]="
             (summary?.revenue?.earnedPaise ?? 0) >= (summary?.revenue?.previousEarnedPaise ?? 0)
           "
-          >{{ loading ? 'Loading comparison' : revenueComparison() }}</small
+          >{{ loading ? ('dashboard.loadingComparison' | translate) : revenueComparison() }}</small
         >
       </article>
 
       <article class="summary-card">
         <span class="card-icon"><mat-icon>person_off</mat-icon></span>
-        <span class="card-label">No-show rate</span>
+        <span class="card-label">{{ 'dashboard.noShowRate' | translate }}</span>
         <strong>{{
           loading ? '…' : ((summary?.noShows?.rate ?? 0) * 100 | number: '1.0-0') + '%'
         }}</strong>
         <small>{{
           loading
-            ? 'Loading attendance'
+            ? ('dashboard.loadingAttendance' | translate)
             : (summary?.noShows?.count ?? 0) +
               ' of ' +
               (summary?.noShows?.resolvedBookings ?? 0) +
-              ' resolved bookings'
+              ' ' + ('dashboard.resolvedBookings' | translate)
         }}</small>
       </article>
 
       <article class="summary-card">
         <span class="card-icon"><mat-icon>groups</mat-icon></span>
-        <span class="card-label">Active staff</span>
+        <span class="card-label">{{ 'dashboard.activeStaff' | translate }}</span>
         <strong>{{ loading ? '…' : summary?.activeStaffCount }}</strong>
-        <small>Enabled staff resources</small>
+        <small>{{ 'dashboard.enabledStaffResources' | translate }}</small>
       </article>
     </div>
 
     <section class="revenue-breakdown" aria-labelledby="revenue-breakdown-title">
       <div>
-        <p class="eyebrow">Revenue breakdown</p>
-        <h2 id="revenue-breakdown-title">What has been settled?</h2>
-        <p>
-          Revenue is counted only after a booking is completed. Payment status remains a manual
-          settlement record.
-        </p>
+        <p class="eyebrow">{{ 'dashboard.revenueBreakdown' | translate }}</p>
+        <h2 id="revenue-breakdown-title">{{ 'dashboard.settledQuestion' | translate }}</h2>
+        <p>{{ 'dashboard.revenueExplanation' | translate }}</p>
       </div>
       <dl>
         <div>
-          <dt>Collected</dt>
+          <dt>{{ 'dashboard.collected' | translate }}</dt>
           <dd>{{ loading ? '…' : formatMoney(summary?.revenue?.collectedPaise ?? 0) }}</dd>
         </div>
         <div>
-          <dt>Pending payment</dt>
+          <dt>{{ 'dashboard.pendingPayment' | translate }}</dt>
           <dd>{{ loading ? '…' : formatMoney(summary?.revenue?.outstandingPaise ?? 0) }}</dd>
         </div>
       </dl>
@@ -87,34 +84,34 @@
     <section class="booking-health" aria-labelledby="booking-health-title">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">Booking health</p>
-          <h2 id="booking-health-title">How did bookings progress?</h2>
+          <p class="eyebrow">{{ 'dashboard.bookingHealth' | translate }}</p>
+          <h2 id="booking-health-title">{{ 'dashboard.progressQuestion' | translate }}</h2>
         </div>
         <mat-icon aria-hidden="true">monitor_heart</mat-icon>
       </div>
       <dl>
         <div class="pending">
-          <dt>Pending</dt>
+          <dt>{{ 'dashboard.pending' | translate }}</dt>
           <dd>{{ loading ? '…' : summary?.bookingHealth?.pending ?? 0 }}</dd>
         </div>
         <div class="scheduled">
-          <dt>Scheduled</dt>
+          <dt>{{ 'dashboard.scheduled' | translate }}</dt>
           <dd>{{ loading ? '…' : summary?.bookingHealth?.scheduled ?? 0 }}</dd>
         </div>
         <div class="checked-in">
-          <dt>Checked in</dt>
+          <dt>{{ 'dashboard.checkedIn' | translate }}</dt>
           <dd>{{ loading ? '…' : summary?.bookingHealth?.checkedIn ?? 0 }}</dd>
         </div>
         <div class="completed">
-          <dt>Completed</dt>
+          <dt>{{ 'dashboard.completed' | translate }}</dt>
           <dd>{{ loading ? '…' : summary?.bookingHealth?.completed ?? 0 }}</dd>
         </div>
         <div class="cancelled">
-          <dt>Cancelled</dt>
+          <dt>{{ 'dashboard.cancelled' | translate }}</dt>
           <dd>{{ loading ? '…' : summary?.bookingHealth?.cancelled ?? 0 }}</dd>
         </div>
         <div class="no-show">
-          <dt>No-show</dt>
+          <dt>{{ 'dashboard.noShow' | translate }}</dt>
           <dd>{{ loading ? '…' : summary?.bookingHealth?.noShow ?? 0 }}</dd>
         </div>
       </dl>
@@ -124,8 +121,8 @@
       <section class="top-services" aria-labelledby="top-services-title">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Service performance</p>
-            <h2 id="top-services-title">Top services by revenue</h2>
+            <p class="eyebrow">{{ 'dashboard.servicePerformance' | translate }}</p>
+            <h2 id="top-services-title">{{ 'dashboard.topServices' | translate }}</h2>
           </div>
           <mat-icon aria-hidden="true">workspace_premium</mat-icon>
         </div>
@@ -140,7 +137,7 @@
             }
           </ol>
         } @else if (!summary?.topServices?.length) {
-          <p class="empty-insight">No completed services {{ periodLabel.toLowerCase() }}.</p>
+          <p class="empty-insight">{{ 'dashboard.noCompletedServices' | translate }} {{ periodLabel.toLowerCase() }}.</p>
         } @else {
           <ol class="service-ranking">
             @for (
@@ -153,9 +150,7 @@
                 <div>
                   <strong>{{ service.name }}</strong
                   ><small
-                    >{{ service.bookingsCount }} booking{{
-                      service.bookingsCount === 1 ? '' : 's'
-                    }}</small
+                    >{{ service.bookingsCount }} {{ service.bookingsCount === 1 ? ('dashboard.booking' | translate) : ('dashboard.bookings' | translate) }}</small
                   >
                 </div>
                 <b>{{ formatMoney(service.revenuePaise) }}</b>
@@ -168,8 +163,8 @@
       <section class="top-staff" aria-labelledby="top-staff-title">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Team performance</p>
-            <h2 id="top-staff-title">Top staff by completed bookings</h2>
+            <p class="eyebrow">{{ 'dashboard.teamPerformance' | translate }}</p>
+            <h2 id="top-staff-title">{{ 'dashboard.topStaff' | translate }}</h2>
           </div>
           <mat-icon aria-hidden="true">groups</mat-icon>
         </div>
@@ -184,7 +179,7 @@
             }
           </ol>
         } @else if (!summary?.topStaff?.length) {
-          <p class="empty-insight">No completed staff bookings {{ periodLabel.toLowerCase() }}.</p>
+          <p class="empty-insight">{{ 'dashboard.noCompletedStaffBookings' | translate }} {{ periodLabel.toLowerCase() }}.</p>
         } @else {
           <ol class="staff-ranking">
             @for (
@@ -199,9 +194,7 @@
                   ><small>{{ staffMember.resourceTypeName || staffMember.resourceType }}</small>
                 </div>
                 <b
-                  >{{ staffMember.bookingsCount }} booking{{
-                    staffMember.bookingsCount === 1 ? '' : 's'
-                  }}</b
+                  >{{ staffMember.bookingsCount }} {{ staffMember.bookingsCount === 1 ? ('dashboard.booking' | translate) : ('dashboard.bookings' | translate) }}</b
                 >
               </li>
             }

@@ -1,9 +1,9 @@
 <main class="reminder-list-page" aria-labelledby="reminders-title">
   <header class="reminder-list-page__hero">
     <div>
-      <p class="reminder-list-page__eyebrow">REMINDER WORKSPACE</p>
-      <h1 id="reminders-title">Reminders</h1>
-      <p>Keep appointments on track.</p>
+      <p class="reminder-list-page__eyebrow">{{ 'reminder.workspace' | translate }}</p>
+      <h1 id="reminders-title">{{ 'reminder.title' | translate }}</h1>
+      <p>{{ 'reminder.description' | translate }}</p>
     </div>
   </header>
 
@@ -46,7 +46,7 @@
     @if (loading) {
       <div class="reminder-list-page__state" aria-live="polite">
         <mat-icon aria-hidden="true">notifications</mat-icon>
-        Loading reminders…
+        {{ 'reminder.loading' | translate }}
       </div>
     } @else if (!errorMessage) {
       <section class="reminder-list-page__active-list" aria-labelledby="active-reminders-title">
@@ -55,7 +55,7 @@
             <p>{{ sectionEyebrow() }}</p>
             <h2 id="active-reminders-title">{{ sectionTitle() }}</h2>
           </div>
-          <span>{{ reminders.length }} shown</span>
+          <span>{{ reminders.length }} {{ 'reminder.shown' | translate }}</span>
         </div>
 
         @if (reminders.length) {
@@ -69,7 +69,7 @@
                 [class.reminder-card--sent]="reminder.status === 'SENT'"
               >
                 <div class="reminder-card__identity">
-                  <strong>{{ reminder.client?.name ?? 'Unknown client' }}</strong>
+                  <strong>{{ reminder.client?.name ?? ('reminder.unknownClient' | translate) }}</strong>
                   <span
                     [class.is-ready]="selectedTab === 'to-send' && reminder.status !== 'SENT'"
                     [class.is-sent]="reminder.status === 'SENT'"
@@ -78,9 +78,9 @@
                   </span>
                 </div>
                 <p class="reminder-card__appointment">
-                  {{ reminder.client?.mobile ?? 'No phone number' }}
+                  {{ reminder.client?.mobile ?? ('reminder.noPhone' | translate) }}
                   <span aria-hidden="true">·</span>
-                  Appointment · {{ appointmentLabel(reminder) }}
+                  {{ 'reminder.appointment' | translate }} · {{ appointmentLabel(reminder) }}
                 </p>
 
                 <footer class="reminder-card__actions">
@@ -116,15 +116,14 @@
                       class="reminder-card__sent-action"
                       variant="text"
                       icon="task_alt"
-                      label="Mark sent"
+                      [label]="'reminder.markSent' | translate"
                       [loading]="actionReminderId === reminder._id"
                       [ariaLabel]="'Mark reminder sent for ' + (reminder.client?.name ?? 'client')"
                       (clicked)="updateReminder(reminder, 'sent')"
                     />
                   } @else {
                     <p class="reminder-card__preview-label">
-                      <mat-icon aria-hidden="true">schedule</mat-icon> Available when it is time to
-                      send.
+                      <mat-icon aria-hidden="true">schedule</mat-icon> {{ 'reminder.availableWhenDue' | translate }}
                     </p>
                   }
                   <app-action-menu
