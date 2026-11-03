@@ -19,6 +19,7 @@ MongoDB implement it.
    and cleanup.
 8. [AI Assistant module](assistant-module.md) — private conversation lifecycle, provider safety, and
    controlled business-data tools.
+9. [Backend testing](testing.md) — how to run the dependency-free unit suite and what it protects.
 
 ## Module guides
 
@@ -35,6 +36,7 @@ MongoDB implement it.
 - [Reminder module](reminder-module.md)
 - [Reminder flow chart](reminder-flow.md)
 - [AI Assistant module](assistant-module.md)
+- [Backend testing](testing.md)
 
 ## Keep learning guides current
 
